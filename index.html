@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>دمج الفلاتر</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            text-align: center;
+            padding: 20px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        textarea {
+            width: 80%;
+            height: 300px;
+            margin-top: 10px;
+            padding: 10px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <h1>دمج الفلاتر</h1>
+    <p>اضغط على الزر لتحميل الفلاتر ودمجها بدون تكرار:</p>
+    <button onclick="mergeFilters()">دمج الفلاتر</button>
+    
+    <textarea id="mergedFilters" placeholder="الفلاتر ستظهر هنا بعد الدمج..."></textarea>
+
+    <script>
+        // روابط الفلاتر التي أرسلتها
+        const filterLinks = [
+            "https://easylist.to/easylist/easylist.txt",
+            "https://easylist.to/easylist/easylistchina.txt",
+            "https://easylist.to/easylist/easylistdutch.txt",
+            "https://easylist.to/easylist/easylistgerman.txt",
+            "https://easylist.to/easylist/easylistfrench.txt",
+            "https://easylist.to/easylist/easylistspanish.txt",
+            "https://easylist.to/easylist/easylistportuguese.txt"
+        ];
+
+        // دمج الفلاتر وإزالة التكرار
+        function mergeFilters() {
+            let mergedContent = "";
+            let uniqueLines = new Set(); // مجموعة لتخزين الفلاتر بدون تكرار
+
+            filterLinks.forEach((link) => {
+                fetch(link)
+                    .then(response => response.text())
+                    .then(data => {
+                        const lines = data.split("\n"); // تقسيم النص إلى أسطر
+                        lines.forEach(line => {
+                            if (line.trim() !== "") {
+                                uniqueLines.add(line.trim()); // إضافة السطر إلى المجموعة
+                            }
+                        });
+
+                        // تحديث textarea عند تحميل كل فلاتر
+                        mergedContent = Array.from(uniqueLines).join("\n"); // تحويل المجموعة إلى نص
+                        document.getElementById("mergedFilters").value = mergedContent;
+                    })
+                    .catch(error => console.error("خطأ في تحميل الفلاتر:", error));
+            });
+        }
+    </script>
+</body>
+</html>
