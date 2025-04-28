@@ -50,13 +50,13 @@
             "https://easylist.to/easylist/easylistportuguese.txt"
         ];
 
-        const githubToken = "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"; // أدخل هنا GitHub Token الخاص بك
         const githubRepo = "elqiser00/1002"; // اسم مستودع GitHub الخاص بك
         const githubFilePath = "filters/merged-filters.txt"; // المسار داخل المستودع
 
         function mergeAndUpload() {
             let uniqueLines = new Set();
             let mergedContent = "";
+            let loadedFiltersCount = 0;
 
             filterLinks.forEach((link) => {
                 fetch(link)
@@ -69,12 +69,15 @@
                             }
                         });
 
-                        mergedContent = Array.from(uniqueLines).join("\n");
+                        loadedFiltersCount++;
+                        if (loadedFiltersCount === filterLinks.length) {
+                            // تم تحميل جميع الفلاتر، نقوم بدمجها الآن
+                            mergedContent = Array.from(uniqueLines).join("\n");
+                            document.getElementById("mergedFilters").value = mergedContent;
 
-                        document.getElementById("mergedFilters").value = mergedContent;
-
-                        // رفع الملف إلى GitHub
-                        uploadToGitHub(mergedContent);
+                            // رفع الملف إلى GitHub
+                            uploadToGitHub(mergedContent);
+                        }
                     })
                     .catch(error => console.error("خطأ في تحميل الفلاتر:", error));
             });
@@ -90,7 +93,7 @@
             fetch(`https://api.github.com/repos/${githubRepo}/contents/${githubFilePath}`, {
                 method: 'PUT',
                 headers: {
-                    'Authorization': `token ${githubToken}`,
+                    'Authorization': `token ${getGithubToken()}`, // استخدم التوكن بشكل آمن هنا
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(data)
@@ -105,6 +108,11 @@
                 }
             })
             .catch(error => console.error("خطأ في رفع الملف إلى GitHub:", error));
+        }
+
+        function getGithubToken() {
+            // تأكد من الحصول على التوكن من مصدر آمن هنا (مثل بيئة آمنة أو GitHub Secrets)
+            return "YOUR_GITHUB_TOKEN";
         }
     </script>
 </body>
