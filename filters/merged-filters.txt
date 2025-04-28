@@ -16,3 +16,6 @@
 @@||atspace.cc^$important
 @@||www.atspace.com^$important
 @@||secure.runhosting.com^$important
+@@||newserv.freewha.com^$important
+@@||freewha.com^$important
+@@||www.freewebhostingarea.com^$important
