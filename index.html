@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>دمج الفلاتر</title>
+    <title>دمج الفلاتر ورفعها على GitHub</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -33,14 +33,13 @@
     </style>
 </head>
 <body>
-    <h1>دمج الفلاتر</h1>
-    <p>اضغط على الزر لتحميل الفلاتر ودمجها بدون تكرار:</p>
-    <button onclick="mergeFilters()">دمج الفلاتر</button>
+    <h1>دمج الفلاتر ورفعها إلى GitHub</h1>
+    <p>اضغط على الزر لتحميل الفلاتر ودمجها، ثم رفعها إلى GitHub.</p>
+    <button onclick="mergeAndUpload()">دمج الفلاتر ورفعها</button>
     
     <textarea id="mergedFilters" placeholder="الفلاتر ستظهر هنا بعد الدمج..."></textarea>
 
     <script>
-        // روابط الفلاتر التي أرسلتها
         const filterLinks = [
             "https://easylist.to/easylist/easylist.txt",
             "https://easylist.to/easylist/easylistchina.txt",
@@ -51,28 +50,61 @@
             "https://easylist.to/easylist/easylistportuguese.txt"
         ];
 
-        // دمج الفلاتر وإزالة التكرار
-        function mergeFilters() {
+        const githubToken = "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"; // أدخل هنا GitHub Token الخاص بك
+        const githubRepo = "elqiser00/1002"; // اسم مستودع GitHub الخاص بك
+        const githubFilePath = "filters/merged-filters.txt"; // المسار داخل المستودع
+
+        function mergeAndUpload() {
+            let uniqueLines = new Set();
             let mergedContent = "";
-            let uniqueLines = new Set(); // مجموعة لتخزين الفلاتر بدون تكرار
 
             filterLinks.forEach((link) => {
                 fetch(link)
                     .then(response => response.text())
                     .then(data => {
-                        const lines = data.split("\n"); // تقسيم النص إلى أسطر
+                        const lines = data.split("\n");
                         lines.forEach(line => {
                             if (line.trim() !== "") {
-                                uniqueLines.add(line.trim()); // إضافة السطر إلى المجموعة
+                                uniqueLines.add(line.trim());
                             }
                         });
 
-                        // تحديث textarea عند تحميل كل فلاتر
-                        mergedContent = Array.from(uniqueLines).join("\n"); // تحويل المجموعة إلى نص
+                        mergedContent = Array.from(uniqueLines).join("\n");
+
                         document.getElementById("mergedFilters").value = mergedContent;
+
+                        // رفع الملف إلى GitHub
+                        uploadToGitHub(mergedContent);
                     })
                     .catch(error => console.error("خطأ في تحميل الفلاتر:", error));
             });
+        }
+
+        function uploadToGitHub(content) {
+            const data = {
+                message: "دمج الفلاتر المحدثة",
+                content: btoa(content), // تحويل النص إلى base64
+                path: githubFilePath
+            };
+
+            fetch(`https://api.github.com/repos/${githubRepo}/contents/${githubFilePath}`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `token ${githubToken}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.content) {
+                    alert("تم رفع الملف بنجاح! يمكنك تحميله من هنا: \n" +
+                          `https://github.com/${githubRepo}/blob/main/${githubFilePath}`);
+                } else {
+                    alert("حدث خطأ أثناء رفع الملف.");
+                }
+            })
+            .catch(error => console.error("خطأ في رفع الملف إلى GitHub:", error));
         }
     </script>
 </body>
