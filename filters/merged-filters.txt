@@ -22,4 +22,4 @@
 @@||b-graph.facebook.com^$important
 ||www.googleadservices.com^$important
 ||googleadservices.com^$important
-||noip.com^
+||noip.com^$important
