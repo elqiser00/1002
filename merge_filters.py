@@ -80,7 +80,7 @@ urls = [
     "https://raw.githubusercontent.com/elqiser00/1002/refs/heads/main/filters/merged-filters.txt",
 ]
 
-# مجموعة السطور
+# استخدام مجموعة لإزالة التكرار
 all_lines = set()
 
 # تحميل ودمج الفلاتر
@@ -91,22 +91,25 @@ for url in urls:
         response.raise_for_status()
         lines = response.text.splitlines()
         for line in lines:
-            clean_line = line.strip()
-            if clean_line and not clean_line.startswith('!') and not clean_line.startswith('#'):
+            clean_line = line.rstrip()  # حافظ على السطر كما هو باستثناء المسافات الزائدة
+            if clean_line:
                 all_lines.add(clean_line)
     except Exception as e:
         print(f"❌ خطأ في تحميل {url}: {e}")
 
-# ترتيب السطور
-sorted_lines = sorted(all_lines)
+# ترتيب السطور (تعليقات أولاً حسب الترتيب الأبجدي، ثم القواعد)
+comment_lines = sorted([l for l in all_lines if l.startswith('!') or l.startswith('#')])
+rule_lines = sorted([l for l in all_lines if not (l.startswith('!') or l.startswith('#'))])
 
-# كتابة الملف مع تعليق عدد القواعد
+merged_lines = comment_lines + [""] + rule_lines  # افصلهم بسطر فارغ
+
+# كتابة الملف النهائي
 output_file = "merged_filters.txt"
 with open(output_file, "w", encoding="utf-8") as f:
     f.write(f"! Title: Merged Filters\n")
-    f.write(f"! Total Rules: {len(sorted_lines)}\n")
+    f.write(f"! Total Unique Entries (including comments): {len(merged_lines)}\n")
     f.write(f"! Last updated: auto-generated\n\n")
-    for line in sorted_lines:
+    for line in merged_lines:
         f.write(line + "\n")
 
-print(f"\n✅ تم دمج {len(sorted_lines)} قاعدة وحفظهم في {output_file}")
+print(f"\n✅ تم دمج {len(merged_lines)} سطر (بما فيها التعليقات) وحفظهم في {output_file}")
