@@ -75,3 +75,4 @@ https://abpvn.com/filter/abpvn-IPl6HE.txt
 https://easylist-downloads.adblockplus.org/Liste_AR.txt
 https://www.zoso.ro/pages/rolist.txt
 https://easylist-downloads.adblockplus.org/antiadblockfilters.txt
+https://raw.githubusercontent.com/elqiser00/1002/refs/heads/main/filters/merged-filters.txt
