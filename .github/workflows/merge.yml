@@ -1,35 +1,39 @@
-name: Merge Filters Every 6 Hours
+name: Auto-update merged filters
 
 on:
   schedule:
-    - cron: '0 */6 * * *' # كل 6 ساعات
-  workflow_dispatch: # يسمح بالتشغيل اليدوي من GitHub
+    # يشغل الـ job كل 6 ساعات
+    - cron: '0 */6 * * *'  # تحديد التوقيت كل 6 ساعات
+  workflow_dispatch:  # تفعيل التشغيل اليدوي إذا لزم الأمر
 
 jobs:
-  merge:
+  merge_filters:
     runs-on: ubuntu-latest
-
+    
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.x'
-
-      - name: Install requirements
-        run: |
-          python -m pip install --upgrade pip
-          pip install requests
-
-      - name: Run merge_filters.py
-        run: python merge_filters.py
-
-      - name: Commit and push changes
-        run: |
-          git config user.name "GitHub Action"
-          git config user.email "action@github.com"
-          git add merged_filters.txt
-          git commit -m "🔄 Auto-update merged filters ($(date))" || echo "No changes to commit"
-          git push
+    - name: Checkout repository
+      uses: actions/checkout@v2
+      with:
+        token: ${{ secrets.GH_TOKEN }}  # استخدم GitHub token
+    
+    - name: Set up Python environment
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+    
+    - name: Install required dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install requests
+    
+    - name: Run Python script to merge filters
+      run: |
+        python merge_filters.py
+    
+    - name: Commit and push changes
+      run: |
+        git config user.name "GitHub Actions"
+        git config user.email "github-actions@github.com"
+        git add merged_filters.txt
+        git commit -m "🔄 Auto-update merged filters"
+        git push https://${{ secrets.GH_TOKEN }}@github.com/elqiser00/1002.git HEAD:main
