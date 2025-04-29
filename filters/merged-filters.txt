@@ -19,5 +19,4 @@
 @@||newserv.freewha.com^$important
 @@||freewha.com^$important
 @@||www.freewebhostingarea.com^$important
-||www.paypal.com^$important
 @@||b-graph.facebook.com^$important
