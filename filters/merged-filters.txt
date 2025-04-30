@@ -24,11 +24,9 @@
 ||googleadservices.com^$important
 ||noip.com^$important
 @@||doodstream.com^$important
-@@||www.mediafire.com^$important
-@@||static.mediafire.com^$important
 @@||z-m-gateway.facebook.com^$important
-@@||app.mediafire.com^$important
 @@||gateway.facebook.com^$important
-@@||email.mediafire.com^$important
 @@||filecr.com^$important
 @@||s1-filecr.xyz^$important
+@@||download1349.mediafire.com^$important
+@@||mediafire.com^$important
