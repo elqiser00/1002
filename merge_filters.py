@@ -104,7 +104,7 @@ urls = [
     "https://adguardteam.github.io/HostlistsRegistry/assets/filter_50.txt",
     "https://phishing.army/download/phishing_army_blocklist.txt",
     "https://raw.githubusercontent.com/d3ward/toolz/master/src/d3host.txt",
-    "https://malware-filter.gitlab.io/malware-filter/phishing-filter-agh.txt"
+    "https://malware-filter.gitlab.io/malware-filter/phishing-filter-agh.txt",
     "https://raw.githubusercontent.com/elqiser00/1002/refs/heads/main/filters/merged-filters.txt",
 ]
 
