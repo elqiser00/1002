@@ -23,3 +23,5 @@
 ||www.googleadservices.com^$important
 ||googleadservices.com^$important
 ||noip.com^$important
+@@||doodstream.com^$important
+@@||www.mediafire.com^$important
