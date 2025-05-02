@@ -1,5 +1,6 @@
 import requests
 import os
+import time
 
 # جميع الروابط
 urls = [
@@ -183,29 +184,33 @@ for url in urls:
             clean_line = line.strip()
             if clean_line:
                 all_lines.add(clean_line)
+        time.sleep(0.2)  # تأخير 0.2 ثانية بين كل طلب
     except Exception as e:
         print(f"❌ خطأ في تحميل {url}: {e}")
 
-# تحويل المجموعة إلى قائمة وترتيبها
+# تحويل المجموعة إلى قائمة
 all_lines = list(all_lines)
+total_lines = len(all_lines)
+print(f"✅ تم تحميل {total_lines} فلتر فريد.")
 
-# فصل التعليقات عن القواعد وترتيب كل مجموعة
-comment_lines = sorted([line for line in all_lines if line.startswith("!") or line.startswith("#")])
-rule_lines = sorted([line for line in all_lines if not (line.startswith("!") or line.startswith("#"))])
-
-# دمج القوائم
-merged_lines = comment_lines + rule_lines
-
-# إنشاء مجلد للإخراج
-output_dir = "output_filters"
+# إنشاء مجلد للإخراج إن لم يكن موجودًا
+output_dir = "merged_filters"
 os.makedirs(output_dir, exist_ok=True)
 
-# تقسيم إلى ملفات متعددة حسب الحد الأقصى
-file_count = 1
-for i in range(0, len(merged_lines), MAX_LINES_PER_FILE):
-    part = merged_lines[i:i + MAX_LINES_PER_FILE]
-    filename = os.path.join(output_dir, f"filters_part_{file_count}.txt")
+# حفظ جميع الفلاتر في ملف واحد
+all_file_path = os.path.join(output_dir, "all_filters.txt")
+with open(all_file_path, "w", encoding="utf-8") as f:
+    f.write("\n".join(all_lines))
+print(f"🗂️ تم حفظ كل الفلاتر في ملف شامل: {all_file_path}")
+
+# تقسيم إلى ملفات حسب الحجم
+file_index = 1
+for i in range(0, total_lines, MAX_LINES_PER_FILE):
+    chunk = all_lines[i:i + MAX_LINES_PER_FILE]
+    filename = os.path.join(output_dir, f"filters_part_{file_index}.txt")
     with open(filename, "w", encoding="utf-8") as f:
-        f.write("\n".join(part))
-    print(f"✅ تم حفظ {len(part)} فلتر في: {filename}")
-    file_count += 1
+        f.write("\n".join(chunk))
+    print(f"📁 تم إنشاء الملف: {filename} ({len(chunk)} فلاتر)")
+    file_index += 1
+
+print("🎉 تم الانتهاء من تحميل ودمج الفلاتر بنجاح.")
