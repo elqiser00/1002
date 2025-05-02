@@ -31,10 +31,12 @@ jobs:
         python merge_filters.py
     
   - name: Commit and push changes
-  run: |
+    run: |
     git config user.name "GitHub Actions"
     git config user.email "github-actions@github.com"
-    git add -A  # يضيف كل الملفات المعدلة أو الجديدة أو المحذوفة
+    git status
+    ls -la
+    cat merged_filters.txt || echo "File not found"
+    git add -A
     git commit -m "🔄 Auto-update merged filters" || echo "No changes to commit"
     git push https://${{ secrets.GH_TOKEN }}@github.com/elqiser00/1002.git HEAD:main
-
