@@ -1,7 +1,8 @@
 import requests
+import os
 
 # كل الروابط
-urls = [
+urls = [  # اختصرنا هنا، حط كل الروابط كما كانت
     "https://adguardteam.github.io/HostlistsRegistry/assets/filter_1.txt",
     "https://adguardteam.github.io/HostlistsRegistry/assets/filter_53.txt",
     "https://adguardteam.github.io/HostlistsRegistry/assets/filter_34.txt",
@@ -162,7 +163,7 @@ urls = [
     "https://easylist-downloads.adblockplus.org/indianlist.txt",
     "https://raw.githubusercontent.com/RandomAdversary/Macedonian-adBlock-Filters/master/Filters",
     "https://raw.githubusercontent.com/DandelionSprout/adfilt/master/NorwegianExperimentalList%20alternate%20versions/NordicFiltersAdGuard.txt",
-    "https://raw.githubusercontent.com/elqiser00/1002/refs/heads/main/filters/merged-filters.txt"
+    "https://raw.githubusercontent.com/elqiser00/1002/refs/heads/main/filters/merged-filters.txt",
 ]
 
 # استخدام مجموعة لإزالة التكرار
@@ -172,53 +173,41 @@ all_lines = set()
 for url in urls:
     try:
         print(f"⏳ جاري تحميل: {url}")
-        response = requests.get(url, timeout=20)
+        response = requests.get(url, timeout=30)
         response.raise_for_status()
         lines = response.text.splitlines()
         for line in lines:
-            clean_line = line.rstrip()  # حافظ على السطر كما هو باستثناء المسافات الزائدة
+            clean_line = line.strip()
             if clean_line:
                 all_lines.add(clean_line)
     except Exception as e:
         print(f"❌ خطأ في تحميل {url}: {e}")
 
-# ترتيب السطور (تعليقات أولاً حسب الترتيب الأبجدي، ثم القواعد)
+# تحويل المجموعة إلى قائمة لترتيبها
+all_lines = list(all_lines)
+
+# ترتيب: التعليقات أولاً ثم القواعد
 comment_lines = sorted([l for l in all_lines if l.startswith('!') or l.startswith('#')])
 rule_lines = sorted([l for l in all_lines if not (l.startswith('!') or l.startswith('#'))])
 
-# افصلهم بسطر فارغ
-merged_lines = comment_lines + [""] + rule_lines
-		
-# الدمج النهائي
-merged_lines = comment_lines + [""] + sorted(rule_lines)
+sorted_lines = comment_lines + rule_lines
 
-# تقسيم الملف إذا تجاوز 2 مليون سطر
-MAX_LINES = 2_000_000
+# عدد الفلاتر في كل ملف (حد أقصى 2 مليون)
+max_lines_per_file = 2_000_000
 
-def split_and_write(lines, base_filename):
-    total = len(lines)
-    parts = (total + MAX_LINES - 1) // MAX_LINES  # عدد الملفات المطلوبة
+# حفظ الفلاتر إلى ملفات متعددة
+output_dir = "output_filters"
+os.makedirs(output_dir, exist_ok=True)
 
-    for i in range(parts):
-        start = i * MAX_LINES
-        end = min(start + MAX_LINES, total)
-        part_lines = lines[start:end]
-        filename = f"{base_filename}_{i+1}.txt"
-        with open("merged_filters.txt", "w") as f:
-            f.write("\n".join(part_lines))
-        print(f"📁 تم إنشاء الملف: {filename} ({len(part_lines)} سطر)")
+total_parts = (len(sorted_lines) + max_lines_per_file - 1) // max_lines_per_file
 
-split_and_write(merged_lines, "merged_filters")
+for i in range(total_parts):
+    start = i * max_lines_per_file
+    end = start + max_lines_per_file
+    chunk = sorted_lines[start:end]
+    filename = os.path.join(output_dir, f"filters_part_{i+1}.txt")
+    with open(filename, 'w', encoding='utf-8') as f:
+        f.write('\n'.join(chunk))
+    print(f"✅ تم حفظ {filename} ({len(chunk):,} سطر)")
 
-print("✅ تم دمج وتقسيم الفلاتر بنجاح.")
-
-# كتابة الملف النهائي
-output_file = "merged_filters.txt"
-with open(output_file, "w", encoding="utf-8") as f:
-    f.write(f"! Title: Merged Filters\n")
-    f.write(f"! Total Unique Entries (including comments): {len(merged_lines)}\n")
-    f.write(f"! Last updated: auto-generated\n\n")
-    for line in merged_lines:
-        f.write(line + "\n")
-
-print(f"\n✅ تم دمج {len(merged_lines)} سطر (بما فيها التعليقات) وحفظهم في {output_file}")
+print(f"\n📦 تم الإنتهاء: {len(sorted_lines):,} سطر مقسمين إلى {total_parts} ملف.")
