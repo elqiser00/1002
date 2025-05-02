@@ -31,7 +31,7 @@ jobs:
         python merge_filters.py
     
    - name: Commit and push changes
-  run: |
+     run: |
     git config user.name "GitHub Actions"
     git config user.email "github-actions@github.com"
     git add -A  # يضيف كل الملفات المعدلة أو الجديدة أو المحذوفة
