@@ -186,26 +186,8 @@ for url in urls:
 comment_lines = sorted([l for l in all_lines if l.startswith('!') or l.startswith('#')])
 rule_lines = sorted([l for l in all_lines if not (l.startswith('!') or l.startswith('#'))])
 
-merged_lines = comment_lines + [""] + rule_lines  # افصلهم بسطر فارغ
-
-# ⚠️ إزالة التكرار الذكي بناءً على اسم النطاق الأساسي
-import re
-
-domain_seen = set()
-rule_lines = []
-
-domain_pattern = re.compile(r'^\|\|([a-zA-Z0-9.-]+)')
-
-for rule in rule_lines:
-    match = domain_pattern.match(rule)
-    if match:
-        domain = match.group(1)
-        domain_root = domain.lower().lstrip("www.")
-        if domain_root not in domain_seen:
-            domain_seen.add(domain_root)
-            rule_lines.append(rule)
-    else:
-        rule_lines.append(rule)  # القواعد اللي مش على شكل ||domain.com^ نضيفها مباشرة
+# افصلهم بسطر فارغ
+merged_lines = comment_lines + [""] + rule_lines
 		
 # الدمج النهائي
 merged_lines = comment_lines + [""] + sorted(rule_lines)
