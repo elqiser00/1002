@@ -184,6 +184,21 @@ for url in urls:
     except Exception as e:
         print(f"❌ خطأ في تحميل {url}: {e}")
 
+max_line_length = 64000
+
+with open('combined.txt', 'r', encoding='utf-8') as infile, \
+     open('combined_clean.txt', 'w', encoding='utf-8') as outfile:
+    
+    for line in infile:
+        if len(line) <= max_line_length:
+            outfile.write(line)
+        else:
+            # إذا تبي تحذفه تمامًا، احذف السطر التالي
+            # continue
+
+            # إذا تبي تحتفظ بأول 64000 حرف فقط:
+            outfile.write(line[:max_line_length] + '\n')
+
 # تحويل المجموعة إلى قائمة
 all_lines = list(all_lines)
 total_lines = len(all_lines)
