@@ -162,11 +162,42 @@ urls = [
     "https://easylist-downloads.adblockplus.org/indianlist.txt",
     "https://raw.githubusercontent.com/RandomAdversary/Macedonian-adBlock-Filters/master/Filters",
     "https://raw.githubusercontent.com/DandelionSprout/adfilt/master/NorwegianExperimentalList%20alternate%20versions/NordicFiltersAdGuard.txt",
-    "https://raw.githubusercontent.com/elqiser00/1002/refs/heads/main/filters/merged-filters.txt",
+    "https://raw.githubusercontent.com/elqiser00/1002/refs/heads/main/filters/merged-filters.txt"
 ]
 
 # أقصى عدد للفلاتر في كل ملف
 MAX_LINES_PER_FILE = 2_000_000
+
+# الحد الأقصى لطول السطر المسموح به قبل التقسيم
+MAX_LINE_LENGTH = 5000
+
+def split_long_line(line):
+    """
+    تقسم السطر الطويل جدًا إلى أجزاء أصغر مع الحفاظ على التنسيق
+    """
+    if len(line) <= MAX_LINE_LENGTH:
+        return [line]
+    
+    # إذا كان السطر يحتوي على قائمة نطاقات مفصولة بـ | أو ,
+    separators = ['|', ',', '^', '$']
+    for sep in separators:
+        if sep in line:
+            parts = line.split(sep)
+            if len(parts) > 1:
+                # نعيد بناء السطور مع المحافظة على المحرف الفاصل
+                result = []
+                current_line = parts[0]
+                for part in parts[1:]:
+                    if len(current_line + sep + part) <= MAX_LINE_LENGTH:
+                        current_line += sep + part
+                    else:
+                        result.append(current_line)
+                        current_line = part
+                if current_line:
+                    result.append(current_line)
+                return result
+    # إذا لم نجد محرفًا مناسبًا للتقسيم، نقسم بالسطول الثابت
+    return [line[i:i+MAX_LINE_LENGTH] for i in range(0, len(line), MAX_LINE_LENGTH)]
 
 # استخدام مجموعة لإزالة التكرار
 all_lines = set()
@@ -180,8 +211,10 @@ for url in urls:
         lines = response.text.splitlines()
         for line in lines:
             clean_line = line.strip()
-            if clean_line:
-                all_lines.add(clean_line)
+            if clean_line and not clean_line.startswith(('!', '#', '@@')):  # تجاهل التعليقات والاستثناءات
+                # تقسيم السطور الطويلة
+                for split_line in split_long_line(clean_line):
+                    all_lines.add(split_line)
         time.sleep(0.2)  # تأخير 0.2 ثانية بين كل طلب
     except Exception as e:
         print(f"❌ خطأ في تحميل {url}: {e}")
@@ -189,7 +222,7 @@ for url in urls:
 # تحويل المجموعة إلى قائمة
 all_lines = list(all_lines)
 total_lines = len(all_lines)
-print(f"✅ تم تحميل {total_lines} فلتر فريد.")
+print(f"✅ تم تحميل {total_lines} فلتر فريد (بعد التقسيم).")
 
 # إنشاء مجلد للإخراج إن لم يكن موجودًا
 output_dir = "merged_filters"
