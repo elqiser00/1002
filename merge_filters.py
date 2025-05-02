@@ -196,7 +196,7 @@ rule_lines = []
 
 domain_pattern = re.compile(r'^\|\|([a-zA-Z0-9.-]+)')
 
-for rule in rule_lines_raw:
+for rule in rule_lines:
     match = domain_pattern.match(rule)
     if match:
         domain = match.group(1)
