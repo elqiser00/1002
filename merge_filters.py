@@ -229,3 +229,14 @@ def split_and_write(lines, base_filename):
 split_and_write(merged_lines, "merged_filters")
 
 print("✅ تم دمج وتقسيم الفلاتر بنجاح.")
+
+# كتابة الملف النهائي
+output_file = "merged_filters.txt"
+with open(output_file, "w", encoding="utf-8") as f:
+    f.write(f"! Title: Merged Filters\n")
+    f.write(f"! Total Unique Entries (including comments): {len(merged_lines)}\n")
+    f.write(f"! Last updated: auto-generated\n\n")
+    for line in merged_lines:
+        f.write(line + "\n")
+
+print(f"\n✅ تم دمج {len(merged_lines)} سطر (بما فيها التعليقات) وحفظهم في {output_file}")
