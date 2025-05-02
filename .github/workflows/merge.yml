@@ -36,4 +36,4 @@ jobs:
         git add -A
         git commit -m "🔄 Auto-update merged filters" || echo "Nothing to commit"
         git pull origin main --rebase || echo "Nothing to pull"
-        git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/elqiser00/1002.git HEAD:main
+        git push https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/elqiser00/1002.git HEAD:main
