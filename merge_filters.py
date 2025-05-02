@@ -166,6 +166,9 @@ urls = [
     "https://raw.githubusercontent.com/elqiser00/1002/refs/heads/main/filters/merged-filters.txt",
 ]
 
+# أقصى عدد للفلاتر في كل ملف
+MAX_LINES_PER_FILE = 2_000_000
+
 # استخدام مجموعة لإزالة التكرار
 all_lines = set()
 
@@ -186,26 +189,23 @@ for url in urls:
 # تحويل المجموعة إلى قائمة وترتيبها
 all_lines = list(all_lines)
 
-# ترتيب: التعليقات أولاً ثم القواعد
-comment_lines = sorted([line for line in all_lines if line.startswith('!') or line.startswith('#')])
-rule_lines = sorted([line for line in all_lines if not (line.startswith('!') or line.startswith('#'))])
-sorted_lines = comment_lines + rule_lines
+# فصل التعليقات عن القواعد وترتيب كل مجموعة
+comment_lines = sorted([line for line in all_lines if line.startswith("!") or line.startswith("#")])
+rule_lines = sorted([line for line in all_lines if not (line.startswith("!") or line.startswith("#"))])
 
-# إنشاء مجلد للحفظ إن لم يكن موجود
+# دمج القوائم
+merged_lines = comment_lines + rule_lines
+
+# إنشاء مجلد للإخراج
 output_dir = "output_filters"
 os.makedirs(output_dir, exist_ok=True)
 
-# تحديد الحد الأقصى لعدد الفلاتر في كل ملف
-MAX_LINES_PER_FILE = 500_000
-
-# تقسيم القائمة وكتابة الملفات
-file_index = 1
-for i in range(0, len(sorted_lines), MAX_LINES_PER_FILE):
-    chunk = sorted_lines[i:i+MAX_LINES_PER_FILE]
-    file_path = os.path.join(output_dir, f"filters_part_{file_index}.txt")
-    with open(file_path, 'w', encoding='utf-8') as f:
-        f.write('\n'.join(chunk))
-    print(f"✅ تم إنشاء الملف: {file_path} ({len(chunk)} فلاتر)")
-    file_index += 1
-
-print("🎉 تم الانتهاء من تحميل وتقسيم الفلاتر.")
+# تقسيم إلى ملفات متعددة حسب الحد الأقصى
+file_count = 1
+for i in range(0, len(merged_lines), MAX_LINES_PER_FILE):
+    part = merged_lines[i:i + MAX_LINES_PER_FILE]
+    filename = os.path.join(output_dir, f"filters_part_{file_count}.txt")
+    with open(filename, "w", encoding="utf-8") as f:
+        f.write("\n".join(part))
+    print(f"✅ تم حفظ {len(part)} فلتر في: {filename}")
+    file_count += 1
