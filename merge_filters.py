@@ -122,6 +122,10 @@ urls = [
     "https://easylist-downloads.adblockplus.org/easylistdutch.txt",
     "https://easylist.to/easylistgermany/easylistgermany.txt",
     "https://easylist-downloads.adblockplus.org/liste_fr.txt",
+    "https://userscripts.adtidy.org/release/adguard-extra/1.0/adguard-extra.user.js",        
+    "https://userscripts.adtidy.org/release/adguard-extra/1.0/adguard-extra.meta.js", 
+    "https://userscripts.adtidy.org/release/disable-amp/1.0/disable-amp.user.js", 
+    "https://userscripts.adtidy.org/release/disable-amp/1.0/disable-amp.meta.js",
     "https://www.zoso.ro/pages/rolist.txt",
     "https://adblock.gardar.net/is.abp.txt",
     "https://www.void.gr/kargig/void-gr-filters.txt",
@@ -162,7 +166,7 @@ urls = [
     "https://easylist-downloads.adblockplus.org/indianlist.txt",
     "https://raw.githubusercontent.com/RandomAdversary/Macedonian-adBlock-Filters/master/Filters",
     "https://raw.githubusercontent.com/DandelionSprout/adfilt/master/NorwegianExperimentalList%20alternate%20versions/NordicFiltersAdGuard.txt",
-    "https://raw.githubusercontent.com/elqiser00/1002/refs/heads/main/filters/merged-filters.txt"
+    "https://raw.githubusercontent.com/elqiser00/1002/refs/heads/main/filters/merged-filters.txt",
 ]
 
 # أقصى عدد للفلاتر في كل ملف
