@@ -1,3 +1,7 @@
+! Title: Merged Filters
+! Total Unique Entries (including comments): 88757
+! Last updated: auto-generated
+
 !
 !                                   http://jwduahujge.ru/0741703015aacf2.3.1.1.1.l80.js
 !                                   http://nddmcconmqsy.ru/7492512165a41313.3.n.2.1.l60.js
@@ -583,6 +587,7 @@
 ! #%#//scriptlet('remove-attr', 'oncontextmenu|onselectstart|ondragstart', 'body')
 ! #%#//scriptlet('remove-in-shadow-dom', 'div[data-spot-im-class="vote-links"] + span[class$="index__dot"]')
 ! #%#//scriptlet('remove-node-text', 'script', '"adsSrc"')
+! #%#//scriptlet('remove-node-text', 'script', 'BetterJsPop')
 ! #%#//scriptlet('set-constant', 'Notification.requestPermission', 'noopFunc')
 ! #%#//scriptlet('set-constant', 'adbEnableForPage', 'false')
 ! #%#//scriptlet('set-constant', 'admiral', 'noopFunc')
@@ -1754,49 +1759,49 @@
 ! Chartbeat - https://help.chartbeat.com/hc/en-us/articles/360044659014-Chartbeat-Cookies
 ! Chat widgets (not marketing)
 ! Check, if these sites work fine with scriptlet: mail.rambler.ru, kino.rambler.ru, weather.rambler.ru, comments.rambler.ru, kassa.rambler.ru, horoscopes.rambler.ru
-! Checksum: /7FqkladgGDwNPWrSgviVg
-! Checksum: /HsTS0rwfyXxVoC6Wb+3hw
-! Checksum: 0TpmKIdd8VTlJ/d2KmlQig
-! Checksum: 34qisVL/0gLM2cFOMYBUNg
-! Checksum: 3ODrPURujPeuvysBxOXzkg
-! Checksum: 5O65SUUvG46eZ9FxQ6eefQ
-! Checksum: 7kcwZz1bY8SUve0J33xlbg
+! Checksum: 1bKSLLdhIOpkPTB5xvb3TQ
+! Checksum: 3DRpwH86LGfQB3skuReipA
+! Checksum: BFKmJTplf4XFttLdN6unyQ
 ! Checksum: Cm9znO5IbJ8LHJtWqU6t+g
-! Checksum: D9ZCu+lvcr0bx0A6NuIZlA
 ! Checksum: DCc17/t4CgWE3mon3U7HLQ
-! Checksum: E/q1GUnyklF8tFKCuGgLVg
-! Checksum: FQpLBzT5hOm6GJWalSF7CQ
+! Checksum: FNbBA8PGKyPQG7UIV4ZJXw
+! Checksum: GFBLENuBNfXyTXXfmmvMnQ
 ! Checksum: JJzWryw2Z99x+56AX6q6yA
 ! Checksum: JUSp54WZvluo1eNsbSputQ
-! Checksum: MQOlao1bhoSgklLG1j8i1A
-! Checksum: MXLk1WSZmaUnNmprkhdEnw
+! Checksum: JaMiZd2CahcEffcXW5MZbQ
+! Checksum: L/XsJ0/DaT/umyEWfbJlyg
+! Checksum: NzoxKvXPwUBqamQx8I+igg
 ! Checksum: OgO7/73jeQf8KbghHiCOhw
-! Checksum: OhJFKooDQlbUZgkPaUlw2w
 ! Checksum: OwfaKXKXxBEgM9tP0GIF7Q
-! Checksum: QNa+Wrkjw7AsZcVBKdXJ5w
-! Checksum: QsJfLpjobgckB8pQnfA9FA
+! Checksum: QGEymMaIhZ58OoXM2SBEVw
+! Checksum: RRVHqDU3/P4AR+NByfca4A
+! Checksum: ZGWUYjTL7n5hUSux3KpD/A
+! Checksum: ZpyBrBUHDjypgWdMH4j3kQ
+! Checksum: Zs8awKTnXvIGIuUGHIY5hg
+! Checksum: a7dYeRKBbgkAKFeKlPK2/w
+! Checksum: buz6l9If0u2seIY3+f9tgA
 ! Checksum: dsPI0kXGww9+9ZKNvY59dQ
+! Checksum: dtUoQJIFJCl7gPHipgahGg
+! Checksum: eFi3BG+32nLtxg6w73yXYA
 ! Checksum: eIixn31TVJCVCAMfE2Ws2w
-! Checksum: ebTcJV8FIzWiB1yAjYMppQ
+! Checksum: em8YjWKKJzmeL3MUtt6B1g
 ! Checksum: f070L24vEGVSp6DUwtTuYg
+! Checksum: g5kU+hvy5kDydsFYhZbEbw
+! Checksum: gj5Oww9u7/TkNSZmJvH2Jw
 ! Checksum: h8WHB8mFk960DI1U1KV18w
-! Checksum: i9FylE1N3xH4m7Q8fo4Heg
-! Checksum: jNpj5HTAFtfTOa8y4YfG4g
 ! Checksum: jV+E3KjBjzkoufZM7HSW1w
-! Checksum: n6ACGmOS4BFau+O23girng
+! Checksum: kkLdM+koTt5I+I642YppJg
+! Checksum: m0dn0J/6ucQ9TryEGs5gBw
+! Checksum: mfu0kC8wI6nXDLG7xFAhvg
 ! Checksum: naBF4j7xlKxS1lYhmc1XLA
-! Checksum: oHIxIkx3QwS1lwj7n6k5ow
-! Checksum: obh/t2MOzEsrMD4KR7594w
-! Checksum: pmKRSYvumOsvDdt8Q4Vq0w
-! Checksum: qI9hM+V0M3ueClrAoyU+0A
+! Checksum: oq6Ix9/AwGQSaf4lA/FhwQ
+! Checksum: p89Q8gtfpthe0SKInGrUHw
+! Checksum: qraLyuRwXmr2qDStWH+wyw
 ! Checksum: qwfyxRaR6bF+k9mt5Kw6Bw
-! Checksum: tfyraLr0sZCU1OsFCEoTug
-! Checksum: u9djU0DEoKkM+16hWPT65A
-! Checksum: uEL7alzPrtntHnaZf9GDIQ
-! Checksum: w/49weTKDKuD/N2K+PQkTA
+! Checksum: vLh5yQiHg9LQSjExXrBzuw
 ! Checksum: w2j5qREdCrKa81D72VZKkw
-! Checksum: ynvgj6wPGZBAizXEgic1Dg
-! Checksum: zuSMiE+r2Iwi6EX8lHcarA
+! Checksum: wJ+D99idwNAsp78D3L3nZw
+! Checksum: yRqGoPWl+4PqaMsFh2ztBA
 ! Chinese
 ! Chinese google (https://github.com/easylist/easylist/issues/15643)
 ! Chinese supplement for the EasyList filters
@@ -2100,22 +2105,22 @@
 ! Didomi
 ! Diff-Expires: 60 minutes
 ! Diff-Path: ../patches/11_optimized/11_optimized-s-1746123151-3600.patch
-! Diff-Path: ../patches/13_optimized/13_optimized-s-1746173539-3600.patch
-! Diff-Path: ../patches/14_optimized/14_optimized-s-1746188063-3600.patch
+! Diff-Path: ../patches/13_optimized/13_optimized-s-1746195030-3600.patch
+! Diff-Path: ../patches/14_optimized/14_optimized-s-1746202337-3600.patch
 ! Diff-Path: ../patches/15_optimized/15_optimized-s-1746188063-3600.patch
 ! Diff-Path: ../patches/16_optimized/16_optimized-s-1746177088-3600.patch
-! Diff-Path: ../patches/17_optimized/17_optimized-s-1745953801-3600.patch
-! Diff-Path: ../patches/18_optimized/18_optimized-s-1746184233-3600.patch
-! Diff-Path: ../patches/19_optimized/19_optimized-s-1746188064-3600.patch
+! Diff-Path: ../patches/17_optimized/17_optimized-s-1746202337-3600.patch
+! Diff-Path: ../patches/18_optimized/18_optimized-s-1746195031-3600.patch
+! Diff-Path: ../patches/19_optimized/19_optimized-s-1746202338-3600.patch
 ! Diff-Path: ../patches/1_optimized/1_optimized-s-1746180655-3600.patch
-! Diff-Path: ../patches/20_optimized/20_optimized-s-1746153543-3600.patch
-! Diff-Path: ../patches/21_optimized/21_optimized-s-1746153543-3600.patch
-! Diff-Path: ../patches/224_optimized/224_optimized-s-1746180656-3600.patch
+! Diff-Path: ../patches/20_optimized/20_optimized-s-1746198638-3600.patch
+! Diff-Path: ../patches/21_optimized/21_optimized-s-1746191820-3600.patch
+! Diff-Path: ../patches/224_optimized/224_optimized-s-1746202339-3600.patch
 ! Diff-Path: ../patches/22_optimized/22_optimized-s-1746180656-3600.patch
 ! Diff-Path: ../patches/23_optimized/23_optimized-s-1746180656-3600.patch
-! Diff-Path: ../patches/2_optimized/2_optimized-s-1746188065-3600.patch
-! Diff-Path: ../patches/3_optimized/3_optimized-s-1746188066-3600.patch
-! Diff-Path: ../patches/4_optimized/4_optimized-s-1746188066-3600.patch
+! Diff-Path: ../patches/2_optimized/2_optimized-s-1746202339-3600.patch
+! Diff-Path: ../patches/3_optimized/3_optimized-s-1746202340-3600.patch
+! Diff-Path: ../patches/4_optimized/4_optimized-s-1746202340-3600.patch
 ! Diff-Path: ../patches/6_optimized/6_optimized-s-1746169854-3600.patch
 ! Diff-Path: ../patches/7_optimized/7_optimized-s-1746162720-3600.patch
 ! Diff-Path: ../patches/8_optimized/8_optimized-s-1746177090-3600.patch
@@ -2572,7 +2577,6 @@
 ! GO Keyboard
 ! GOM player
 ! GPC
-! GTM-related detection ex. https://www.bakkerij-wouters.be/
 ! Gambling
 ! Game
 ! GamesPlanet
@@ -2979,12 +2983,13 @@
 ! Lapsed domains that once hosted adblock lists, several of whom are now used for bad purposes
 ! Last change: 23/01/2025
 ! Last modified: %timestamp%
-! Last modified: 01 May 2025 17:16 UTC
+! Last modified: 01 May 2025 19:03 UTC
 ! Last modified: 01 May 2025 23:06:19 UTC+7
 ! Last modified: 01-05-2025
 ! Last modified: 02 May 2025 06:52 UTC
-! Last modified: 02 May 2025 13:00 UTC
-! Last modified: 02 May 2025 13:21 UTC
+! Last modified: 02 May 2025 15:28 UTC
+! Last modified: 02 May 2025 15:58 UTC
+! Last modified: 02 May 2025 17:01 UTC
 ! Last modified: 10 FEB 2025 07:00 UTC
 ! Last modified: 19 November 2023
 ! Last modified: 2025-02-25T13:16:11.654Z
@@ -3005,12 +3010,10 @@
 ! Last modified: 2025-04-18T09:16:58.883Z
 ! Last modified: 2025-04-20T00:34:23.324Z
 ! Last modified: 2025-04-23T03:22:21.622Z
-! Last modified: 2025-04-23T16:09:06.782Z
 ! Last modified: 2025-04-26T04:08:25.907Z
 ! Last modified: 2025-04-26T09:07:28.040Z
 ! Last modified: 2025-04-26T11:06:32.149Z
 ! Last modified: 2025-04-29 17:21 UTC
-! Last modified: 2025-04-29T04:09:14.951Z
 ! Last modified: 2025-04-29T10:08:27.159Z
 ! Last modified: 2025-04-29T20:08:40.289Z
 ! Last modified: 2025-05-01T01:36:04.406Z
@@ -3019,7 +3022,7 @@
 ! Last modified: 2025-05-01T16:09:10.036Z
 ! Last modified: 2025-05-01T19:06:47.518Z
 ! Last modified: 2025-05-02 05:38:04 CEST
-! Last modified: 2025-05-02 12:42 UTC
+! Last modified: 2025-05-02 15:42 UTC
 ! Last modified: 2025-05-02T03:24:35.012Z
 ! Last modified: 2025-05-02T03:24:37.976Z
 ! Last modified: 2025-05-02T03:24:40.593Z
@@ -3030,7 +3033,6 @@
 ! Last modified: 2025-05-02T03:25:06.858Z
 ! Last modified: 2025-05-02T03:25:08.110Z
 ! Last modified: 2025-05-02T03:25:08.218Z
-! Last modified: 2025-05-02T05:08:51.320Z
 ! Last modified: 2025-05-02T05:08:57.744Z
 ! Last modified: 2025-05-02T06:11:05.769Z
 ! Last modified: 2025-05-02T11:06:38.777Z
@@ -3038,12 +3040,15 @@
 ! Last modified: 2025-05-02T12:12:20.660Z
 ! Last modified: 2025-05-02T12:12:30.056Z
 ! Last modified: 2025-05-02T12:12:45.375Z
-! Last modified: 2025-05-02T12:12:51.223Z
-! Last modified: 2025-05-02T13:13:34.556Z
-! Last modified: 2025-05-02T13:13:47.366Z
-! Last modified: 2025-05-02T13:14:00.351Z
 ! Last modified: 2025-05-02T13:14:01.193Z
 ! Last modified: 2025-05-02T13:14:03.321Z
+! Last modified: 2025-05-02T16:08:38.452Z
+! Last modified: 2025-05-02T16:08:51.785Z
+! Last modified: 2025-05-02T16:08:59.492Z
+! Last modified: 2025-05-02T17:06:47.795Z
+! Last modified: 2025-05-02T17:07:01.512Z
+! Last modified: 2025-05-02T17:07:15.560Z
+! Last modified: 2025-05-02T17:07:17.802Z
 ! Last modified: 2025/04/05 07:41 +0800
 ! Last modified: 25 MAR 2025 18:00 UTC
 ! Last modified: 26 Apr 2025 08:59 UTC
@@ -3051,7 +3056,6 @@
 ! Last modified: 26April2025v1
 ! Last modified: 28 April 2025
 ! Last modified: 30 Apr 2025 19:40 UTC
-! Last modified: 30 Apr 2025 20:05 UTC
 ! Last modified: Fri, 02 May 2025, 15:03 UTC+02:00
 ! Last modified: Sun, 09 Feb 2025, 23:23 UTC+01:00
 ! Last modified: Sun, 13 Apr 2025 19:59:39 +0000
@@ -4256,27 +4260,27 @@
 ! Tiktok videos [Stealth Mode - Referrer]
 ! Tildacdn
 ! TimeUpdated: 2025-04-28T08:00:08+00:00
-! TimeUpdated: 2025-04-29T19:06:36+00:00
 ! TimeUpdated: 2025-04-30T12:10:33+00:00
-! TimeUpdated: 2025-05-01T17:06:53+00:00
 ! TimeUpdated: 2025-05-01T18:09:00+00:00
-! TimeUpdated: 2025-05-01T18:09:14+00:00
 ! TimeUpdated: 2025-05-02T05:08:13+00:00
 ! TimeUpdated: 2025-05-02T07:07:17+00:00
-! TimeUpdated: 2025-05-02T08:08:48+00:00
 ! TimeUpdated: 2025-05-02T09:07:47+00:00
 ! TimeUpdated: 2025-05-02T09:08:08+00:00
 ! TimeUpdated: 2025-05-02T10:06:47+00:00
 ! TimeUpdated: 2025-05-02T10:07:36+00:00
 ! TimeUpdated: 2025-05-02T10:07:37+00:00
-! TimeUpdated: 2025-05-02T10:07:40+00:00
-! TimeUpdated: 2025-05-02T11:07:09+00:00
-! TimeUpdated: 2025-05-02T12:10:11+00:00
-! TimeUpdated: 2025-05-02T12:10:24+00:00
-! TimeUpdated: 2025-05-02T12:10:27+00:00
-! TimeUpdated: 2025-05-02T12:10:54+00:00
 ! TimeUpdated: 2025-05-02T12:10:55+00:00
-! TimeUpdated: 2025-05-02T12:11:01+00:00
+! TimeUpdated: 2025-05-02T13:13:37+00:00
+! TimeUpdated: 2025-05-02T14:07:02+00:00
+! TimeUpdated: 2025-05-02T14:07:12+00:00
+! TimeUpdated: 2025-05-02T15:07:18+00:00
+! TimeUpdated: 2025-05-02T16:07:59+00:00
+! TimeUpdated: 2025-05-02T16:08:11+00:00
+! TimeUpdated: 2025-05-02T16:08:14+00:00
+! TimeUpdated: 2025-05-02T16:08:42+00:00
+! TimeUpdated: 2025-05-02T16:08:50+00:00
+! TimeUpdated: 2025-05-02T16:08:53+00:00
+! TimeUpdated: 2025-05-02T16:09:01+00:00
 ! Tinder (analytics)
 ! TinyLetter
 ! Title 🇬🇧: Dandelion Sprout's Nordic filters for tidier websites
@@ -4504,9 +4508,9 @@
 ! UpFiles
 ! UpFiles.com + related rules in specific.txt
 ! Update unblocking rule for the search ads in usefulads.txt
-! Updated: 2025-05-02 12:35 UTC
-! Updated: 2025-05-02 12:38 UTC
-! Updated: 2025-05-02 13:10 UTC
+! Updated: 2025-05-02 16:10 UTC
+! Updated: 2025-05-02 16:35 UTC
+! Updated: 2025-05-02 17:10 UTC
 ! Updated: 2025-05-02T12:02:00Z
 ! Updated: 2025-05-02T12:09:17Z
 ! Use the next directive, where iOS is excluded
@@ -4623,7 +4627,7 @@
 ! Version: 1.0.14.74
 ! Version: 1.0.14.75
 ! Version: 1.0.14.82
-! Version: 1.0.14.85
+! Version: 1.0.14.86
 ! Version: 1.0.14.89
 ! Version: 1.0.14.94
 ! Version: 1.0.15.2
@@ -4633,12 +4637,12 @@
 ! Version: 1.0.15.39
 ! Version: 1.0.15.42
 ! Version: 1.0.15.79
-! Version: 1.0.15.89
+! Version: 1.0.15.90
 ! Version: 1.0.16.11
 ! Version: 1.0.16.26
 ! Version: 1.0.16.91
 ! Version: 1.0.16.98
-! Version: 1.0.17.39
+! Version: 1.0.17.40
 ! Version: 1.0.17.52
 ! Version: 1.0.17.63
 ! Version: 1.0.18.22
@@ -4651,35 +4655,35 @@
 ! Version: 1.0.19.32
 ! Version: 1.0.19.71
 ! Version: 1.0.24.30
-! Version: 1.0.24.37
-! Version: 1.0.50.87
-! Version: 1.0.55.81
-! Version: 1.0.66.19
+! Version: 1.0.24.38
+! Version: 1.0.50.90
+! Version: 1.0.55.84
+! Version: 1.0.66.23
 ! Version: 12February2025v1
 ! Version: 19April2025v1-Beta
-! Version: 2.0.10.95
+! Version: 2.0.10.96
 ! Version: 2.0.11.64
-! Version: 2.0.20.50
+! Version: 2.0.20.51
 ! Version: 2.0.29.72
-! Version: 2.0.33.0
+! Version: 2.0.33.1
 ! Version: 2.0.47.29
 ! Version: 2.0.52.17
-! Version: 2.0.54.70
-! Version: 2.0.56.7
+! Version: 2.0.54.71
+! Version: 2.0.56.9
 ! Version: 2.0.6.56
 ! Version: 2.0.60.35
-! Version: 2.0.61.1
+! Version: 2.0.61.3
 ! Version: 2.0.64.13
 ! Version: 2.0.79.70
 ! Version: 2.0.8.19
-! Version: 2.0.84.19
+! Version: 2.0.84.22
 ! Version: 2.0.99.4
-! Version: 2.1.14.8
-! Version: 2.1.36.13
-! Version: 2.2.29.10
-! Version: 2.3.81.75
+! Version: 2.1.14.9
+! Version: 2.1.36.15
+! Version: 2.2.29.14
+! Version: 2.3.81.79
 ! Version: 2023111901
-! Version: 2025.0429.0
+! Version: 2025.0502.1
 ! Version: 2025.2.9.2
 ! Version: 2025.3.3
 ! Version: 2025.5.1.1
@@ -4694,13 +4698,13 @@
 ! Version: 2025042802
 ! Version: 202504291721
 ! Version: 202504301940
-! Version: 202504302005
 ! Version: 202505010348
+! Version: 202505011903
 ! Version: 20250501230619563
-! Version: 202505021242
-! Version: 202505021300
-! Version: 202505021321
-! Version: 25.5.3
+! Version: 202505021542
+! Version: 202505021558
+! Version: 202505021701
+! Version: 25.5.4
 ! Version: 29April2025v1-Compilation
 ! Version: 29April2025v2
 ! Version: 3.6.2.1
@@ -6449,6 +6453,7 @@
 ! https://aliexpress•com/item/33014052863•html?pdp_ext_f=%7B%22ship_from%22:%22%22,%22sku_id%22:%2267107423525%22%7D&utparam=%7B%22process_id%22:%22401%22,%22x_object_type%22:%22product%22,%22pvid%22:%22df54ce03-45d0-42f5-a661-634290fe5f03%22,%22belongs%22:[%7B%22floor_id%22:%2222234693%22,%22id%22:%22782032%22,%22type%22:%22dataset%22%7D,%7B%22id_list%22:[%221000094891%22],%22type%22:%22gbrain%22%7D],%22scm%22:%221007•34914•242271•0%22,%22tpp_buckets%22:%2221669%230%23186385%230_21669%234190%2319162%23485_24914%230%23242271%238%22,%22x_object_id%22:%2233014052863%22%7D&__tppBottom=true
 ! https://analytics•bluekai•com/site/16231?phint=event=click&phint=campaign=BRAND-TAB&phint=platform=search&done=https://example•com/
 ! https://animelist.tv/movie/19786/one-fast-move
+! https://app.any.run/tasks/5972a8c5-5b87-4579-9cc5-8bc268abd6c0
 ! https://app.any.run/tasks/679e9afa-eb19-4414-a086-e280a779a448 and https://tria.ge/230217-xd8nksgc9x/behavioral2
 ! https://apps•apple•com/us/app/id342792525?_branch_referrer=H4sIAAAAAAAAA8soKSkottLXL86pTNJLLCjQy8nMy9YP9k6pDDRzNDGxBABVqlN1IAAAAA%3D%3D
 ! https://appuals.com/fix-error-0x800701e3-on-windows-7-8-1-10/
@@ -17119,6 +17124,7 @@
 ! https://github.com/AdguardTeam/AdguardFilters/issues/204010
 ! https://github.com/AdguardTeam/AdguardFilters/issues/20405
 ! https://github.com/AdguardTeam/AdguardFilters/issues/204080
+! https://github.com/AdguardTeam/AdguardFilters/issues/204106
 ! https://github.com/AdguardTeam/AdguardFilters/issues/204115
 ! https://github.com/AdguardTeam/AdguardFilters/issues/204135
 ! https://github.com/AdguardTeam/AdguardFilters/issues/204147
@@ -17146,8 +17152,11 @@
 ! https://github.com/AdguardTeam/AdguardFilters/issues/204398
 ! https://github.com/AdguardTeam/AdguardFilters/issues/204399
 ! https://github.com/AdguardTeam/AdguardFilters/issues/204400
+! https://github.com/AdguardTeam/AdguardFilters/issues/204409
 ! https://github.com/AdguardTeam/AdguardFilters/issues/204432
 ! https://github.com/AdguardTeam/AdguardFilters/issues/204437
+! https://github.com/AdguardTeam/AdguardFilters/issues/204447
+! https://github.com/AdguardTeam/AdguardFilters/issues/204450
 ! https://github.com/AdguardTeam/AdguardFilters/issues/20456
 ! https://github.com/AdguardTeam/AdguardFilters/issues/20470
 ! https://github.com/AdguardTeam/AdguardFilters/issues/20486
@@ -26222,6 +26231,7 @@
 ! https://jpsk.jp/articles/kanoa2.html?click=popup
 ! https://kakaku.com/pc/ self-promo
 ! https://kampanjat.hs.fi/opiskelijatilaukset/
+! https://kb.triplewhale.com/en/articles/5740620-klaviyo-integration#h_d0fb8c7039
 ! https://kcjervis.github.io/jervis/#/operation image broken by rules like /banner/468
 ! https://khonggianmang.vn/uploads/2023_CBT_46_3d412a8a49.pdf
 ! https://khonggianmang.vn/uploads/2023_CBT_47_01103e7ccb.pdf
@@ -54610,6 +54620,7 @@
 ##.ads125-widget
 ##.ads160
 ##.ads160-600
+##.ads160600
 ##.ads1post
 ##.ads2
 ##.ads20
@@ -54625,6 +54636,7 @@
 ##.ads300-250
 ##.ads300250
 ##.ads300300
+##.ads300500
 ##.ads300600
 ##.ads300_250
 ##.ads300_600-widget
@@ -82105,7 +82117,15 @@
 ##[href="https://t.ly/goToclicK168"]
 ##[href="https://t.ly/gudangfilm"]
 ##[href="https://t.ly/hmstream"]
+##[href="https://t.ly/iklanGLB"]
+##[href="https://t.ly/iklanGS"]
+##[href="https://t.ly/iklanJB"]
+##[href="https://t.ly/iklanLC"]
+##[href="https://t.ly/iklanLn"]
+##[href="https://t.ly/iklanMP"]
+##[href="https://t.ly/iklanPS"]
 ##[href="https://t.ly/iklanWS2"]
+##[href="https://t.ly/iklanZILONG"]
 ##[href="https://t.ly/indositusxxi"]
 ##[href="https://t.ly/inibokep"]
 ##[href="https://t.ly/kiryuuya"]
@@ -88738,3 +88758,4 @@
 #@#.woocommerce-store-notice
 #@#.wps-player-wrap
 #@#[id^="google_ads_iframe"]
+
