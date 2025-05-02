@@ -1,0 +1,15 @@
+- name: Checkout code
+  uses: actions/checkout@v2
+
+- name: Set up Git config
+  run: |
+    git config user.name "GitHub Actions"
+    git config user.email "actions@github.com"
+
+- name: Push changes
+  env:
+    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  run: |
+    git add .
+    git commit -m "Auto-update merged filters"
+    git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} HEAD:main
