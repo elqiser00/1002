@@ -30,10 +30,12 @@ jobs:
       run: |
         python merge_filters.py
     
-    - name: Commit and push changes
-      run: |
-        git config user.name "GitHub Actions"
-        git config user.email "github-actions@github.com"
-        git add -A
-        git commit -m "🔄 Auto-update merged filters" || echo "Nothing to commit"
-        git push https://${{ secrets.GH_TOKEN }}@github.com/elqiser00/1002.git HEAD:main
+    - name: Push changes
+  run: |
+    git config user.name "GitHub Actions"
+    git config user.email "github-actions@github.com"
+    git add -A
+    git commit -m "🔄 Auto-update merged filters" || echo "Nothing to commit"
+    git pull origin main --rebase
+    git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/elqiser00/1002.git HEAD:main
+
