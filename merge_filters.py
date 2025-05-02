@@ -222,7 +222,7 @@ def split_and_write(lines, base_filename):
         end = min(start + MAX_LINES, total)
         part_lines = lines[start:end]
         filename = f"{base_filename}_{i+1}.txt"
-        with open(filename, "w", encoding="utf-8") as f:
+        with open("merged_filters.txt", "w") as f:
             f.write("\n".join(part_lines))
         print(f"📁 تم إنشاء الملف: {filename} ({len(part_lines)} سطر)")
 
