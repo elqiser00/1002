@@ -1,8 +1,8 @@
 import requests
 import os
 
-# كل الروابط
-urls = [ 
+# جميع الروابط
+urls = [
     "https://adguardteam.github.io/HostlistsRegistry/assets/filter_1.txt",
     "https://adguardteam.github.io/HostlistsRegistry/assets/filter_53.txt",
     "https://adguardteam.github.io/HostlistsRegistry/assets/filter_34.txt",
@@ -183,27 +183,29 @@ for url in urls:
     except Exception as e:
         print(f"❌ خطأ في تحميل {url}: {e}")
 
-# تحويل المجموعة إلى قائمة
+# تحويل المجموعة إلى قائمة وترتيبها
 all_lines = list(all_lines)
 
-# ترتيب الفلاتر: التعليقات أولاً ثم القواعد الأخرى
-comments = [line for line in all_lines if line.startswith('!') or line.startswith('#')]
-rules = [line for line in all_lines if not (line.startswith('!') or line.startswith('#'))]
-all_sorted = comments + rules
+# ترتيب: التعليقات أولاً ثم القواعد
+comment_lines = sorted([line for line in all_lines if line.startswith('!') or line.startswith('#')])
+rule_lines = sorted([line for line in all_lines if not (line.startswith('!') or line.startswith('#'))])
+sorted_lines = comment_lines + rule_lines
 
-# إعداد التقسيم إلى ملفات كل واحد فيه مليون فلتر كحد أقصى
-max_filters_per_file = 1_000_000
-total_filters = len(all_sorted)
-num_files = (total_filters + max_filters_per_file - 1) // max_filters_per_file
+# إنشاء مجلد للحفظ إن لم يكن موجود
+output_dir = "output_filters"
+os.makedirs(output_dir, exist_ok=True)
 
-# إنشاء مجلد لحفظ الملفات
-os.makedirs("filters_output", exist_ok=True)
+# تحديد الحد الأقصى لعدد الفلاتر في كل ملف
+MAX_LINES_PER_FILE = 500_000
 
-# كتابة الفلاتر في ملفات متعددة
-for i in range(num_files):
-    start = i * max_filters_per_file
-    end = start + max_filters_per_file
-    filename = f"filters_output/filters_part_{i+1}.txt"
-    with open(filename, "w", encoding="utf-8") as f:
-        f.write("\n".join(all_sorted[start:end]))
-    print(f"✅ تم إنشاء الملف: {filename} ({end - start} فلتر)")
+# تقسيم القائمة وكتابة الملفات
+file_index = 1
+for i in range(0, len(sorted_lines), MAX_LINES_PER_FILE):
+    chunk = sorted_lines[i:i+MAX_LINES_PER_FILE]
+    file_path = os.path.join(output_dir, f"filters_part_{file_index}.txt")
+    with open(file_path, 'w', encoding='utf-8') as f:
+        f.write('\n'.join(chunk))
+    print(f"✅ تم إنشاء الملف: {file_path} ({len(chunk)} فلاتر)")
+    file_index += 1
+
+print("🎉 تم الانتهاء من تحميل وتقسيم الفلاتر.")
