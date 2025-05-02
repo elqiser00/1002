@@ -162,7 +162,7 @@ urls = [
     "https://easylist-downloads.adblockplus.org/indianlist.txt",
     "https://raw.githubusercontent.com/RandomAdversary/Macedonian-adBlock-Filters/master/Filters",
     "https://raw.githubusercontent.com/DandelionSprout/adfilt/master/NorwegianExperimentalList%20alternate%20versions/NordicFiltersAdGuard.txt",
-    "https://raw.githubusercontent.com/elqiser00/1002/refs/heads/main/filters/merged-filters.txt",
+    "https://raw.githubusercontent.com/elqiser00/1002/refs/heads/main/filters/merged-filters.txt"
 ]
 
 # استخدام مجموعة لإزالة التكرار
@@ -188,13 +188,44 @@ rule_lines = sorted([l for l in all_lines if not (l.startswith('!') or l.startsw
 
 merged_lines = comment_lines + [""] + rule_lines  # افصلهم بسطر فارغ
 
-# كتابة الملف النهائي
-output_file = "merged_filters.txt"
-with open(output_file, "w", encoding="utf-8") as f:
-    f.write(f"! Title: Merged Filters\n")
-    f.write(f"! Total Unique Entries (including comments): {len(merged_lines)}\n")
-    f.write(f"! Last updated: auto-generated\n\n")
-    for line in merged_lines:
-        f.write(line + "\n")
+# ⚠️ إزالة التكرار الذكي بناءً على اسم النطاق الأساسي
+import re
 
-print(f"\n✅ تم دمج {len(merged_lines)} سطر (بما فيها التعليقات) وحفظهم في {output_file}")
+domain_seen = set()
+rule_lines = []
+
+domain_pattern = re.compile(r'^\|\|([a-zA-Z0-9.-]+)')
+
+for rule in rule_lines_raw:
+    match = domain_pattern.match(rule)
+    if match:
+        domain = match.group(1)
+        domain_root = domain.lower().lstrip("www.")
+        if domain_root not in domain_seen:
+            domain_seen.add(domain_root)
+            rule_lines.append(rule)
+    else:
+        rule_lines.append(rule)  # القواعد اللي مش على شكل ||domain.com^ نضيفها مباشرة
+		
+# الدمج النهائي
+merged_lines = comment_lines + [""] + sorted(rule_lines)
+
+# تقسيم الملف إذا تجاوز 2 مليون سطر
+MAX_LINES = 2_000_000
+
+def split_and_write(lines, base_filename):
+    total = len(lines)
+    parts = (total + MAX_LINES - 1) // MAX_LINES  # عدد الملفات المطلوبة
+
+    for i in range(parts):
+        start = i * MAX_LINES
+        end = min(start + MAX_LINES, total)
+        part_lines = lines[start:end]
+        filename = f"{base_filename}_{i+1}.txt"
+        with open(filename, "w", encoding="utf-8") as f:
+            f.write("\n".join(part_lines))
+        print(f"📁 تم إنشاء الملف: {filename} ({len(part_lines)} سطر)")
+
+split_and_write(merged_lines, "merged_filters")
+
+print("✅ تم دمج وتقسيم الفلاتر بنجاح.")
