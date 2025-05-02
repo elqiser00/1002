@@ -35,5 +35,6 @@ jobs:
         git config user.name "GitHub Actions"
         git config user.email "github-actions@github.com"
         git add merged_filters.txt
+        git add merged_filters_1.txt
         git commit -m "🔄 Auto-update merged filters"
         git push https://${{ secrets.GH_TOKEN }}@github.com/elqiser00/1002.git HEAD:main
