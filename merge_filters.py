@@ -2,7 +2,7 @@ import requests
 import os
 
 # كل الروابط
-urls = [  # اختصرنا هنا، حط كل الروابط كما كانت
+urls = [ 
     "https://adguardteam.github.io/HostlistsRegistry/assets/filter_1.txt",
     "https://adguardteam.github.io/HostlistsRegistry/assets/filter_53.txt",
     "https://adguardteam.github.io/HostlistsRegistry/assets/filter_34.txt",
@@ -183,31 +183,27 @@ for url in urls:
     except Exception as e:
         print(f"❌ خطأ في تحميل {url}: {e}")
 
-# تحويل المجموعة إلى قائمة لترتيبها
+# تحويل المجموعة إلى قائمة
 all_lines = list(all_lines)
 
-# ترتيب: التعليقات أولاً ثم القواعد
-comment_lines = sorted([l for l in all_lines if l.startswith('!') or l.startswith('#')])
-rule_lines = sorted([l for l in all_lines if not (l.startswith('!') or l.startswith('#'))])
+# ترتيب الفلاتر: التعليقات أولاً ثم القواعد الأخرى
+comments = [line for line in all_lines if line.startswith('!') or line.startswith('#')]
+rules = [line for line in all_lines if not (line.startswith('!') or line.startswith('#'))]
+all_sorted = comments + rules
 
-sorted_lines = comment_lines + rule_lines
+# إعداد التقسيم إلى ملفات كل واحد فيه مليون فلتر كحد أقصى
+max_filters_per_file = 1_000_000
+total_filters = len(all_sorted)
+num_files = (total_filters + max_filters_per_file - 1) // max_filters_per_file
 
-# عدد الفلاتر في كل ملف (حد أقصى 2 مليون)
-max_lines_per_file = 2_000_000
+# إنشاء مجلد لحفظ الملفات
+os.makedirs("filters_output", exist_ok=True)
 
-# حفظ الفلاتر إلى ملفات متعددة
-output_dir = "output_filters"
-os.makedirs(output_dir, exist_ok=True)
-
-total_parts = (len(sorted_lines) + max_lines_per_file - 1) // max_lines_per_file
-
-for i in range(total_parts):
-    start = i * max_lines_per_file
-    end = start + max_lines_per_file
-    chunk = sorted_lines[start:end]
-    filename = os.path.join(output_dir, f"filters_part_{i+1}.txt")
-    with open(filename, 'w', encoding='utf-8') as f:
-        f.write('\n'.join(chunk))
-    print(f"✅ تم حفظ {filename} ({len(chunk):,} سطر)")
-
-print(f"\n📦 تم الإنتهاء: {len(sorted_lines):,} سطر مقسمين إلى {total_parts} ملف.")
+# كتابة الفلاتر في ملفات متعددة
+for i in range(num_files):
+    start = i * max_filters_per_file
+    end = start + max_filters_per_file
+    filename = f"filters_output/filters_part_{i+1}.txt"
+    with open(filename, "w", encoding="utf-8") as f:
+        f.write("\n".join(all_sorted[start:end]))
+    print(f"✅ تم إنشاء الملف: {filename} ({end - start} فلتر)")
