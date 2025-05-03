@@ -2,13 +2,9 @@ All filter AdguardHome
 
 https://adguardteam.github.io/HostlistsRegistry/assets/filter_1.txt
 https://adguardteam.github.io/HostlistsRegistry/assets/filter_53.txt
-https://adguardteam.github.io/HostlistsRegistry/assets/filter_34.txt
 https://adguardteam.github.io/HostlistsRegistry/assets/filter_59.txt
 https://adguardteam.github.io/HostlistsRegistry/assets/filter_24.txt
 https://adguardteam.github.io/HostlistsRegistry/assets/filter_4.txt
-https://adguardteam.github.io/HostlistsRegistry/assets/filter_48.txt
-https://adguardteam.github.io/HostlistsRegistry/assets/filter_51.txt
-https://adguardteam.github.io/HostlistsRegistry/assets/filter_49.txt
 https://adguardteam.github.io/HostlistsRegistry/assets/filter_5.txt
 https://adguardteam.github.io/HostlistsRegistry/assets/filter_27.txt
 https://adguardteam.github.io/HostlistsRegistry/assets/filter_3.txt
@@ -42,10 +38,7 @@ https://adguardteam.github.io/HostlistsRegistry/assets/filter_40.txt
 https://adguardteam.github.io/HostlistsRegistry/assets/filter_16.txt
 https://adguardteam.github.io/HostlistsRegistry/assets/filter_30.txt
 https://adguardteam.github.io/HostlistsRegistry/assets/filter_12.txt
-https://adguardteam.github.io/HostlistsRegistry/assets/filter_55.txt
-https://adguardteam.github.io/HostlistsRegistry/assets/filter_54.txt
 https://adguardteam.github.io/HostlistsRegistry/assets/filter_52.txt
-https://adguardteam.github.io/HostlistsRegistry/assets/filter_44.txt
 https://adguardteam.github.io/HostlistsRegistry/assets/filter_8.txt
 https://adguardteam.github.io/HostlistsRegistry/assets/filter_18.txt
 https://adguardteam.github.io/HostlistsRegistry/assets/filter_10.txt
