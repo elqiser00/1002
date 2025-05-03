@@ -11,7 +11,6 @@ urls = [
         "https://adguardteam.github.io/HostlistsRegistry/assets/filter_4.txt",
         "https://adguardteam.github.io/HostlistsRegistry/assets/filter_5.txt",
         "https://adguardteam.github.io/HostlistsRegistry/assets/filter_27.txt",
-        "https://adguardteam.github.io/HostlistsRegistry/assets/filter_3.txt",
         "https://adguardteam.github.io/HostlistsRegistry/assets/filter_33.txt",
         "https://adguardteam.github.io/HostlistsRegistry/assets/filter_39.txt",
         "https://adguardteam.github.io/HostlistsRegistry/assets/filter_6.txt",
@@ -137,7 +136,7 @@ urls = [
         "https://raw.githubusercontent.com/DandelionSprout/adfilt/master/LegitimateURLShortener.txt",
         "https://pgl.yoyo.org/adservers/serverlist.php?hostformat=adblockplus&mimetype=plaintext",
         "https://raw.githubusercontent.com/AdguardTeam/FiltersRegistry/master/filters/filter_17_TrackParam/filter.txt",
-        "https://raw.githubusercontent.com/elqiser00/1002/refs/heads/main/filters/merged-filters.txt",
+        "https://raw.githubusercontent.com/elqiser00/1002/refs/heads/main/filters/merged-filters.txt"
 ]
 
 # أقصى عدد للفلاتر في كل ملف
