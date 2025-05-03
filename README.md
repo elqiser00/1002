@@ -7,7 +7,6 @@ https://adguardteam.github.io/HostlistsRegistry/assets/filter_24.txt
 https://adguardteam.github.io/HostlistsRegistry/assets/filter_4.txt
 https://adguardteam.github.io/HostlistsRegistry/assets/filter_5.txt
 https://adguardteam.github.io/HostlistsRegistry/assets/filter_27.txt
-https://adguardteam.github.io/HostlistsRegistry/assets/filter_3.txt
 https://adguardteam.github.io/HostlistsRegistry/assets/filter_33.txt
 https://adguardteam.github.io/HostlistsRegistry/assets/filter_39.txt
 https://adguardteam.github.io/HostlistsRegistry/assets/filter_6.txt
