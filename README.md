@@ -132,4 +132,6 @@ https://raw.githubusercontent.com/DandelionSprout/adfilt/master/NorwegianExperim
 https://raw.githubusercontent.com/DandelionSprout/adfilt/master/LegitimateURLShortener.txt
 https://pgl.yoyo.org/adservers/serverlist.php?hostformat=adblockplus&mimetype=plaintext
 https://raw.githubusercontent.com/AdguardTeam/FiltersRegistry/master/filters/filter_17_TrackParam/filter.txt
+https://easylist-downloads.adblockplus.org/easylist-cookie.txt
+https://raw.githubusercontent.com/AdguardTeam/FiltersRegistry/master/filters/filter_19_Annoyances_Popups/filter.txt
 https://raw.githubusercontent.com/elqiser00/1002/refs/heads/main/filters/merged-filters.txt
