@@ -33,3 +33,5 @@
 @@||shoopyaio.great-site.net^$important
 @@||s.youtube.com^$important
 @@||1fichier.com^$important
+||youtube.com/get_midroll_info^$important
+@@||href.li^$important
