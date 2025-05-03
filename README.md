@@ -46,10 +46,8 @@ https://adguardteam.github.io/HostlistsRegistry/assets/filter_9.txt
 https://adguardteam.github.io/HostlistsRegistry/assets/filter_50.txt
 https://adguardteam.github.io/HostlistsRegistry/assets/filter_11.txt
 https://raw.githubusercontent.com/AdguardTeam/FiltersRegistry/master/filters/filter_2_Base/filter.txt
-https://easylist-downloads.adblockplus.org/easylist.txt
 https://easylist-downloads.adblockplus.org/easyprivacy.txt
 https://secure.fanboy.co.nz/fanboy-annoyance.txt
-https://easylist-downloads.adblockplus.org/fanboy-social.txt
 https://raw.githubusercontent.com/heradhis/indonesianadblockrules/master/subscriptions/abpindo.txt
 https://abpvn.com/filter/abpvn-IPl6HE.txt
 https://easylist-downloads.adblockplus.org/Liste_AR.txt
@@ -64,7 +62,6 @@ https://urlhaus-filter.pages.dev/urlhaus-filter-ag-online.txt
 https://fanboy.co.nz/fanboy-antifonts.txt
 https://www.fanboy.co.nz/fanboy-antifacebook.txt
 https://filters.adtidy.org/android/filters/1_optimized.txt
-https://filters.adtidy.org/android/filters/3_optimized.txt
 https://filters.adtidy.org/android/filters/4_optimized.txt
 https://filters.adtidy.org/android/filters/6_optimized.txt
 https://filters.adtidy.org/android/filters/7_optimized.txt
@@ -87,10 +84,6 @@ https://raw.githubusercontent.com/easylist/easylistchina/master/easylistchina.tx
 https://easylist-downloads.adblockplus.org/easylistdutch.txt
 https://easylist.to/easylistgermany/easylistgermany.txt
 https://easylist-downloads.adblockplus.org/liste_fr.txt
-https://userscripts.adtidy.org/release/adguard-extra/1.0/adguard-extra.user.js
-https://userscripts.adtidy.org/release/adguard-extra/1.0/adguard-extra.meta.js
-https://userscripts.adtidy.org/release/disable-amp/1.0/disable-amp.user.js
-https://userscripts.adtidy.org/release/disable-amp/1.0/disable-amp.meta.js
 https://adblock.gardar.net/is.abp.txt
 https://www.void.gr/kargig/void-gr-filters.txt
 https://easylist-downloads.adblockplus.org/easylistportuguese.txt
@@ -132,6 +125,6 @@ https://raw.githubusercontent.com/DandelionSprout/adfilt/master/NorwegianExperim
 https://raw.githubusercontent.com/DandelionSprout/adfilt/master/LegitimateURLShortener.txt
 https://pgl.yoyo.org/adservers/serverlist.php?hostformat=adblockplus&mimetype=plaintext
 https://raw.githubusercontent.com/AdguardTeam/FiltersRegistry/master/filters/filter_17_TrackParam/filter.txt
-https://easylist-downloads.adblockplus.org/easylist-cookie.txt
 https://raw.githubusercontent.com/AdguardTeam/FiltersRegistry/master/filters/filter_19_Annoyances_Popups/filter.txt
+https://raw.githubusercontent.com/uBlockOrigin/uAssets/master/filters/filters.txt
 https://raw.githubusercontent.com/elqiser00/1002/refs/heads/main/filters/merged-filters.txt
