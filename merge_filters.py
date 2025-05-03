@@ -15,7 +15,6 @@ urls = [
         "https://adguardteam.github.io/HostlistsRegistry/assets/filter_33.txt",
         "https://adguardteam.github.io/HostlistsRegistry/assets/filter_39.txt",
         "https://adguardteam.github.io/HostlistsRegistry/assets/filter_6.txt",
-        "https://adguardteam.github.io/HostlistsRegistry/assets/filter_46.txt",
         "https://adguardteam.github.io/HostlistsRegistry/assets/filter_47.txt",
         "https://adguardteam.github.io/HostlistsRegistry/assets/filter_61.txt",
         "https://adguardteam.github.io/HostlistsRegistry/assets/filter_63.txt",
