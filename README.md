@@ -138,6 +138,6 @@ https://raw.githubusercontent.com/DandelionSprout/adfilt/master/SerboCroatianLis
 https://easylist-downloads.adblockplus.org/indianlist.txt
 https://raw.githubusercontent.com/RandomAdversary/Macedonian-adBlock-Filters/master/Filters
 https://raw.githubusercontent.com/DandelionSprout/adfilt/master/NorwegianExperimentalList%20alternate%20versions/NordicFiltersAdGuard.txt
-https://raw.githubusercontent.com/elqiser00/1002/refs/heads/main/filters/merged-filters.txt
 https://raw.githubusercontent.com/DandelionSprout/adfilt/master/LegitimateURLShortener.txt
 https://pgl.yoyo.org/adservers/serverlist.php?hostformat=adblockplus&mimetype=plaintext
+https://raw.githubusercontent.com/elqiser00/1002/refs/heads/main/filters/merged-filters.txt
