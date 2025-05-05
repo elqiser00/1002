@@ -10,6 +10,7 @@ urls = [
     "https://raw.githubusercontent.com/AssoEchap/stalkerware-indicators/master/generated/quad9_blocklist.txt",  # برامج تجسس
     "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/domains/native.tiktok.txt",  # تتبع تيك توك
     "https://perflyst.github.io/PiHoleBlocklist/AmazonFireTV.txt"  # إعلانات أجهزة الذكية
+    "https://raw.githubusercontent.com/elqiser00/1002/refs/heads/main/filters/merged-filters.txt",
 ]
 
 # أقصى عدد للفلاتر في كل ملف
