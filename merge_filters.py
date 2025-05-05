@@ -6,9 +6,6 @@ import time
 urls = [
     "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/adblock/ultimate.txt",
     "https://hole.cert.pl/domains/v2/domains.txt",  # أقوى قائمة برمجيات خبيثة (تحديث يومي)
-    "https://phishing.army/download/phishing_army_blocklist.txt",  # تصيد احتيالي (تحديث فوري)
-    "https://raw.githubusercontent.com/AssoEchap/stalkerware-indicators/master/generated/quad9_blocklist.txt",  # برامج تجسس
-    "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/domains/native.tiktok.txt",  # تتبع تيك توك
     "https://perflyst.github.io/PiHoleBlocklist/AmazonFireTV.txt"  # إعلانات أجهزة الذكية
     "https://raw.githubusercontent.com/elqiser00/1002/refs/heads/main/filters/merged-filters.txt",
 ]
