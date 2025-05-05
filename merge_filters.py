@@ -5,7 +5,6 @@ import time
 # جميع الروابط
 urls = [
     "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/adblock/ultimate.txt",
-    "https://raw.githubusercontent.com/AdguardTeam/FiltersRegistry/master/filters/filter_19_Annoyances_Popups/filter.txt",
     "https://hole.cert.pl/domains/v2/domains.txt",  # أقوى قائمة برمجيات خبيثة (تحديث يومي)
     "https://perflyst.github.io/PiHoleBlocklist/AmazonFireTV.txt"  # إعلانات أجهزة الذكية
 ]
