@@ -7,7 +7,6 @@ urls = [
     "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/adblock/ultimate.txt",
     "https://hole.cert.pl/domains/v2/domains.txt",  # أقوى قائمة برمجيات خبيثة (تحديث يومي)
     "https://perflyst.github.io/PiHoleBlocklist/AmazonFireTV.txt"  # إعلانات أجهزة الذكية
-    "https://raw.githubusercontent.com/elqiser00/1002/refs/heads/main/filters/merged-filters.txt",
 ]
 
 # أقصى عدد للفلاتر في كل ملف
