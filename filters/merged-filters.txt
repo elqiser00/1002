@@ -34,4 +34,9 @@
 @@||s.youtube.com^$important
 @@||1fichier.com^$important
 ||youtube.com/get_midroll_info^$important
-@@||href.li^$important
+@@||shoopy.atspace.co.uk^$important
+@@||whats1001.atspace.cc^$important
+@@||whatsbot.atspace.cc^$important
+@@||faphouse.com^$important
+@@||b-graph-fallback.facebook.com^$important
+@@||graph.whatsapp.com^$important
