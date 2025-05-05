@@ -4,12 +4,7 @@ import time
 
 # جميع الروابط
 urls = [
-    "https://big.oisd.nl/",
-    "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/adblock/light.txt",
-    "https://hole.cert.pl/domains/v2/domains.txt",
-    "https://phishing.army/download/phishing_army_blocklist.txt",
-    "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/domains/native.samsung.txt",
-    "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/domains/native.google.txt"
+    "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/adblock/ultimate.txt",
 ]
 
 # أقصى عدد للفلاتر في كل ملف
