@@ -144,65 +144,59 @@ urls = [
 
 # إعدادات
 MAX_LINES_PER_FILE = 2_000_000
+MAX_LINE_LENGTH = 5000
 REQUEST_DELAY = 0.2
-OUTPUT_DIR = "adguard_clean_filters"
+OUTPUT_DIR = "optimized_filters"
 
-def is_real_rule(line):
+def is_valid_rule(line):
     """
-    تحديد إذا كان السطر قاعدة حقيقية لـ AdGuard Home وليس تعليقًا
+    تحديد إذا كان السطر قاعدة صالحة مع استثناء التعليقات والبيانات الوصفية
     """
     line = line.strip()
     
-    # تجاهل الخطوط الفارغة والتعليقات البسيطة
-    if not line or line.startswith(('! ', '# ', '! Title:', '! Description:')):
+    # تجاهل الخطوط الفارغة والتعليقات
+    if not line or line.startswith(('!', '#', '@@', '%%')) or \
+       any(keyword in line for keyword in [' Title:', ' Description:', ' Version:']):
         return False
     
-    # قواعد النطاقات (تبدأ بـ || أو @@||)
-    if re.match(r'^(@@)?\|\|[\w\-\.]+\^?', line):
-        return True
-    
-    # قواعد عناصر الـ CSS/JS (تبدأ بـ ## أو #@# أو @@##)
-    if re.match(r'^(@@)?#@?#[\w\-\.#]', line):
-        return True
-    
-    # قواعد الـ Hosts (عنوان IP ثم نطاق)
-    if re.match(r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\s+[\w\-\.]+', line):
-        return True
-    
-    # القواعد المعتمدة على regex (بين //)
-    if re.match(r'^/.*/', line):
-        return True
-    
-    # القواعد الخاصة (تبدأ بـ %% أو $$$)
-    if line.startswith(('%%', '$$$')):
-        return True
-    
-    # قواعد الاستثناءات الخاصة
-    if line.startswith('@@') and not line.startswith('@@ '):
-        return True
-    
-    # قواعد التعديلات (تحتوي على $ ولكن ليس في البداية)
-    if re.search(r'\$[a-z]+(=[^,\s]+)?(,|$)', line):
+    # التحقق من صحة بناء القاعدة
+    if re.match(r'^(\|\|)?([a-z0-9-]+\.)+[a-z]{2,}', line) or \
+       re.match(r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\s+', line) or \
+       re.match(r'^/.*/', line) or \
+       re.match(r'^@@\|\|', line) or \
+       re.match(r'^##', line) or \
+       re.match(r'^#@#', line):
         return True
     
     return False
 
-def clean_rule(rule):
+def smart_split(line):
     """
-    تنظيف القاعدة من أي تعليقات جانبية
+    تقسيم القواعد الطويلة مع الحفاظ على المعنى
     """
-    # إزالة التعليقات بعد علامة : أو ;
-    rule = re.split(r'[:;]', rule)[0].strip()
+    if len(line) <= MAX_LINE_LENGTH:
+        return [line]
     
-    # إزالة المسافات الزائدة
-    return ' '.join(rule.split())
+    # معالجة قواعد النطاقات
+    if line.startswith('||') and '^' in line:
+        domains = line[2:].split('^')[0].split('|')
+        return [f'||{"|".join(domains[i:i+50])}^' for i in range(0, len(domains), 50)]
+    
+    # معالجة قوائم النطاقات المفصولة بفواصل
+    if ',' in line:
+        parts = line.split(',')
+        return [','.join(parts[i:i+100]) for i in range(0, len(parts), 100)]
+    
+    # التقسيم العام
+    return [line[i:i+MAX_LINE_LENGTH] for i in range(0, len(line), MAX_LINE_LENGTH)]
 
 def process_filters():
     """
-    العملية الرئيسية لتنظيف الفلاتر
+    العملية الرئيسية لمعالجة الفلاتر
     """
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     unique_rules = set()
+    stats = {'total': 0, 'filtered': 0}
     
     for url in urls:
         try:
@@ -211,24 +205,35 @@ def process_filters():
             response.raise_for_status()
             
             for line in response.text.splitlines():
-                if is_real_rule(line):
-                    cleaned = clean_rule(line)
-                    if cleaned:
-                        unique_rules.add(cleaned)
+                stats['total'] += 1
+                if is_valid_rule(line):
+                    for split_rule in smart_split(line.strip()):
+                        unique_rules.add(split_rule)
+                        stats['filtered'] += 1
             
             time.sleep(REQUEST_DELAY)
         except Exception as e:
             print(f"❌ خطأ في تحميل {url}: {str(e)}")
     
-    # حفظ النتائج
+    # تحليل وحفظ النتائج
     sorted_rules = sorted(unique_rules)
-    output_file = os.path.join(OUTPUT_DIR, "adguard_rules.txt")
+    print(f"✅ تم تجهيز {len(sorted_rules)} قاعدة من أصل {stats['total']} سطر ({stats['filtered']} بعد التقسيم)")
     
-    with open(output_file, "w", encoding="utf-8") as f:
+    # حفظ الملف الكامل
+    full_path = os.path.join(OUTPUT_DIR, "optimized_filters.txt")
+    with open(full_path, "w", encoding="utf-8") as f:
         f.write("\n".join(sorted_rules))
     
-    print(f"✅ تم حفظ {len(sorted_rules)} قاعدة فلترة في {output_file}")
-    print("🎉 تم الانتهاء بنجاح مع الحفاظ على جميع أنواع قواعد AdGuard Home!")
+    # تقسيم إلى ملفات جزئية إذا لزم الأمر
+    if len(sorted_rules) > MAX_LINES_PER_FILE:
+        file_num = 1
+        for i in range(0, len(sorted_rules), MAX_LINES_PER_FILE):
+            part_path = os.path.join(OUTPUT_DIR, f"part_{file_num}.txt")
+            with open(part_path, "w", encoding="utf-8") as f:
+                f.write("\n".join(sorted_rules[i:i+MAX_LINES_PER_FILE]))
+            file_num += 1
+    
+    print(f"🎉 تم الانتهاء! الملفات موجودة في مجلد '{OUTPUT_DIR}'")
 
 if __name__ == "__main__":
     process_filters()
