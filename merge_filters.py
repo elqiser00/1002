@@ -1,10 +1,137 @@
 import requests
 import os
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from urllib.parse import urlparse
 
-# جميع الروابط
-urls = [
+# إعدادات التكوين
+MAX_LINES_PER_FILE = 1_500_000  # توازن بين الأداء وحجم الملف
+MAX_LINE_LENGTH = 5000
+REQUEST_TIMEOUT = 45  # زيادة المهلة للروابط الكبيرة
+REQUEST_DELAY = 0.3  # تأخير معقول بين الطلبات
+MAX_WORKERS = 5  # عدد المواضيع للتحميل المتوازي
+USER_AGENT = "AdGuardHome-Filter-Merger/2.0"
+
+def is_valid_filter(line):
+    """تحقق من صحة سطر الفلتر مع معايير AdGuard"""
+    line = line.strip()
+    if not line:
+        return False
+    
+    # تجاهل التعليقات والاستثناءات والقواعد الخاصة
+    ignore_prefixes = ('!', '#', '@@', '[', '&', '/')
+    if line.startswith(ignore_prefixes):
+        return False
+    
+    # تجاهل بعض الأنماط غير المدعومة
+    invalid_patterns = ('##', '#@#', '!#', '##^')
+    if any(pattern in line for pattern in invalid_patterns):
+        return False
+    
+    # تحقق من الطول المسموح
+    return len(line) <= MAX_LINE_LENGTH
+
+def normalize_filter(line):
+    """توحيد تنسيق سطر الفلتر"""
+    return line.strip().replace('\r', '').replace('\t', ' ').replace('  ', ' ')
+
+def download_filter(url):
+    """تحميل الفلتر مع إدارة الأخطاء"""
+    try:
+        headers = {'User-Agent': USER_AGENT}
+        response = requests.get(url, timeout=REQUEST_TIMEOUT, headers=headers)
+        response.raise_for_status()
+        return response.text.splitlines(), url
+    except Exception as e:
+        print(f"⚠️ فشل تحميل {urlparse(url).netloc}: {str(e)}")
+        return [], url
+
+def process_filters(urls):
+    """معالجة الفلاتر بشكل متوازي"""
+    unique_filters = set()
+    total_urls = len(urls)
+    
+    print(f"🔍 بدء معالجة {total_urls} مصدر فلتر...")
+    
+    with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+        future_to_url = {executor.submit(download_filter, url): url for url in urls}
+        
+        for i, future in enumerate(as_completed(future_to_url), 1):
+            lines, url = future.result()
+            domain = urlparse(url).netloc
+            print(f"📊 [{i}/{total_urls}] معالجة: {domain} ({len(lines)} سطر)")
+            
+            for line in lines:
+                if is_valid_filter(line):
+                    normalized = normalize_filter(line)
+                    unique_filters.add(normalized)
+            
+            if i < total_urls:
+                time.sleep(REQUEST_DELAY)
+    
+    # فرز النتائج مع الأولوية للقواعد المهمة
+    return sorted(unique_filters, key=lambda x: (
+        not x.startswith('||'),
+        not x.startswith('||*'),
+        not x.startswith('|'),
+        x.lower()
+    ))
+
+def save_filters(filters, output_dir="merged_filters"):
+    """حفظ الفلاتر مع التحسينات"""
+    os.makedirs(output_dir, exist_ok=True)
+    
+    # ملف شامل
+    main_file = os.path.join(output_dir, "all_filters.txt")
+    with open(main_file, 'w', encoding='utf-8') as f:
+        f.write("! Title: Merged Filters (Optimized)\n")
+        f.write("! Description: Combined filters for AdGuardHome\n")
+        f.write("! Version: " + time.strftime("%Y%m%d") + "\n")
+        f.write("! Last updated: " + time.strftime("%Y-%m-%d %H:%M:%S") + "\n\n")
+        f.write("\n".join(filters))
+    
+    print(f"✅ تم حفظ {len(filters)} فلتر في {main_file}")
+    
+    # تقسيم الملفات مع تحسين الأداء
+    if len(filters) > MAX_LINES_PER_FILE:
+        parts = (len(filters) // MAX_LINES_PER_FILE) + 1
+        for i in range(parts):
+            start = i * MAX_LINES_PER_FILE
+            end = start + MAX_LINES_PER_FILE
+            part_file = os.path.join(output_dir, f"filters_part_{i+1}.txt")
+            
+            with open(part_file, 'w', encoding='utf-8') as f:
+                f.write("\n".join(filters[start:end]))
+            
+            print(f"📦 الجزء {i+1}: {len(filters[start:end])} قاعدة ({part_file})")
+
+def main(filter_urls):
+    """الدالة الرئيسية"""
+    start_time = time.perf_counter()
+    
+    try:
+        filters = process_filters(filter_urls)
+        save_filters(filters)
+        
+        elapsed = time.perf_counter() - start_time
+        stats = {
+            "total_filters": len(filters),
+            "time_elapsed": f"{elapsed:.2f} ثانية",
+            "avg_speed": f"{len(filters)/max(elapsed, 1):.1f} قاعدة/ثانية"
+        }
+        
+        print("\n📊 إحصائيات الأداء:")
+        for k, v in stats.items():
+            print(f"- {k.replace('_', ' ').title()}: {v}")
+            
+    except KeyboardInterrupt:
+        print("\n⏹ تم إيقاف العملية بواسطة المستخدم")
+    except Exception as e:
+        print(f"❌ خطأ غير متوقع: {str(e)}")
+
+if __name__ == "__main__":
+    # قائمة الروابط (يجب استيرادها أو تعريفها هنا)
+    FILTER_URLS = [
     "https://adguardteam.github.io/HostlistsRegistry/assets/filter_1.txt",
     "https://adguardteam.github.io/HostlistsRegistry/assets/filter_53.txt",
     "https://adguardteam.github.io/HostlistsRegistry/assets/filter_59.txt",
@@ -140,96 +267,6 @@ urls = [
     "https://raw.githubusercontent.com/AdguardTeam/FiltersRegistry/master/filters/filter_19_Annoyances_Popups/filter.txt",
     "https://raw.githubusercontent.com/uBlockOrigin/uAssets/master/filters/filters.txt",
     "https://raw.githubusercontent.com/elqiser00/1002/refs/heads/main/filters/merged-filters.txt",
-]
-
-# إعدادات التكوين
-MAX_LINES_PER_FILE = 1_000_000
-MAX_LINE_LENGTH = 5000
-REQUEST_TIMEOUT = 30
-REQUEST_DELAY = 0.5
-USER_AGENT = "AdGuardHome-Filter-Merger/1.0"
-
-def is_valid_filter_line(line):
-    """تحقق مما إذا كان السطر صالحًا للفلترة"""
-    line = line.strip()
-    return (
-        line and
-        not line.startswith(('!', '#', '@@', '/')) and
-        not line.startswith(('[', '&', '~')) and
-        not line.startswith(('www.', 'http://', 'https://')) and
-        '##' not in line and
-        '#@#' not in line and
-        len(line) <= MAX_LINE_LENGTH
-    )
-
-def normalize_filter_line(line):
-    """توحيد تنسيق سطر الفلتر"""
-    return line.strip().replace('\r', '').replace('\t', ' ')
-
-def download_filter(url):
-    """تحميل فلتر من URL مع التعامل مع الأخطاء"""
-    try:
-        headers = {'User-Agent': USER_AGENT}
-        response = requests.get(url, timeout=REQUEST_TIMEOUT, headers=headers)
-        response.raise_for_status()
-        return response.text.splitlines()
-    except Exception as e:
-        print(f"❌ خطأ في تحميل {url}: {str(e)}")
-        return []
-
-def process_filters():
-    """معالجة الفلاتر الرئيسية"""
-    unique_lines = set()
-    total_urls = len(FILTER_URLS)
+    ]
     
-    print(f"🔍 بدء معالجة {total_urls} مصدر فلتر...")
-    
-    for index, url in enumerate(FILTER_URLS, 1):
-        domain = urlparse(url).netloc
-        print(f"⏳ [{index}/{total_urls}] جاري تحميل من {domain}...")
-        
-        lines = download_filter(url)
-        for line in lines:
-            if is_valid_filter_line(line):
-                normalized = normalize_filter_line(line)
-                unique_lines.add(normalized)
-        
-        if index < total_urls:
-            time.sleep(REQUEST_DELAY)
-    
-    # التصحيح هنا: إزالة reverse=True واستخدام طريقة أخرى للفرز
-    return sorted(unique_lines, key=lambda x: (not x.startswith('||'), x))
-
-def save_filters(filters, output_dir="merged_filters"):
-    """حفظ الفلاتر في ملفات"""
-    os.makedirs(output_dir, exist_ok=True)
-    
-    all_filters_path = os.path.join(output_dir, "all_filters.txt")
-    with open(all_filters_path, 'w', encoding='utf-8') as f:
-        f.write("\n".join(filters))
-    print(f"✅ تم حفظ {len(filters)} فلتر في {all_filters_path}")
-    
-    if len(filters) > MAX_LINES_PER_FILE:
-        file_count = (len(filters) // MAX_LINES_PER_FILE) + 1
-        for i in range(file_count):
-            start_idx = i * MAX_LINES_PER_FILE
-            end_idx = start_idx + MAX_LINES_PER_FILE
-            chunk = filters[start_idx:end_idx]
-            
-            part_path = os.path.join(output_dir, f"filters_part_{i+1}.txt")
-            with open(part_path, 'w', encoding='utf-8') as f:
-                f.write("\n".join(chunk))
-            print(f"📦 تم حفظ الجزء {i+1} ({len(chunk)} فلتر) في {part_path}")
-
-def main():
-    start_time = time.time()
-    
-    filters = process_filters()
-    save_filters(filters)
-    
-    elapsed = time.time() - start_time
-    print(f"🎉 تم الانتهاء في {elapsed:.2f} ثانية")
-    print(f"📊 الإجمالي النهائي: {len(filters)} قاعدة فلترة فريدة")
-
-if __name__ == "__main__":
-    main()
+    main(FILTER_URLS)
