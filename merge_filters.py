@@ -143,10 +143,10 @@ urls = [
 ]
 
 # إعدادات التكوين
-MAX_LINES_PER_FILE = 1_000_000  # تقليل الحد الأقصى لتحسين الأداء
+MAX_LINES_PER_FILE = 1_000_000
 MAX_LINE_LENGTH = 5000
 REQUEST_TIMEOUT = 30
-REQUEST_DELAY = 0.5  # زيادة التأخير بين الطلبات
+REQUEST_DELAY = 0.5
 USER_AGENT = "AdGuardHome-Filter-Merger/1.0"
 
 def is_valid_filter_line(line):
@@ -194,22 +194,21 @@ def process_filters():
                 normalized = normalize_filter_line(line)
                 unique_lines.add(normalized)
         
-        if index < total_urls:  # لا تأخير بعد آخر طلب
+        if index < total_urls:
             time.sleep(REQUEST_DELAY)
     
-    return sorted(unique_lines, key=lambda x: (x.startswith('||'), reverse=True)
+    # التصحيح هنا: إزالة reverse=True واستخدام طريقة أخرى للفرز
+    return sorted(unique_lines, key=lambda x: (not x.startswith('||'), x))
 
 def save_filters(filters, output_dir="merged_filters"):
     """حفظ الفلاتر في ملفات"""
     os.makedirs(output_dir, exist_ok=True)
     
-    # ملف شامل
     all_filters_path = os.path.join(output_dir, "all_filters.txt")
     with open(all_filters_path, 'w', encoding='utf-8') as f:
         f.write("\n".join(filters))
     print(f"✅ تم حفظ {len(filters)} فلتر في {all_filters_path}")
     
-    # تقسيم إلى ملفات أصغر إذا لزم الأمر
     if len(filters) > MAX_LINES_PER_FILE:
         file_count = (len(filters) // MAX_LINES_PER_FILE) + 1
         for i in range(file_count):
