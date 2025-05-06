@@ -8,7 +8,6 @@ urls = [
     "https://adguardteam.github.io/HostlistsRegistry/assets/filter_1.txt",
     "https://adguardteam.github.io/HostlistsRegistry/assets/filter_59.txt",
     "https://adguardteam.github.io/HostlistsRegistry/assets/filter_5.txt",
-    "https://adguardteam.github.io/HostlistsRegistry/assets/filter_27.txt",
     "https://adguardteam.github.io/HostlistsRegistry/assets/filter_47.txt",
     "https://adguardteam.github.io/HostlistsRegistry/assets/filter_61.txt",
     "https://adguardteam.github.io/HostlistsRegistry/assets/filter_63.txt",
