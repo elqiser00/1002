@@ -6,12 +6,22 @@ import re
 # جميع الروابط
 urls = [
     "https://adguardteam.github.io/HostlistsRegistry/assets/filter_1.txt",
+    "https://adguardteam.github.io/HostlistsRegistry/assets/filter_53.txt",
     "https://adguardteam.github.io/HostlistsRegistry/assets/filter_59.txt",
+    "https://adguardteam.github.io/HostlistsRegistry/assets/filter_24.txt",
+    "https://adguardteam.github.io/HostlistsRegistry/assets/filter_4.txt",
     "https://adguardteam.github.io/HostlistsRegistry/assets/filter_5.txt",
+    "https://adguardteam.github.io/HostlistsRegistry/assets/filter_27.txt",
+    "https://adguardteam.github.io/HostlistsRegistry/assets/filter_33.txt",
+    "https://adguardteam.github.io/HostlistsRegistry/assets/filter_39.txt",
+    "https://adguardteam.github.io/HostlistsRegistry/assets/filter_6.txt",
     "https://adguardteam.github.io/HostlistsRegistry/assets/filter_47.txt",
     "https://adguardteam.github.io/HostlistsRegistry/assets/filter_61.txt",
     "https://adguardteam.github.io/HostlistsRegistry/assets/filter_63.txt",
     "https://adguardteam.github.io/HostlistsRegistry/assets/filter_60.txt",
+    "https://adguardteam.github.io/HostlistsRegistry/assets/filter_7.txt",
+    "https://adguardteam.github.io/HostlistsRegistry/assets/filter_57.txt",
+    "https://adguardteam.github.io/HostlistsRegistry/assets/filter_62.txt",
     "https://adguardteam.github.io/HostlistsRegistry/assets/filter_29.txt",
     "https://adguardteam.github.io/HostlistsRegistry/assets/filter_21.txt",
     "https://adguardteam.github.io/HostlistsRegistry/assets/filter_35.txt",
@@ -29,9 +39,17 @@ urls = [
     "https://adguardteam.github.io/HostlistsRegistry/assets/filter_26.txt",
     "https://adguardteam.github.io/HostlistsRegistry/assets/filter_40.txt",
     "https://adguardteam.github.io/HostlistsRegistry/assets/filter_16.txt",
+    "https://adguardteam.github.io/HostlistsRegistry/assets/filter_30.txt",
+    "https://adguardteam.github.io/HostlistsRegistry/assets/filter_12.txt",
     "https://adguardteam.github.io/HostlistsRegistry/assets/filter_52.txt",
     "https://adguardteam.github.io/HostlistsRegistry/assets/filter_8.txt",
     "https://adguardteam.github.io/HostlistsRegistry/assets/filter_18.txt",
+    "https://adguardteam.github.io/HostlistsRegistry/assets/filter_10.txt",
+    "https://adguardteam.github.io/HostlistsRegistry/assets/filter_42.txt",
+    "https://adguardteam.github.io/HostlistsRegistry/assets/filter_31.txt",
+    "https://adguardteam.github.io/HostlistsRegistry/assets/filter_9.txt",
+    "https://adguardteam.github.io/HostlistsRegistry/assets/filter_50.txt",
+    "https://adguardteam.github.io/HostlistsRegistry/assets/filter_11.txt",
     "https://raw.githubusercontent.com/AdguardTeam/FiltersRegistry/master/filters/filter_2_Base/filter.txt",
     "https://easylist-downloads.adblockplus.org/easylist.txt",
     "https://easylist-downloads.adblockplus.org/easyprivacy.txt",
@@ -122,62 +140,69 @@ urls = [
     "https://raw.githubusercontent.com/AdguardTeam/FiltersRegistry/master/filters/filter_19_Annoyances_Popups/filter.txt",
     "https://raw.githubusercontent.com/uBlockOrigin/uAssets/master/filters/filters.txt",
     "https://raw.githubusercontent.com/elqiser00/1002/refs/heads/main/filters/merged-filters.txt",
-    "https://adguardteam.github.io/HostlistsRegistry/assets/filter_54.txt",
 ]
 
 # إعدادات
-MAX_LINES_PER_FILE = 2_000_000  # أقصى عدد قواعد في كل ملف
-MAX_LINE_LENGTH = 5000  # الحد الأقصى لطول السطر
-REQUEST_DELAY = 0.2  # تأخير بين الطلبات (بالثواني)
-OUTPUT_DIR = "merged_filters"  # مجلد الإخراج
+MAX_LINES_PER_FILE = 2_000_000
+REQUEST_DELAY = 0.2
+OUTPUT_DIR = "adguard_clean_filters"
 
-def smart_split(line):
+def is_real_rule(line):
     """
-    تقسيم ذكي للقواعد الطويلة مع الحفاظ على البنية
+    تحديد إذا كان السطر قاعدة حقيقية لـ AdGuard Home وليس تعليقًا
     """
-    if len(line) <= MAX_LINE_LENGTH:
-        return [line]
+    line = line.strip()
     
-    # الحفاظ على تعليقات AdGuard الخاصة
-    if line.startswith(('!', '#', '@@', '%%')):
-        return [line]
+    # تجاهل الخطوط الفارغة والتعليقات البسيطة
+    if not line or line.startswith(('! ', '# ', '! Title:', '! Description:')):
+        return False
     
-    # معالجة أنواع القواعد المختلفة
-    if line.startswith('||') and line.endswith('^'):
-        domains = line[2:-1].split('|')
-        return [f'||{"|".join(domains[i:i+50])}^' for i in range(0, len(domains), 50)]
+    # قواعد النطاقات (تبدأ بـ || أو @@||)
+    if re.match(r'^(@@)?\|\|[\w\-\.]+\^?', line):
+        return True
     
-    elif '##' in line or '#@#' in line:
-        return [line]  # لا تقسم قواعد العناصر
+    # قواعد عناصر الـ CSS/JS (تبدأ بـ ## أو #@# أو @@##)
+    if re.match(r'^(@@)?#@?#[\w\-\.#]', line):
+        return True
     
-    elif '$' in line:
-        pattern, options = line.rsplit('$', 1)
-        return [f'{pattern}${options}']
+    # قواعد الـ Hosts (عنوان IP ثم نطاق)
+    if re.match(r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\s+[\w\-\.]+', line):
+        return True
     
-    elif ',' in line:
-        parts = line.split(',')
-        return [','.join(parts[i:i+100]) for i in range(0, len(parts), 100)]
+    # القواعد المعتمدة على regex (بين //)
+    if re.match(r'^/.*/', line):
+        return True
     
-    return [line[i:i+MAX_LINE_LENGTH] for i in range(0, len(line), MAX_LINE_LENGTH)]
+    # القواعد الخاصة (تبدأ بـ %% أو $$$)
+    if line.startswith(('%%', '$$$')):
+        return True
+    
+    # قواعد الاستثناءات الخاصة
+    if line.startswith('@@') and not line.startswith('@@ '):
+        return True
+    
+    # قواعد التعديلات (تحتوي على $ ولكن ليس في البداية)
+    if re.search(r'\$[a-z]+(=[^,\s]+)?(,|$)', line):
+        return True
+    
+    return False
 
-def is_valid_rule(rule):
+def clean_rule(rule):
     """
-    التحقق من صحة القاعدة الأساسية
+    تنظيف القاعدة من أي تعليقات جانبية
     """
-    if not rule.strip():
-        return False
-    if re.search(r'[\s\'"]', rule):
-        return False
-    return True
+    # إزالة التعليقات بعد علامة : أو ;
+    rule = re.split(r'[:;]', rule)[0].strip()
+    
+    # إزالة المسافات الزائدة
+    return ' '.join(rule.split())
 
 def process_filters():
     """
-    العملية الرئيسية لمعالجة الفلاتر
+    العملية الرئيسية لتنظيف الفلاتر
     """
-    all_rules = set()
-    metadata = []
-    
     os.makedirs(OUTPUT_DIR, exist_ok=True)
+    unique_rules = set()
     
     for url in urls:
         try:
@@ -186,46 +211,24 @@ def process_filters():
             response.raise_for_status()
             
             for line in response.text.splitlines():
-                clean_line = line.strip()
-                
-                # الاحتفاظ بالتعليقات وبيانات الميتا
-                if not clean_line or clean_line.startswith(('!', '#', '@@', '%%')):
-                    metadata.append(clean_line)
-                    continue
-                
-                # معالجة القواعد الفعلية
-                if is_valid_rule(clean_line):
-                    for split_rule in smart_split(clean_line):
-                        all_rules.add(split_rule)
+                if is_real_rule(line):
+                    cleaned = clean_rule(line)
+                    if cleaned:
+                        unique_rules.add(cleaned)
             
             time.sleep(REQUEST_DELAY)
         except Exception as e:
             print(f"❌ خطأ في تحميل {url}: {str(e)}")
     
-    # تحويل إلى قائمة وترتيب
-    all_rules = sorted(list(all_rules))
-    total_rules = len(all_rules)
-    print(f"✅ تم تجهيز {total_rules} قاعدة فريدة مع {len(metadata)} سطر وصفية.")
+    # حفظ النتائج
+    sorted_rules = sorted(unique_rules)
+    output_file = os.path.join(OUTPUT_DIR, "adguard_rules.txt")
     
-    # حفظ الملف الكامل مع البيانات الوصفية
-    full_output_path = os.path.join(OUTPUT_DIR, "all_filters.txt")
-    with open(full_output_path, "w", encoding="utf-8") as f:
-        f.write("\n".join(metadata + all_rules))
-    print(f"💾 تم حفظ الملف الكامل في: {full_output_path}")
+    with open(output_file, "w", encoding="utf-8") as f:
+        f.write("\n".join(sorted_rules))
     
-    # تقسيم إلى ملفات أصغر
-    file_count = 1
-    for i in range(0, total_rules, MAX_LINES_PER_FILE):
-        chunk = all_rules[i:i + MAX_LINES_PER_FILE]
-        part_path = os.path.join(OUTPUT_DIR, f"filters_part_{file_count}.txt")
-        
-        with open(part_path, "w", encoding="utf-8") as f:
-            f.write("\n".join(metadata + chunk))
-        
-        print(f"📦 تم إنشاء ملف الجزء {file_count}: {part_path} ({len(chunk)} قاعدة)")
-        file_count += 1
-    
-    print("🎉 اكتملت العملية بنجاح!")
+    print(f"✅ تم حفظ {len(sorted_rules)} قاعدة فلترة في {output_file}")
+    print("🎉 تم الانتهاء بنجاح مع الحفاظ على جميع أنواع قواعد AdGuard Home!")
 
 if __name__ == "__main__":
     process_filters()
