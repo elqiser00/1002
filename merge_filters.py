@@ -142,98 +142,95 @@ urls = [
     "https://raw.githubusercontent.com/elqiser00/1002/refs/heads/main/filters/merged-filters.txt",
 ]
 
-# إعدادات
-MAX_LINES_PER_FILE = 2_000_000
+# إعدادات التكوين
+MAX_LINES_PER_FILE = 1_000_000  # تقليل الحد الأقصى لتحسين الأداء
 MAX_LINE_LENGTH = 5000
-REQUEST_DELAY = 0.2
-OUTPUT_DIR = "optimized_filters"
+REQUEST_TIMEOUT = 30
+REQUEST_DELAY = 0.5  # زيادة التأخير بين الطلبات
+USER_AGENT = "AdGuardHome-Filter-Merger/1.0"
 
-def is_valid_rule(line):
-    """
-    تحديد إذا كان السطر قاعدة صالحة مع استثناء التعليقات والبيانات الوصفية
-    """
+def is_valid_filter_line(line):
+    """تحقق مما إذا كان السطر صالحًا للفلترة"""
     line = line.strip()
-    
-    # تجاهل الخطوط الفارغة والتعليقات
-    if not line or line.startswith(('!', '#', '@@', '%%')) or \
-       any(keyword in line for keyword in [' Title:', ' Description:', ' Version:']):
-        return False
-    
-    # التحقق من صحة بناء القاعدة
-    if re.match(r'^(\|\|)?([a-z0-9-]+\.)+[a-z]{2,}', line) or \
-       re.match(r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\s+', line) or \
-       re.match(r'^/.*/', line) or \
-       re.match(r'^@@\|\|', line) or \
-       re.match(r'^##', line) or \
-       re.match(r'^#@#', line):
-        return True
-    
-    return False
+    return (
+        line and
+        not line.startswith(('!', '#', '@@', '/')) and
+        not line.startswith(('[', '&', '~')) and
+        not line.startswith(('www.', 'http://', 'https://')) and
+        '##' not in line and
+        '#@#' not in line and
+        len(line) <= MAX_LINE_LENGTH
+    )
 
-def smart_split(line):
-    """
-    تقسيم القواعد الطويلة مع الحفاظ على المعنى
-    """
-    if len(line) <= MAX_LINE_LENGTH:
-        return [line]
-    
-    # معالجة قواعد النطاقات
-    if line.startswith('||') and '^' in line:
-        domains = line[2:].split('^')[0].split('|')
-        return [f'||{"|".join(domains[i:i+50])}^' for i in range(0, len(domains), 50)]
-    
-    # معالجة قوائم النطاقات المفصولة بفواصل
-    if ',' in line:
-        parts = line.split(',')
-        return [','.join(parts[i:i+100]) for i in range(0, len(parts), 100)]
-    
-    # التقسيم العام
-    return [line[i:i+MAX_LINE_LENGTH] for i in range(0, len(line), MAX_LINE_LENGTH)]
+def normalize_filter_line(line):
+    """توحيد تنسيق سطر الفلتر"""
+    return line.strip().replace('\r', '').replace('\t', ' ')
+
+def download_filter(url):
+    """تحميل فلتر من URL مع التعامل مع الأخطاء"""
+    try:
+        headers = {'User-Agent': USER_AGENT}
+        response = requests.get(url, timeout=REQUEST_TIMEOUT, headers=headers)
+        response.raise_for_status()
+        return response.text.splitlines()
+    except Exception as e:
+        print(f"❌ خطأ في تحميل {url}: {str(e)}")
+        return []
 
 def process_filters():
-    """
-    العملية الرئيسية لمعالجة الفلاتر
-    """
-    os.makedirs(OUTPUT_DIR, exist_ok=True)
-    unique_rules = set()
-    stats = {'total': 0, 'filtered': 0}
+    """معالجة الفلاتر الرئيسية"""
+    unique_lines = set()
+    total_urls = len(FILTER_URLS)
     
-    for url in urls:
-        try:
-            print(f"⏳ جاري تحميل: {url}")
-            response = requests.get(url, timeout=30)
-            response.raise_for_status()
-            
-            for line in response.text.splitlines():
-                stats['total'] += 1
-                if is_valid_rule(line):
-                    for split_rule in smart_split(line.strip()):
-                        unique_rules.add(split_rule)
-                        stats['filtered'] += 1
-            
+    print(f"🔍 بدء معالجة {total_urls} مصدر فلتر...")
+    
+    for index, url in enumerate(FILTER_URLS, 1):
+        domain = urlparse(url).netloc
+        print(f"⏳ [{index}/{total_urls}] جاري تحميل من {domain}...")
+        
+        lines = download_filter(url)
+        for line in lines:
+            if is_valid_filter_line(line):
+                normalized = normalize_filter_line(line)
+                unique_lines.add(normalized)
+        
+        if index < total_urls:  # لا تأخير بعد آخر طلب
             time.sleep(REQUEST_DELAY)
-        except Exception as e:
-            print(f"❌ خطأ في تحميل {url}: {str(e)}")
     
-    # تحليل وحفظ النتائج
-    sorted_rules = sorted(unique_rules)
-    print(f"✅ تم تجهيز {len(sorted_rules)} قاعدة من أصل {stats['total']} سطر ({stats['filtered']} بعد التقسيم)")
+    return sorted(unique_lines, key=lambda x: (x.startswith('||'), reverse=True)
+
+def save_filters(filters, output_dir="merged_filters"):
+    """حفظ الفلاتر في ملفات"""
+    os.makedirs(output_dir, exist_ok=True)
     
-    # حفظ الملف الكامل
-    full_path = os.path.join(OUTPUT_DIR, "optimized_filters.txt")
-    with open(full_path, "w", encoding="utf-8") as f:
-        f.write("\n".join(sorted_rules))
+    # ملف شامل
+    all_filters_path = os.path.join(output_dir, "all_filters.txt")
+    with open(all_filters_path, 'w', encoding='utf-8') as f:
+        f.write("\n".join(filters))
+    print(f"✅ تم حفظ {len(filters)} فلتر في {all_filters_path}")
     
-    # تقسيم إلى ملفات جزئية إذا لزم الأمر
-    if len(sorted_rules) > MAX_LINES_PER_FILE:
-        file_num = 1
-        for i in range(0, len(sorted_rules), MAX_LINES_PER_FILE):
-            part_path = os.path.join(OUTPUT_DIR, f"part_{file_num}.txt")
-            with open(part_path, "w", encoding="utf-8") as f:
-                f.write("\n".join(sorted_rules[i:i+MAX_LINES_PER_FILE]))
-            file_num += 1
+    # تقسيم إلى ملفات أصغر إذا لزم الأمر
+    if len(filters) > MAX_LINES_PER_FILE:
+        file_count = (len(filters) // MAX_LINES_PER_FILE) + 1
+        for i in range(file_count):
+            start_idx = i * MAX_LINES_PER_FILE
+            end_idx = start_idx + MAX_LINES_PER_FILE
+            chunk = filters[start_idx:end_idx]
+            
+            part_path = os.path.join(output_dir, f"filters_part_{i+1}.txt")
+            with open(part_path, 'w', encoding='utf-8') as f:
+                f.write("\n".join(chunk))
+            print(f"📦 تم حفظ الجزء {i+1} ({len(chunk)} فلتر) في {part_path}")
+
+def main():
+    start_time = time.time()
     
-    print(f"🎉 تم الانتهاء! الملفات موجودة في مجلد '{OUTPUT_DIR}'")
+    filters = process_filters()
+    save_filters(filters)
+    
+    elapsed = time.time() - start_time
+    print(f"🎉 تم الانتهاء في {elapsed:.2f} ثانية")
+    print(f"📊 الإجمالي النهائي: {len(filters)} قاعدة فلترة فريدة")
 
 if __name__ == "__main__":
-    process_filters()
+    main()
