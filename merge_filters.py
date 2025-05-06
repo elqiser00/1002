@@ -1,7 +1,7 @@
 import requests
 import os
 import time
-import re
+from urllib.parse import urlparse
 
 # جميع الروابط
 urls = [
