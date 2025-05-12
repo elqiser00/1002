@@ -36,6 +36,14 @@
 ||youtube.com/get_midroll_info^$important
 @@||shoopy.atspace.co.uk^$important
 @@||whats1001.atspace.cc^$important
+@@||shoopy.zya.me^$important
+@@||profreehost.com^$important
+@@||supermovies.unaux.com^$important
+@@||blogserver.unaux.com^$important
+@@||elqiser.ezyro.com^$important
+@@||cpanel.ezyro.com^$important
+@@||oceanofgames.com^$important
+@@||easy-learn-tech.info^$important
 @@||whatsbot.atspace.cc^$important
 @@||faphouse.com^$important
 @@||b-graph-fallback.facebook.com^$important
