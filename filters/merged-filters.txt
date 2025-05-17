@@ -48,3 +48,5 @@
 @@||faphouse.com^$important
 @@||b-graph-fallback.facebook.com^$important
 @@||graph.whatsapp.com^$important
+@@||chat-e2ee.facebook.com^$important
+@@||cloudflare.com^$important
