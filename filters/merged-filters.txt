@@ -39,6 +39,7 @@
 @@||whatsbot.atspace.cc^$important
 @@||faphouse.com^$important
 @@||whatsapp.com^$important
+@@||whatsapp.net^$important
 @@||cloudflare.com^$important
 @@||googleapis.com^$important
 @@||google.com^^$important
