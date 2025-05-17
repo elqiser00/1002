@@ -50,3 +50,5 @@
 @@||graph.whatsapp.com^$important
 @@||chat-e2ee.facebook.com^$important
 @@||cloudflare.com^$important
+@@||googleapis.com^$important
+@@||google.com^^$important
