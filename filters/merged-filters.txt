@@ -44,5 +44,3 @@
 @@||googleapis.com^$important
 @@||google.com^^$important
 @@||facebook.com^$important
-@@||tiktokcdn.com^$important
-@@||tiktokv.com^$important
