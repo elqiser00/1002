@@ -186,6 +186,7 @@ if __name__ == "__main__":
         "https://adguardteam.github.io/HostlistsRegistry/assets/filter_26.txt",
         "https://adguardteam.github.io/HostlistsRegistry/assets/filter_40.txt",
         "https://adguardteam.github.io/HostlistsRegistry/assets/filter_16.txt",
+        "https://raw.githubusercontent.com/elqiser00/1002/refs/heads/main/filters/BlackList.txt",
         "https://easylist-downloads.adblockplus.org/antiadblockfilters.txt",
   ]
     
