@@ -1,7 +1,7 @@
 ! Title: Merged Filters (Optimized)
 ! Description: Combined filters for AdGuardHome
 ! Version: 20250530
-! Last updated: 2025-05-30 14:41:26
+! Last updated: 2025-05-30 18:19:09
 
 ||*.$image,redirect=1x1-transparent.gif,third-party,domain=rmdown.com
 ||*.$image,rewrite=abp-resource:1x1-transparent-gif,third-party,domain=rmdown.com
@@ -22836,8 +22836,8 @@
 ||admin.shafttraffic.com^
 ||admin.smartgroup.com.au^
 ||admin.sothuchi.vn^
-||admin.tenews.te.ua/plugins/galleryadvert/
 ||admin.tenews.te.ua/plugins/galleryAdvert/
+||admin.tenews.te.ua/plugins/galleryadvert/
 ||admin.totalpolitics.com^
 ||admin.trafficbaron.com^
 ||admin.trafficfactory.com^
@@ -54394,6 +54394,7 @@
 ||collector-pxrf8vapwa.px-cdn.net^
 ||collector-pxrf8vapwa.px-cloud.net^
 ||collector-pxrf8vapwa.pxchk.net^
+||collector-pxxljwhhue.px-cloud.net/b/s/beacon
 ||collector-statistics.nhn-commerce.com^
 ||collector-videoplayer.5centscdn.net^
 ||collector.abc.net.au^
@@ -97615,6 +97616,7 @@
 ||hyybul.kaskus.co.id^
 ||hyzoneshilpit.com^
 ||hyzvvg.p-a.jp^
+||hz-telemetry.adobe.io^
 ||hz.shouyoutv.com^
 ||hz9x6ka2t5gka7wa6c0wp0shmkaw7xj5x8vaydg0aqp6gjat5x.com^
 ||hzcdn.io/bff/static/vendor/sourcepoint-lib/
@@ -104889,6 +104891,7 @@
 ||iranproud.com/ad$popup
 ||iraterkirpan.shop^
 ||irb.dk^
+||irbvstqvt.com^
 ||irdlevxe.shelterbyg.dk^
 ||irduwhojas.ga^
 ||iready.curriculumassociates.com^
@@ -108091,8 +108094,8 @@
 ||js.selfimg.com.cn/statistics/total.js
 ||js.selfimg.com.cn/vogue/discovery/js/collect-entry.js
 ||js.shangxueba.com^
-||js.shiksha.ws/pwa/public/js/GDPRCookieBannerWrapper.
 ||js.shiksha.ws/pwa/public/js/gdprcookiebannerwrapper.
+||js.shiksha.ws/pwa/public/js/GDPRCookieBannerWrapper.
 ||js.shunqi.com^
 ||js.sosista.com^
 ||js.spreton.com^
@@ -110108,6 +110111,7 @@
 ||kibrissondakika.com/wp-content/uploads/*banner
 ||kibyglsp.top^
 ||kibzer.com^$popup
+||kiccfigldezuu.com^
 ||kichimamasenki.com/bengo5.jpg
 ||kichimamasenki.com/tantei.jpg
 ||kick.com/*&loaderVersion=
@@ -110844,6 +110848,7 @@
 ||kmabiz.org^$popup
 ||kmbjerbaafdn.global^
 ||kmegcl.radpowerbikes.eu^
+||kmfkiwghhe.xyz^
 ||kmglti.sinbiang.kr^
 ||kmhmmhmj.com^
 ||kmib.co.kr/NetInsight/trace/track
@@ -135537,8 +135542,8 @@
 ||neephougroo.net^
 ||neervely.ca/images/bala.jpg
 ||neets.cc/assets/js/dup.js
-||neeva.com/logql/Log
 ||neeva.com/logql/log
+||neeva.com/logql/Log
 ||nefing.com^
 ||nefrolab.ru/wp-content/uploads/
 ||nefrvjfkzus.com^
@@ -142618,6 +142623,7 @@
 ||orbitz.com^*/1x1.gif?
 ||orbitz.com^*/2x2.gif?
 ||orbitz.com^*/evaluateexperimentsandlog
+||orbmatchingenough.com^
 ||orbsdiacle.com^
 ||orbsrv.com^
 ||orca.overbold.co^
@@ -144855,6 +144861,7 @@
 ||pandia.ru/pics/partner/
 ||pandiedspewier.shop^
 ||pandora.com/api/v1/ad/
+||pandora.com/ping.txt
 ||pandora.com/static/ads/omsdk-*.js$script,redirect=noopjs,domain=pandora.com,important
 ||pandora.com/web-client-assets/displayAdFrame.
 ||pandorasbox.kr^*/banner
@@ -156801,8 +156808,8 @@
 ||rapidgator.net/images/pics/
 ||rapidgator.net/images/pics/36_300%D1%85250_$third-party
 ||rapidgator.net/images/pics/510_468%D1%8560_1.gif
-||rapidgator.net^$removeparam=referer
 ||rapidgator.net^$removeparam=Referer
+||rapidgator.net^$removeparam=referer
 ||rapidgatorporn.net/templates/rapidgatorporn/images/Flashbit.gif
 ||rapidhits.net^
 ||rapidhits.net^$popup
@@ -159890,6 +159897,7 @@
 ||rhombusads.com^$third-party
 ||rhoxnc.studentuniverse.com^
 ||rhrim.com^
+||rhrwzngtmubvk.com^
 ||rhtpbupf.com^
 ||rhubarbmasterpiece.com^
 ||rhudsplm.com^
@@ -185727,6 +185735,7 @@
 ||storage.googleapis.com/ba_utils/stab.js
 ||storage.googleapis.com/bag_media_store/static_dev/static_root/images/admission.jpg
 ||storage.googleapis.com/cdn.newsfirst.lk/advertisements/$domain=newsfirst.lk
+||storage.googleapis.com/cdn2.guard.io/webflow/tracking-grd.js
 ||storage.googleapis.com/didna$third-party
 ||storage.googleapis.com/didna_hb/webifacts_llc/webifactsthebrighterside/didna_config.js
 ||storage.googleapis.com/dito/sdk.js$domain=newbalance.com.br
@@ -207932,6 +207941,7 @@
 ||vdsdsf2.fun^
 ||vdslnp.highkey.com^
 ||vdtovn.parmigianoreggiano.com^
+||vdulz.org^
 ||vdvdjf.remotepc.com^
 ||vdvkiu.rhein-ruhr-jobanzeiger.de^
 ||vdvxlayf.com^
@@ -209803,6 +209813,7 @@
 ||visaonoticias.com/images/banner/
 ||visariomedia.com^
 ||visbymaklarna.se^$third-party
+||viscincoetus.top^
 ||viscountquality.com^
 ||visfirst.com^
 ||vishban.com/wp-content/uploads/2019/04/lalit-graphics
@@ -225026,8 +225037,8 @@ $cookie=sfmc_activityid
 $cookie=sfmc_id
 $cookie=sgv,domain=wp.pl|money.pl|o2.pl|pudelek.pl|komorkomania.pl|gadzetomania.pl|fotoblogia.pl|autokult.pl|abczdrowie.pl|parenting.pl|videostar.pl|autocentrum.pl|benchmark.pl
 $cookie=sgVisitId,domain=wp.pl|money.pl|o2.pl|pudelek.pl|komorkomania.pl|gadzetomania.pl|fotoblogia.pl|autokult.pl|abczdrowie.pl|parenting.pl|videostar.pl|autocentrum.pl|benchmark.pl
-$cookie=sharedId
 $cookie=sharedid
+$cookie=sharedId
 $cookie=sharedid_cst
 $cookie=shopify_recently_viewed
 $cookie=siteMetrics
@@ -234193,8 +234204,8 @@ _pages_ad.
 _pagespeed_beacon?
 _personalized_ads
 _pop.php?z=
-_popads.
 _popAds.
+_popads.
 _popdhtml/
 _pp_dhtml.
 _prebid.js$script
@@ -352600,6 +352611,7 @@ rmdown.com#$#table.container td[bgcolor="white"] > a[href][target="_blank"] > im
 rmdown.com#$#table.container td[bgcolor="white"] > a[href][target="_blank"] { position: absolute!important; left: -3000px!important; }
 rmdown.com#%#//scriptlet("set-constant", "ert6j", "false")
 rmdown.com#%#//scriptlet('set-constant', 'dops', 'noopFunc')
+rmf.fm#%#//scriptlet('didomi-loader')
 rmfon.pl#%#(()=>{window.com_adswizz_synchro_decorateUrl=(a)=>a;})();
 rmfon.pl#%#//scriptlet('gemius')
 rmfon.pl#%#//scriptlet('trusted-replace-node-text', 'script', 'rpl.toggle', 'if (0)', 'window.com_adswizz_synchro_decorateUrl=(a)=>a;if (0)')
@@ -363575,6 +363587,7 @@ wetter.com#$#body > header > div { padding-top: 0px !important }
 wetter.com#$#main > section + div[class] + div[class] { min-height: auto !important; }
 wetter.com#%#//scriptlet('set-constant', 'wcomAdFrameworkInit', 'undefined')
 wetter.com#%#//scriptlet('trusted-click-element', '#cmp-wetter:not(.cmp-hide) a.cmp-lnk-accept-close', '!localStorage:id5id_privacy')
+wetter.com#%#//scriptlet('trusted-click-element', '.noscroll button[class$="__buttonCmp"]', 'containsText:Akzeptieren')
 wetter.com#%#//scriptlet('trusted-click-element', 'body.cmp-prevent-scroll button#cmp-btn-accept')
 wetter.com#%#//scriptlet('trusted-click-element', 'div[class^="sc-"] > button.primary')
 wetter.com#?#.app-layout:has(> div.OUTBRAIN)
