@@ -177,6 +177,15 @@ if __name__ == "__main__":
         "https://easylist-downloads.adblockplus.org/liste_fr.txt",
         "https://www.zoso.ro/pages/rolist.txt",
         "https://easylist-downloads.adblockplus.org/advblock.txt",
+        "https://adguardteam.github.io/HostlistsRegistry/assets/filter_1.txt",
+        "https://adguardteam.github.io/HostlistsRegistry/assets/filter_29.txt",
+        "https://adguardteam.github.io/HostlistsRegistry/assets/filter_21.txt",
+        "https://adguardteam.github.io/HostlistsRegistry/assets/filter_59.txt",
+        "https://adguardteam.github.io/HostlistsRegistry/assets/filter_41.txt",
+        "https://adguardteam.github.io/HostlistsRegistry/assets/filter_17.txt",
+        "https://adguardteam.github.io/HostlistsRegistry/assets/filter_26.txt",
+        "https://adguardteam.github.io/HostlistsRegistry/assets/filter_40.txt",
+        "https://adguardteam.github.io/HostlistsRegistry/assets/filter_16.txt",
         "https://easylist-downloads.adblockplus.org/antiadblockfilters.txt",
   ]
     
