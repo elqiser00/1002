@@ -1,7 +1,7 @@
 ! Title: Merged Filters (Optimized)
 ! Description: Combined filters for AdGuardHome
 ! Version: 20250530
-! Last updated: 2025-05-30 20:00:50
+! Last updated: 2025-05-30 20:05:39
 
 ||*-ad-sign.byteimg.com^
 ||*-ad.a.yximgs.com^
@@ -27070,8 +27070,8 @@
 ||admin.shafttraffic.com^
 ||admin.smartgroup.com.au^
 ||admin.sothuchi.vn^
-||admin.tenews.te.ua/plugins/galleryAdvert/
 ||admin.tenews.te.ua/plugins/galleryadvert/
+||admin.tenews.te.ua/plugins/galleryAdvert/
 ||admin.totalpolitics.com^
 ||admin.trafficbaron.com^
 ||admin.trafficfactory.com^
@@ -60980,6 +60980,7 @@
 ||btckhabar.com^
 ||btclexiproai.com^
 ||btcmaxair1a.com^
+||btcpay.priorato.org^$important
 ||btcswe.com^$third-party
 ||btdb.*/bal.js
 ||btdb.io/btdba.js
@@ -117866,8 +117867,8 @@
 ||furtherbasketballoverwhelming.com^
 ||furtheryearbookbelieved.com^
 ||furtirican.pro^
-||furykms.com^
 ||Furykms.com^
+||furykms.com^
 ||Furykms.com^$all
 ||Furykms.com^$dnsrewrite=ad-block.dns.adguard.com
 ||furyprosecutionkitchen.com^
@@ -152560,8 +152561,8 @@
 ||js.selfimg.com.cn/vogue/discovery/js/collect-entry.js
 ||js.sghjtc.xyz^
 ||js.shangxueba.com^
-||js.shiksha.ws/pwa/public/js/gdprcookiebannerwrapper.
 ||js.shiksha.ws/pwa/public/js/GDPRCookieBannerWrapper.
+||js.shiksha.ws/pwa/public/js/gdprcookiebannerwrapper.
 ||js.shunqi.com^
 ||js.smi2.ru^
 ||js.soduso.cc^
@@ -156700,15 +156701,15 @@
 ||kms-full.com^
 ||kms-full.com^$all
 ||kms-full.com^$dnsrewrite=ad-block.dns.adguard.com
-||Kms-pc.com^
 ||kms-pc.com^
+||Kms-pc.com^
 ||Kms-pc.com^$all
 ||Kms-pc.com^$dnsrewrite=ad-block.dns.adguard.com
 ||kms-tool.com^
 ||kms-tool.com^$all
 ||kms-tool.com^$dnsrewrite=ad-block.dns.adguard.com
-||kmsauto.info^
 ||Kmsauto.info^
+||kmsauto.info^
 ||Kmsauto.info^$all
 ||Kmsauto.info^$dnsrewrite=ad-block.dns.adguard.com
 ||kmsofficial.org^
@@ -176556,8 +176557,8 @@
 ||mayishati.org^
 ||mayka.kz/co/js/$third-party
 ||mayka.kz^$third-party
-||mayla.jp/TRACKING/
 ||mayla.jp/tracking/
+||mayla.jp/TRACKING/
 ||maylnk.com^
 ||maylohack.ru^$third-party
 ||maymooth-stopic.com^
@@ -190924,8 +190925,8 @@
 ||neervely.ca/images/bala.jpg
 ||neets.cc/assets/js/dup.js
 ||neetworkhosting1.com^
-||neeva.com/logql/Log
 ||neeva.com/logql/log
+||neeva.com/logql/Log
 ||neevouglu.com^
 ||nefai.link^
 ||nefbjp.xyz^
@@ -226380,8 +226381,8 @@
 ||rapidgator.net/images/pics/
 ||rapidgator.net/images/pics/36_300%D1%85250_$third-party
 ||rapidgator.net/images/pics/510_468%D1%8560_1.gif
-||rapidgator.net^$removeparam=Referer
 ||rapidgator.net^$removeparam=referer
+||rapidgator.net^$removeparam=Referer
 ||rapidgatorporn.net/templates/rapidgatorporn/images/Flashbit.gif
 ||rapidheron.pro^
 ||rapidhits.net^
@@ -275843,8 +275844,8 @@
 ||thewhizproducts.com^$popup,third-party
 ||thewhizproducts.com^$third-party
 ||thewilmereyeinstitute.com^
-||thewindowsactivator.com^
 ||Thewindowsactivator.com^
+||thewindowsactivator.com^
 ||Thewindowsactivator.com^$all
 ||Thewindowsactivator.com^$dnsrewrite=ad-block.dns.adguard.com
 ||thewindowsclub.com/wp-content/themes/genesis/lib/js/skip-links.min.js
@@ -286039,8 +286040,8 @@
 ||tripadvisor-up.com^
 ||tripadvisor.*/actionrecord
 ||tripadvisor.*/BALinkImpressionTracking/
-||tripadvisor.*/cookiepingback?
 ||tripadvisor.*/CookiePingback?
+||tripadvisor.*/cookiepingback?
 ||tripadvisor.*/garecord
 ||tripadvisor.*/GARecord^
 ||tripadvisor.*/impressionrecord
@@ -290916,8 +290917,8 @@
 ||ultrariacc.pro^
 ||ultrarinfo.pro^
 ||ultraskan.cfd^
-||Ultrasonica.info^
 ||ultrasonica.info^
+||Ultrasonica.info^
 ||Ultrasonica.info^$all
 ||Ultrasonica.info^$dnsrewrite=ad-block.dns.adguard.com
 ||ultrasponsor.com^
@@ -321258,8 +321259,8 @@ $cookie=sfmc_activityid
 $cookie=sfmc_id
 $cookie=sgv,domain=wp.pl|money.pl|o2.pl|pudelek.pl|komorkomania.pl|gadzetomania.pl|fotoblogia.pl|autokult.pl|abczdrowie.pl|parenting.pl|videostar.pl|autocentrum.pl|benchmark.pl
 $cookie=sgVisitId,domain=wp.pl|money.pl|o2.pl|pudelek.pl|komorkomania.pl|gadzetomania.pl|fotoblogia.pl|autokult.pl|abczdrowie.pl|parenting.pl|videostar.pl|autocentrum.pl|benchmark.pl
-$cookie=sharedId
 $cookie=sharedid
+$cookie=sharedId
 $cookie=sharedid_cst
 $cookie=shopify_recently_viewed
 $cookie=siteMetrics
@@ -352107,8 +352108,8 @@ _pages_ad.
 _pagespeed_beacon?
 _personalized_ads
 _pop.php?z=
-_popAds.
 _popads.
+_popAds.
 _popdhtml/
 _pp_dhtml.
 _prebid.js$script
