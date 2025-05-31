@@ -2,7 +2,7 @@ name: Auto-update merged filters
 
 on:
   schedule:
-    - cron: '0 */6 * * *'
+    - cron: '0 */6 * * *'  # كل 6 ساعات
   workflow_dispatch:
 
 jobs:
@@ -12,34 +12,28 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v2  # الإصدار القديم الموثوق
       with:
         token: ${{ secrets.GH_TOKEN }}
-        fetch-depth: 0
 
-    - name: Set up Python (skip dependency installation)
-      uses: actions/setup-python@v4
+    - name: Set up Python
+      uses: actions/setup-python@v2  # الإصدار القديم الذي يعمل
       with:
         python-version: '3.x'
-        cache: 'pip'
-        cache-dependency-path: ''  # تعطيل البحث عن ملفات المتطلبات
 
-    - name: Install required packages
+    - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install requests urllib3
+        pip install requests
 
     - name: Run merge script
       run: |
         python merge_filters.py
 
     - name: Commit and push changes
-      env:
-        GH_TOKEN: ${{ secrets.GH_TOKEN }}
       run: |
-        git config --global user.name "GitHub Actions"
-        git config --global user.email "actions@github.com"
+        git config user.name "GitHub Actions"
+        git config user.email "github-actions@github.com"
         git add -A
-        git commit -m "🔄 Auto-update merged filters [$(date +'%Y-%m-%d %H:%M')]" || echo "No changes to commit"
-        git pull --rebase
-        git push
+        git commit -m "🔄 Auto-update merged filters" || echo "Nothing to commit"
+        git push https://${{ secrets.GH_TOKEN }}@github.com/elqiser00/1002.git HEAD:main
