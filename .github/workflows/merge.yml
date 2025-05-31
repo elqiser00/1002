@@ -17,13 +17,14 @@ jobs:
         token: ${{ secrets.GH_TOKEN }}
         fetch-depth: 0
 
-    - name: Set up Python (without dependency detection)
+    - name: Set up Python (skip dependency installation)
       uses: actions/setup-python@v4
       with:
-        python-version: '3.10'  # تحديد إصدار بايثون صراحة
-        cache: 'pip'  # تفعيل الكاش مع pip
+        python-version: '3.x'
+        cache: 'pip'
+        cache-dependency-path: ''  # تعطيل البحث عن ملفات المتطلبات
 
-    - name: Install required dependencies (explicit)
+    - name: Install required packages
       run: |
         python -m pip install --upgrade pip
         pip install requests urllib3
