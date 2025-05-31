@@ -1,10 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-AdGuard Home Filter Merger
-مزيل التكرار الحرفي للقواعد مع الحفاظ على جميع الأشكال المختلفة
-"""
-
 import requests
 import os
 import time
@@ -20,15 +13,16 @@ MAX_WORKERS = 5
 USER_AGENT = "AdGuardHome-Filter-Merger/2.0"
 
 def is_valid_filter(line):
-    """تحقق من صحة سطر الفلتر"""
+    """تحقق من صحة سطر الفلتر مع تجاهل الترويسات والتعليقات"""
     line = line.strip()
     if not line:
         return False
     
-    ignore_prefixes = ('!', '#', '@@', '[', '&', '/')
-    if line.startswith(ignore_prefixes):
+    # تجاهل جميع أنواع الترويسات والتعليقات
+    if line.startswith(('!', '#', '@@', '[', '&', '/')):
         return False
     
+    # تجاهل بعض الأنماط غير المدعومة
     invalid_patterns = ('##', '#@#', '!#', '##^')
     if any(pattern in line for pattern in invalid_patterns):
         return False
@@ -36,23 +30,31 @@ def is_valid_filter(line):
     return len(line) <= MAX_LINE_LENGTH
 
 def normalize_filter(line):
-    """تنظيف بسيط للسطر دون تغيير هيكل القاعدة"""
+    """تنظيف بسيط للسطر مع الحفاظ على الهيكل الأصلي"""
     return line.strip().replace('\r', '').replace('\t', ' ').replace('  ', ' ')
 
 def download_filter(url):
-    """تحميل الفلتر"""
+    """تحميل الفلتر مع تصفية التعليقات"""
     try:
         headers = {'User-Agent': USER_AGENT}
         response = requests.get(url, timeout=REQUEST_TIMEOUT, headers=headers)
         response.raise_for_status()
-        return response.text.splitlines(), url
+        
+        # تصفية السطور وإزالة التعليقات
+        filtered_lines = []
+        for line in response.text.splitlines():
+            if is_valid_filter(line):
+                filtered_lines.append(line)
+                
+        return filtered_lines, url
     except Exception as e:
         print(f"⚠️ فشل تحميل {urlparse(url).netloc}: {str(e)}")
         return [], url
 
 def process_filters(urls):
-    """معالجة الفلاتر مع إزالة التكرار الحرفي فقط"""
-    unique_filters = set()
+    """معالجة الفلاتر مع إزالة التكرار الحرفي مع الحفاظ على الترتيب"""
+    seen_filters = set()
+    unique_filters = []
     total_urls = len(urls)
     
     print(f"🔍 بدء معالجة {total_urls} مصدر فلتر...")
@@ -63,36 +65,31 @@ def process_filters(urls):
         for i, future in enumerate(as_completed(future_to_url), 1):
             lines, url = future.result()
             domain = urlparse(url).netloc
-            print(f"📊 [{i}/{total_urls}] معالجة: {domain} ({len(lines)} سطر)")
+            print(f"📊 [{i}/{total_urls}] معالجة: {domain} ({len(lines)} سطر بعد التصفية)")
             
             for line in lines:
-                if is_valid_filter(line):
-                    normalized = normalize_filter(line)
-                    unique_filters.add(normalized)
+                normalized = normalize_filter(line)
+                if normalized not in seen_filters:
+                    seen_filters.add(normalized)
+                    unique_filters.append(normalized)
             
             if i < total_urls:
                 time.sleep(REQUEST_DELAY)
     
-    return sorted(unique_filters, key=lambda x: (
-        not x.startswith('||'),
-        not x.startswith('||*'),
-        not x.startswith('|'),
-        x.lower()
-    ))
+    return unique_filters
 
 def save_filters(filters, output_dir="merged_filters"):
-    """حفظ الفلاتر"""
+    """حفظ الفلاتر مع إضافة ترويسة أساسية فقط"""
     os.makedirs(output_dir, exist_ok=True)
     
     main_file = os.path.join(output_dir, "all_filters.txt")
     with open(main_file, 'w', encoding='utf-8') as f:
-        f.write("! Title: Merged Filters (Optimized)\n")
-        f.write("! Description: Combined filters for AdGuardHome\n")
-        f.write("! Version: " + time.strftime("%Y%m%d") + "\n")
-        f.write("! Last updated: " + time.strftime("%Y-%m-%d %H:%M:%S") + "\n\n")
+        # ترويسة أساسية مختصرة
+        f.write("! Title: Merged Filters (Cleaned)\n")
+        f.write("! Updated: " + time.strftime("%Y-%m-%d %H:%M:%S") + "\n\n")
         f.write("\n".join(filters))
     
-    print(f"✅ تم حفظ {len(filters)} فلتر في {main_file}")
+    print(f"✅ تم حفظ {len(filters)} قاعدة فلتر في {main_file}")
     
     if len(filters) > MAX_LINES_PER_FILE:
         parts = (len(filters) // MAX_LINES_PER_FILE) + 1
@@ -131,6 +128,7 @@ def main(filter_urls):
         print(f"❌ خطأ غير متوقع: {str(e)}")
 
 if __name__ == "__main__":
+    # قائمة المصادر (يجب وضعها هنا كما هي)
     FILTER_URLS = [
         "https://raw.githubusercontent.com/AdguardTeam/FiltersRegistry/master/filters/filter_2_Base/filter.txt",
         "https://raw.githubusercontent.com/AdguardTeam/FiltersRegistry/master/filters/filter_3_Spyware/filter.txt",
@@ -206,6 +204,6 @@ if __name__ == "__main__":
         "https://adguardteam.github.io/HostlistsRegistry/assets/filter_27.txt",
         "https://adguardteam.github.io/HostlistsRegistry/assets/filter_5.txt",
         "https://easylist-downloads.adblockplus.org/antiadblockfilters.txt",
-  ]
+    ]
     
     main(FILTER_URLS)
