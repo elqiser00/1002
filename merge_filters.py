@@ -5,12 +5,12 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from urllib.parse import urlparse
 
 # إعدادات التكوين
-MAX_LINES_PER_FILE = 1_500_000
-MAX_LINE_LENGTH = 5000
-REQUEST_TIMEOUT = 45
-REQUEST_DELAY = 0.3
-MAX_WORKERS = 5
-USER_AGENT = "AdGuardHome-Filter-Merger/2.0"
+MAX_LINES_PER_PART = 2_000_000  # الحد الأقصى للأسطر في كل جزء
+MAX_LINE_LENGTH = 5000  # الحد الأقصى لطول السطر
+REQUEST_TIMEOUT = 45  # وقت انتظار الطلب
+REQUEST_DELAY = 0.3  # تأخير بين الطلبات
+MAX_WORKERS = 5  # الحد الأقصى لعدد العمال
+USER_AGENT = "AdGuardHome-Filter-Merger/3.0"  # وكيل المستخدم
 
 def is_valid_filter(line):
     """تحقق من صحة سطر الفلتر مع تجاهل الترويسات والتعليقات"""
@@ -33,6 +33,16 @@ def normalize_filter(line):
     """تنظيف بسيط للسطر مع الحفاظ على الهيكل الأصلي"""
     return line.strip().replace('\r', '').replace('\t', ' ').replace('  ', ' ')
 
+def is_adguard_home_domain_rule(line):
+    """تحقق إذا كان السطر قاعدة دومين لـ AdGuard Home"""
+    return line.startswith('||') and line.endswith('^') and not any(c in line for c in ['/', '*', '?', '='])
+
+def extract_domain_from_rule(line):
+    """استخراج الدومين من قاعدة AdGuard Home"""
+    if is_adguard_home_domain_rule(line):
+        return line[2:-1].lower()
+    return None
+
 def download_filter(url):
     """تحميل الفلتر مع تصفية التعليقات"""
     try:
@@ -52,8 +62,9 @@ def download_filter(url):
         return [], url
 
 def process_filters(urls):
-    """معالجة الفلاتر مع إزالة التكرار الحرفي مع الحفاظ على الترتيب"""
+    """معالجة الفلاتر مع إزالة التكرار الحرفي وتكرار دومينات AdGuard Home"""
     seen_filters = set()
+    seen_domains = set()
     unique_filters = []
     total_urls = len(urls)
     
@@ -69,6 +80,14 @@ def process_filters(urls):
             
             for line in lines:
                 normalized = normalize_filter(line)
+                
+                # معالجة خاصة لقواعد دومينات AdGuard Home
+                rule_domain = extract_domain_from_rule(normalized)
+                if rule_domain:
+                    if rule_domain in seen_domains:
+                        continue  # تخطي إذا كان الدومين متكرراً
+                    seen_domains.add(rule_domain)
+                
                 if normalized not in seen_filters:
                     seen_filters.add(normalized)
                     unique_filters.append(normalized)
@@ -79,29 +98,37 @@ def process_filters(urls):
     return unique_filters
 
 def save_filters(filters, output_dir="merged_filters"):
-    """حفظ الفلاتر مع إضافة ترويسة أساسية فقط"""
+    """حفظ الفلاتر مع تقسيمها إذا لزم الأمر"""
     os.makedirs(output_dir, exist_ok=True)
     
-    main_file = os.path.join(output_dir, "all_filters.txt")
-    with open(main_file, 'w', encoding='utf-8') as f:
+    # ملف واحد يحتوي على جميع الفلاتر (دائماً)
+    all_filters_file = os.path.join(output_dir, "all_filters.txt")
+    with open(all_filters_file, 'w', encoding='utf-8') as f:
         # ترويسة أساسية مختصرة
-        f.write("! Title: Merged Filters (Cleaned)\n")
-        f.write("! Updated: " + time.strftime("%Y-%m-%d %H:%M:%S") + "\n\n")
+        f.write("! Title: All Merged Filters (Cleaned)\n")
+        f.write("! Updated: " + time.strftime("%Y-%m-%d %H:%M:%S") + "\n")
+        f.write("! Total filters: " + str(len(filters)) + "\n\n")
         f.write("\n".join(filters))
     
-    print(f"✅ تم حفظ {len(filters)} قاعدة فلتر في {main_file}")
+    print(f"\n✅ تم حفظ جميع الفلاتر ({len(filters)} سطر) في {all_filters_file}")
     
-    if len(filters) > MAX_LINES_PER_FILE:
-        parts = (len(filters) // MAX_LINES_PER_FILE) + 1
+    # إذا تجاوز عدد الأسطر الحد الأقصى، نقوم بالتقسيم
+    if len(filters) > MAX_LINES_PER_PART:
+        parts = (len(filters) // MAX_LINES_PER_PART) + 1
+        print(f"\n📦 سيتم تقسيم الفلاتر إلى {parts} أجزاء (كل جزء {MAX_LINES_PER_PART} سطر)")
+        
         for i in range(parts):
-            start = i * MAX_LINES_PER_FILE
-            end = start + MAX_LINES_PER_FILE
+            start = i * MAX_LINES_PER_PART
+            end = start + MAX_LINES_PER_PART
             part_file = os.path.join(output_dir, f"filters_part_{i+1}.txt")
             
             with open(part_file, 'w', encoding='utf-8') as f:
+                f.write("! Title: Merged Filters Part {}\n".format(i+1))
+                f.write("! Updated: " + time.strftime("%Y-%m-%d %H:%M:%S") + "\n")
+                f.write("! Filters: {}-{}\n\n".format(start+1, min(end, len(filters))))
                 f.write("\n".join(filters[start:end]))
             
-            print(f"📦 الجزء {i+1}: {len(filters[start:end])} قاعدة ({part_file})")
+            print(f"✅ تم حفظ الجزء {i+1}: {len(filters[start:end])} سطر ({part_file})")
 
 def main(filter_urls):
     """الدالة الرئيسية"""
@@ -115,10 +142,11 @@ def main(filter_urls):
         stats = {
             "total_filters": len(filters),
             "time_elapsed": f"{elapsed:.2f} ثانية",
-            "avg_speed": f"{len(filters)/max(elapsed, 1):.1f} قاعدة/ثانية"
+            "avg_speed": f"{len(filters)/max(elapsed, 1):.1f} قاعدة/ثانية",
+            "unique_domains": len({extract_domain_from_rule(f) for f in filters if extract_domain_from_rule(f)})
         }
         
-        print("\n📊 إحصائيات الأداء:")
+        print("\n📊 إحصائيات الأداء النهائية:")
         for k, v in stats.items():
             print(f"- {k.replace('_', ' ').title()}: {v}")
             
