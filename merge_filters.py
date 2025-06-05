@@ -232,6 +232,7 @@ if __name__ == "__main__":
         "https://adguardteam.github.io/HostlistsRegistry/assets/filter_5.txt",
         "https://adguardteam.github.io/HostlistsRegistry/assets/filter_33.txt",
         "https://adguardteam.github.io/HostlistsRegistry/assets/filter_34.txt",
+        "https://adguardteam.github.io/HostlistsRegistry/assets/filter_27.txt",
         "https://easylist-downloads.adblockplus.org/antiadblockfilters.txt",
     ]
     
