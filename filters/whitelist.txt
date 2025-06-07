@@ -10,3 +10,4 @@
 @@||m15.asd.rest^$important
 @@||dl4all.online^$important
 @@||www.t7meel.site^$important
+@@||collector.github.com^$important
