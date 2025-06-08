@@ -13,3 +13,4 @@
 @@||collector.github.com^$important
 @@||graph.whatsapp.com^$important
 @@||graph.whatsapp.net^$important
+@@||codelist.cc^$important
