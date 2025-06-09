@@ -25,3 +25,13 @@
 @@||fb.com^
 @@||messenger.com^
 @@||fbcdn.net^$domain=facebook.com|fb.com|messenger.com
+@@||imo.im^$important
+@@||imo.me^$important
+@@||imogroups.com^$important
+@@||imo-official.com^$important
+@@||api.imo.im^$important
+@@||chat.imo.im^$important
+@@||push.imo.im^$important
+@@||storage.imo.im^$important
+@@||webrtc.imo.im^$important
+@@||voip.imo.im^$important
