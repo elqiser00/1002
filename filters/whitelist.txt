@@ -21,3 +21,7 @@
 @@||snssdk.com^$important
 @@||bytedance.com^$important
 @@||tiktokcdn.com^$important
+@@||facebook.com^$domain=facebook.com|fb.com|messenger.com
+@@||fb.com^
+@@||messenger.com^
+@@||fbcdn.net^$domain=facebook.com|fb.com|messenger.com
