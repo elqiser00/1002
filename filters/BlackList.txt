@@ -87,3 +87,5 @@
 ||ad.doubleclick.net^$important
 ||adservice.google.com^$important
 ||analytics.tiktok.com^$important
+||cdn.jsdelivr.net^$important
+||unpkg.com^$important
