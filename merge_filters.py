@@ -13,18 +13,13 @@ MAX_WORKERS = 5  # الحد الأقصى لعدد العمال
 USER_AGENT = "AdGuardHome-Filter-Merger/3.0"  # وكيل المستخدم
 
 def is_valid_filter(line):
-    """تحقق من صحة سطر الفلتر مع تجاهل الترويسات والتعليقات"""
+    """تحقق من صحة سطر الفلتر مع تجاهل التعليقات غير الضرورية"""
     line = line.strip()
     if not line:
         return False
     
-    # تجاهل جميع أنواع الترويسات والتعليقات
-    if line.startswith(('!', '#', '@@', '[', '&', '/')):
-        return False
-    
-    # تجاهل بعض الأنماط غير المدعومة
-    invalid_patterns = ('##', '#@#', '!#', '##^')
-    if any(pattern in line for pattern in invalid_patterns):
+    # تجاهل التعليقات (التي تبدأ بـ ! أو #) إلا إذا كانت ترويسات مهمة
+    if line.startswith(('!', '#')) and not line.startswith(('! ', '# ')):
         return False
     
     return len(line) <= MAX_LINE_LENGTH
@@ -33,16 +28,6 @@ def normalize_filter(line):
     """تنظيف بسيط للسطر مع الحفاظ على الهيكل الأصلي"""
     return line.strip().replace('\r', '').replace('\t', ' ').replace('  ', ' ')
 
-def is_adguard_home_domain_rule(line):
-    """تحقق إذا كان السطر قاعدة دومين لـ AdGuard Home"""
-    return line.startswith('||') and line.endswith('^') and not any(c in line for c in ['/', '*', '?', '='])
-
-def extract_domain_from_rule(line):
-    """استخراج الدومين من قاعدة AdGuard Home"""
-    if is_adguard_home_domain_rule(line):
-        return line[2:-1].lower()
-    return None
-
 def download_filter(url):
     """تحميل الفلتر مع تصفية التعليقات"""
     try:
@@ -50,7 +35,6 @@ def download_filter(url):
         response = requests.get(url, timeout=REQUEST_TIMEOUT, headers=headers)
         response.raise_for_status()
         
-        # تصفية السطور وإزالة التعليقات
         filtered_lines = []
         for line in response.text.splitlines():
             if is_valid_filter(line):
@@ -62,9 +46,8 @@ def download_filter(url):
         return [], url
 
 def process_filters(urls):
-    """معالجة الفلاتر مع إزالة التكرار الحرفي وتكرار دومينات AdGuard Home"""
+    """معالجة الفلاتر مع إزالة التكرارات"""
     seen_filters = set()
-    seen_domains = set()
     unique_filters = []
     total_urls = len(urls)
     
@@ -80,14 +63,6 @@ def process_filters(urls):
             
             for line in lines:
                 normalized = normalize_filter(line)
-                
-                # معالجة خاصة لقواعد دومينات AdGuard Home
-                rule_domain = extract_domain_from_rule(normalized)
-                if rule_domain:
-                    if rule_domain in seen_domains:
-                        continue  # تخطي إذا كان الدومين متكرراً
-                    seen_domains.add(rule_domain)
-                
                 if normalized not in seen_filters:
                     seen_filters.add(normalized)
                     unique_filters.append(normalized)
@@ -101,18 +76,13 @@ def save_filters(filters, output_dir="merged_filters"):
     """حفظ الفلاتر مع تقسيمها إذا لزم الأمر"""
     os.makedirs(output_dir, exist_ok=True)
     
-    # ملف واحد يحتوي على جميع الفلاتر (دائماً)
+    # ملف واحد يحتوي على جميع الفلاتر بدون تكرار
     all_filters_file = os.path.join(output_dir, "all_filters.txt")
     with open(all_filters_file, 'w', encoding='utf-8') as f:
-        # ترويسة أساسية مختصرة
-        f.write("! Title: All Merged Filters (Cleaned)\n")
-        f.write("! Updated: " + time.strftime("%Y-%m-%d %H:%M:%S") + "\n")
-        f.write("! Total filters: " + str(len(filters)) + "\n\n")
         f.write("\n".join(filters))
-    
     print(f"\n✅ تم حفظ جميع الفلاتر ({len(filters)} سطر) في {all_filters_file}")
     
-    # إذا تجاوز عدد الأسطر الحد الأقصى، نقوم بالتقسيم
+    # تقسيم الملف إذا تجاوز الحد الأقصى
     if len(filters) > MAX_LINES_PER_PART:
         parts = (len(filters) // MAX_LINES_PER_PART) + 1
         print(f"\n📦 سيتم تقسيم الفلاتر إلى {parts} أجزاء (كل جزء {MAX_LINES_PER_PART} سطر)")
@@ -123,9 +93,6 @@ def save_filters(filters, output_dir="merged_filters"):
             part_file = os.path.join(output_dir, f"filters_part_{i+1}.txt")
             
             with open(part_file, 'w', encoding='utf-8') as f:
-                f.write("! Title: Merged Filters Part {}\n".format(i+1))
-                f.write("! Updated: " + time.strftime("%Y-%m-%d %H:%M:%S") + "\n")
-                f.write("! Filters: {}-{}\n\n".format(start+1, min(end, len(filters))))
                 f.write("\n".join(filters[start:end]))
             
             print(f"✅ تم حفظ الجزء {i+1}: {len(filters[start:end])} سطر ({part_file})")
@@ -142,8 +109,7 @@ def main(filter_urls):
         stats = {
             "total_filters": len(filters),
             "time_elapsed": f"{elapsed:.2f} ثانية",
-            "avg_speed": f"{len(filters)/max(elapsed, 1):.1f} قاعدة/ثانية",
-            "unique_domains": len({extract_domain_from_rule(f) for f in filters if extract_domain_from_rule(f)})
+            "avg_speed": f"{len(filters)/max(elapsed, 1):.1f} قاعدة/ثانية"
         }
         
         print("\n📊 إحصائيات الأداء النهائية:")
@@ -156,7 +122,6 @@ def main(filter_urls):
         print(f"❌ خطأ غير متوقع: {str(e)}")
 
 if __name__ == "__main__":
-    # قائمة المصادر (يجب وضعها هنا كما هي)
     FILTER_URLS = [
         "https://raw.githubusercontent.com/AdguardTeam/FiltersRegistry/master/filters/filter_2_Base/filter.txt",
         "https://raw.githubusercontent.com/AdguardTeam/FiltersRegistry/master/filters/filter_3_Spyware/filter.txt",
