@@ -19,3 +19,9 @@
 ||*.ad.byteoversea.com^$important
 ||*.ads.tiktokv.com^$important
 ||*.ad.tiktok.com^$important
+||facebook.com^$domain=~facebook.com|~fb.com|~messenger.com
+||fbcdn.net^$domain=~facebook.com|~fb.com|~messenger.com
+||facebook.com/ads/
+||an.facebook.com^
+||static.xx.fbcdn.net^$subdocument
+||connect.facebook.net^$script
