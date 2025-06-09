@@ -41,3 +41,7 @@
 ||an.facebook.com^
 ||static.xx.fbcdn.net^$subdocument
 ||connect.facebook.net^$script
+||imo.im^$media,domain=imo.im
+||imo.im^$image,domain=imo.im,denyallow=||imo.im/static/
+||imo.im^$popup,domain=imo.im
+||imo.im^$xmlhttprequest,domain=imo.im
