@@ -1,1 +1,3 @@
 ||btcpay.priorato.org^$important
+||adservice.google.com^$important
+||ad.doubleclick.net^$important
