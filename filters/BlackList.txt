@@ -45,3 +45,5 @@
 ||imo.im^$image,domain=imo.im,denyallow=||imo.im/static/
 ||imo.im^$popup,domain=imo.im
 ||imo.im^$xmlhttprequest,domain=imo.im
+||hole.cert.pl^$important
+||up.ousaqb.tech^$important
