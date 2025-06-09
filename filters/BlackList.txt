@@ -9,3 +9,13 @@
 ||ad.imo.im^$important
 ||ads.imo.im^$important
 ||track.imo.im^$important
+||ads.tiktok.com^$important
+||log.tiktokv.com^$important
+||analytics.tiktok.com^$important
+||mon.tiktok.com^$important
+||promotion.tiktok.com^$important
+||ad.tiktok.com^$important
+||ad*.snssdk.com^$important
+||*.ad.byteoversea.com^$important
+||*.ads.tiktokv.com^$important
+||*.ad.tiktok.com^$important
