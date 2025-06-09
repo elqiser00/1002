@@ -5,65 +5,50 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from urllib.parse import urlparse
 
 # إعدادات التكوين
-REQUEST_TIMEOUT = 45
-REQUEST_DELAY = 0.3
-MAX_WORKERS = 5
-USER_AGENT = "AdGuardHome-Filter-Merger/3.0"
+MAX_LINES_PER_PART = 2_000_000  # الحد الأقصى للأسطر في كل جزء
+MAX_LINE_LENGTH = 5000  # الحد الأقصى لطول السطر
+REQUEST_TIMEOUT = 45  # وقت انتظار الطلب
+REQUEST_DELAY = 0.3  # تأخير بين الطلبات
+MAX_WORKERS = 5  # الحد الأقصى لعدد العمال
+USER_AGENT = "AdGuardHome-Filter-Merger/3.0"  # وكيل المستخدم
 
 def is_valid_filter(line):
-    """تحقق من صحة سطر الفلتر"""
+    """تحقق من صحة سطر الفلتر مع تجاهل التعليقات غير الضرورية"""
     line = line.strip()
-    if not line or line.startswith(('!', '#')):
+    if not line:
         return False
-    return True
-
-def extract_domain(rule):
-    """استخراج الدومين من القاعدة بشكل آمن"""
-    try:
-        rule = rule.strip()
-        
-        # معالجة قواعد الاستثناءات (@@)
-        if rule.startswith('@@'):
-            if rule.startswith('@@||') and '^' in rule:
-                domain = rule[4:rule.index('^')].lower()
-                return domain, 'allowed'
-            elif rule.startswith('@@http://'):
-                return rule[8:].split('/')[0].lower(), 'allowed'
-            elif rule.startswith('@@https://'):
-                return rule[9:].split('/')[0].lower(), 'allowed'
-        
-        # معالجة قواعد الحظر
-        elif rule.startswith('||') and '^' in rule:
-            domain = rule[2:rule.index('^')].lower()
-            return domain, 'blocked'
-        elif rule.startswith(('http://', 'https://')):
-            domain = rule.split('/')[2].lower()
-            return domain, 'blocked'
-        elif '://' in rule:
-            domain = rule.split('/')[2].lower()
-            return domain, 'blocked'
-            
-    except Exception as e:
-        print(f"⚠️ خطأ في معالجة القاعدة: {rule[:50]}...")
-        return None, None
     
-    return None, None
+    # تجاهل التعليقات (التي تبدأ بـ ! أو #) إلا إذا كانت ترويسات مهمة
+    if line.startswith(('!', '#')) and not line.startswith(('! ', '# ')):
+        return False
+    
+    return len(line) <= MAX_LINE_LENGTH
+
+def normalize_filter(line):
+    """تنظيف بسيط للسطر مع الحفاظ على الهيكل الأصلي"""
+    return line.strip().replace('\r', '').replace('\t', ' ').replace('  ', ' ')
 
 def download_filter(url):
-    """تحميل الفلتر مع معالجة الأخطاء"""
+    """تحميل الفلتر مع تصفية التعليقات"""
     try:
         headers = {'User-Agent': USER_AGENT}
         response = requests.get(url, timeout=REQUEST_TIMEOUT, headers=headers)
         response.raise_for_status()
-        return response.text.splitlines(), url
+        
+        filtered_lines = []
+        for line in response.text.splitlines():
+            if is_valid_filter(line):
+                filtered_lines.append(line)
+                
+        return filtered_lines, url
     except Exception as e:
         print(f"⚠️ فشل تحميل {urlparse(url).netloc}: {str(e)}")
         return [], url
 
 def process_filters(urls):
-    """معالجة الفلاتر وتصنيف الدومينات"""
-    allowed_domains = set()
-    blocked_domains = set()
+    """معالجة الفلاتر مع إزالة التكرارات"""
+    seen_filters = set()
+    unique_filters = []
     total_urls = len(urls)
     
     print(f"🔍 بدء معالجة {total_urls} مصدر فلتر...")
@@ -74,60 +59,67 @@ def process_filters(urls):
         for i, future in enumerate(as_completed(future_to_url), 1):
             lines, url = future.result()
             domain = urlparse(url).netloc
-            print(f"📊 [{i}/{total_urls}] معالجة: {domain} ({len(lines)} سطر)")
+            print(f"📊 [{i}/{total_urls}] معالجة: {domain} ({len(lines)} سطر بعد التصفية)")
             
             for line in lines:
-                if not is_valid_filter(line):
-                    continue
-                
-                domain_name, domain_type = extract_domain(line)
-                if domain_name:
-                    if domain_type == 'allowed':
-                        allowed_domains.add(domain_name)
-                        blocked_domains.discard(domain_name)
-                    elif domain_type == 'blocked' and domain_name not in allowed_domains:
-                        blocked_domains.add(domain_name)
+                normalized = normalize_filter(line)
+                if normalized not in seen_filters:
+                    seen_filters.add(normalized)
+                    unique_filters.append(normalized)
             
             if i < total_urls:
                 time.sleep(REQUEST_DELAY)
     
-    return sorted(allowed_domains), sorted(blocked_domains)
+    return unique_filters
 
-def save_domains(allowed, blocked, output_dir="filtered_domains"):
-    """حفظ الدومينات في ملفات منفصلة"""
+def save_filters(filters, output_dir="merged_filters"):
+    """حفظ الفلاتر مع تقسيمها إذا لزم الأمر"""
     os.makedirs(output_dir, exist_ok=True)
     
-    allowed_file = os.path.join(output_dir, "allowed_domains.txt")
-    with open(allowed_file, 'w', encoding='utf-8') as f:
-        f.write("# قائمة الدومينات المسموحة (الاستثناءات)\n")
-        f.write(f"# تم الإنشاء: {time.strftime('%Y-%m-%d %H:%M:%S')}\n\n")
-        f.write("\n".join(allowed))
+    # ملف واحد يحتوي على جميع الفلاتر بدون تكرار
+    all_filters_file = os.path.join(output_dir, "all_filters.txt")
+    with open(all_filters_file, 'w', encoding='utf-8') as f:
+        f.write("\n".join(filters))
+    print(f"\n✅ تم حفظ جميع الفلاتر ({len(filters)} سطر) في {all_filters_file}")
     
-    blocked_file = os.path.join(output_dir, "blocked_domains.txt")
-    with open(blocked_file, 'w', encoding='utf-8') as f:
-        f.write("# قائمة الدومينات المحظورة\n")
-        f.write(f"# تم الإنشاء: {time.strftime('%Y-%m-%d %H:%M:%S')}\n\n")
-        f.write("\n".join(blocked))
-    
-    print(f"\n✅ تم الحفظ بنجاح:\n- الدومينات المسموحة: {len(allowed)} دومين ({allowed_file})\n- الدومينات المحظورة: {len(blocked)} دومين ({blocked_file})")
+    # تقسيم الملف إذا تجاوز الحد الأقصى
+    if len(filters) > MAX_LINES_PER_PART:
+        parts = (len(filters) // MAX_LINES_PER_PART) + 1
+        print(f"\n📦 سيتم تقسيم الفلاتر إلى {parts} أجزاء (كل جزء {MAX_LINES_PER_PART} سطر)")
+        
+        for i in range(parts):
+            start = i * MAX_LINES_PER_PART
+            end = start + MAX_LINES_PER_PART
+            part_file = os.path.join(output_dir, f"filters_part_{i+1}.txt")
+            
+            with open(part_file, 'w', encoding='utf-8') as f:
+                f.write("\n".join(filters[start:end]))
+            
+            print(f"✅ تم حفظ الجزء {i+1}: {len(filters[start:end])} سطر ({part_file})")
 
 def main(filter_urls):
     """الدالة الرئيسية"""
-    start_time = time.time()
+    start_time = time.perf_counter()
     
     try:
-        allowed, blocked = process_filters(filter_urls)
-        save_domains(allowed, blocked)
+        filters = process_filters(filter_urls)
+        save_filters(filters)
         
-        elapsed = time.time() - start_time
-        print(f"\n⏱ وقت التنفيذ: {elapsed:.2f} ثانية")
-        print(f"📊 الإحصائيات النهائية:")
-        print(f"- مجموع الدومينات المسموحة: {len(allowed)}")
-        print(f"- مجموع الدومينات المحظورة: {len(blocked)}")
-        print(f"- إجمالي الدومينات المعالجة: {len(allowed)+len(blocked)}")
+        elapsed = time.perf_counter() - start_time
+        stats = {
+            "total_filters": len(filters),
+            "time_elapsed": f"{elapsed:.2f} ثانية",
+            "avg_speed": f"{len(filters)/max(elapsed, 1):.1f} قاعدة/ثانية"
+        }
         
+        print("\n📊 إحصائيات الأداء النهائية:")
+        for k, v in stats.items():
+            print(f"- {k.replace('_', ' ').title()}: {v}")
+            
+    except KeyboardInterrupt:
+        print("\n⏹ تم إيقاف العملية بواسطة المستخدم")
     except Exception as e:
-        print(f"\n❌ حدث خطأ: {str(e)}")
+        print(f"❌ خطأ غير متوقع: {str(e)}")
 
 if __name__ == "__main__":
     FILTER_URLS = [
