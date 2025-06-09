@@ -15,7 +15,6 @@
 @@||graph.whatsapp.net^$important
 @@||codelist.cc^$important
 @@||ngrok-free.app^$important
-@@||tiktok.com^$important
 @@||tiktokv.com^$important
 @@||musical.ly^$important
 @@||snssdk.com^$important
