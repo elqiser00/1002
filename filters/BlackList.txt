@@ -47,3 +47,13 @@
 ||imo.im^$xmlhttprequest,domain=imo.im
 ||hole.cert.pl^$important
 ||up.ousaqb.tech^$important
+||googleads.g.doubleclick.net^
+||pagead2.googlesyndication.com^
+||adservice.google.com^
+||googleadservices.com^
+||admob.com^
+||ads.google.com^
+||googlesyndication.com^
+||doubleclick.net^
+||google-analytics.com^
+||app-measurement.com^
