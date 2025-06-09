@@ -1,3 +1,11 @@
 ||btcpay.priorato.org^$important
 ||adservice.google.com^$important
 ||ad.doubleclick.net^$important
+||imo.im^$important
+||imo.me^$important
+||imo-official.com^$important
+||imogroups.com^$important
+||imoads.net^$important
+||ad.imo.im^$important
+||ads.imo.im^$important
+||track.imo.im^$important
