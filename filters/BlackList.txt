@@ -79,3 +79,11 @@
 ||branch.io^
 ||sdk-api-1.singular.net^
 ||segment.io^
+||ads.tiktok.com^$important
+||business-api.tiktok.com^$important
+||ads-sg.tiktok.com^$important
+||ads-api.tiktok.com^$important
+||analytics-sg.tiktok.com^$important
+||ad.doubleclick.net^$important
+||adservice.google.com^$important
+||analytics.tiktok.com^$important
