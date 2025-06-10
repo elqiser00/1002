@@ -36,3 +36,5 @@
 @@||voip.imo.im^$important
 @@||www.eporner.com^$important
 @@||cdn.eporner.com^$important
+@@||filecr.xyz^$important
+@@||s1-filecr.xyz^$important
