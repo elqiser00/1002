@@ -11,99 +11,58 @@ MAX_LINE_LENGTH = 5000
 REQUEST_TIMEOUT = 45
 REQUEST_DELAY = 0.3
 MAX_WORKERS = 5
-USER_AGENT = "AdGuardHome-Filter-Merger/4.0"
+USER_AGENT = "AdGuardHome-Filter-Merger/5.0"
 
 def convert_rule(line):
-    """
-    تحويل جميع أنواع القواعد إلى صيغة AdGuard الموحدة
-    يدعم:
-    - قواعد AdGuard (||example.org^، @@||example.org^)
-    - قواعد DNS (127.0.0.1 example.org)
-    - قواعد Regex (/regex/)
-    """
+    """تحويل القواعد إلى صيغة AdGuard مع معالجة التكرار"""
     line = line.strip()
-    
-    # تجاهل التعليقات
-    if line.startswith(('!', '#')):
+    if not line:
         return None
-    
-    # 1. إذا كانت قاعدة AdGuard (موجودة بالفعل)
-    if (line.startswith(('||', '@@||')) and line.endswith('^')):
-        return line
-    
-    # 2. قواعد DNS (127.0.0.1 example.org)
-    if re.match(r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\s+[a-z0-9-]+\.[a-z]{2,}$', line):
-        domain = line.split()[1]
-        return f"||{domain}^"  # تحويل إلى حظر كامل مع subdomains
-    
-    # 3. قواعد Regex
-    if line.startswith('/') and line.endswith('/'):
-        # تحويل Regex البسيط إلى دومين
-        match = re.search(r'([a-z0-9-]+\.[a-z]{2,})', line[1:-1])
-        if match:
-            domain = match.group(1)
-            if line.startswith('/@@/'):  # استثناء
-                return f"@@||{domain}^"
-            return f"||{domain}^"
-    
-    # 4. قواعد أخرى غير مدعومة
+
+    # تجاهل التعليقات والبيانات الوصفية
+    if line.startswith(('!', '#', '[', '&')):
+        return None
+
+    # 1. قواعد AdGuard (موجودة بالفعل)
+    if line.startswith(('||', '@@||')) and line.endswith('^'):
+        return line.lower()  # توحيد الحروف للتكرار
+
+    # 2. قواعد DNS (127.0.0.1 أو 0.0.0.0)
+    if re.match(r'^(?:127\.0\.0\.1|0\.0\.0\.0)\s+[a-z0-9-]+\.[a-z]{2,}$', line, re.IGNORECASE):
+        domain = line.split()[1].lower()
+        return f"||{domain}^"
+
     return None
 
 def is_valid_filter(line):
-    """التحقق من صحة السطر مع تطبيق التحويلات"""
+    """التحقق من صحة السطر حسب الأنواع المدعومة"""
     line = line.strip()
-    if not line or len(line) > MAX_LINE_LENGTH:
-        return False
-    
-    # تجاهل التعليقات والبيانات الوصفية
-    if line.startswith(('[', '&', '!', '#')):
-        return False
-    
-    # تجاهل الأنماط غير المدعومة
-    if any(patt in line for patt in ('##', '#@#', '!#', '##^')):
-        return False
-    
-    return True
+    return (
+        len(line) <= MAX_LINE_LENGTH and
+        not line.startswith(('!', '#', '[', '&', '/')) and
+        not any(patt in line for patt in ('##', '#@#', '!#', '##^')) and
+        (
+            (line.startswith(('||', '@@||')) and line.endswith('^')) or
+            re.match(r'^(?:127\.0\.0\.1|0\.0\.0\.0)\s+[a-z0-9-]+\.[a-z]{2,}$', line, re.IGNORECASE)
+        )
+    )
 
 def normalize_filter(line):
-    """توحيد صيغة السطر"""
-    return line.strip().replace('\r', '').replace('\t', ' ').replace('  ', ' ')
-
-def process_line(raw_line):
-    """معالجة كل سطر وتطبيق التحويلات"""
-    normalized = normalize_filter(raw_line)
-    if not is_valid_filter(normalized):
-        return None
-    
-    # تطبيق التحويلات
-    converted = convert_rule(normalized)
-    return converted if converted else normalized if is_valid_filter(normalized) else None
-
-def download_filter(url):
-    """تحميل الفلتر مع المعالجة الأولية"""
-    try:
-        headers = {'User-Agent': USER_AGENT}
-        response = requests.get(url, timeout=REQUEST_TIMEOUT, headers=headers)
-        response.raise_for_status()
-        
-        processed_lines = []
-        for line in response.text.splitlines():
-            processed = process_line(line)
-            if processed:
-                processed_lines.append(processed)
-                
-        return processed_lines, url
-    except Exception as e:
-        print(f"⚠️ خطأ في تحميل {urlparse(url).netloc}: {str(e)}")
-        return [], url
+    """توحيد صيغة السطر للتكرار"""
+    line = line.strip().lower()
+    if line.startswith(('||', '@@||')) and line.endswith('^'):
+        return line
+    if re.match(r'^(?:127\.0\.0\.1|0\.0\.0\.0)\s+[a-z0-9-]+\.[a-z]{2,}$', line):
+        return f"||{line.split()[1]}^"
+    return line
 
 def process_filters(urls):
-    """معالجة جميع الفلاتر مع إزالة التكرارات"""
-    seen_domains = set()
-    unique_rules = []
+    """معالجة الفلاتر مع إزالة التكرارات الشاملة"""
+    global_seen = set()
+    duplicate_count = 0
     total_urls = len(urls)
     
-    print(f"🔍 بدء معالجة {total_urls} مصدر فلتر...")
+    print(f"🔍 بدء معالجة {total_urls} مصدر فلتر مع التحقق من التكرارات...")
     
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
         future_to_url = {executor.submit(download_filter, url): url for url in urls}
@@ -111,31 +70,47 @@ def process_filters(urls):
         for i, future in enumerate(as_completed(future_to_url), 1):
             lines, url = future.result()
             domain = urlparse(url).netloc
-            print(f"📊 [{i}/{total_urls}] معالجة: {domain} ({len(lines)} قاعدة)")
+            new_lines = []
             
             for line in lines:
-                # استخراج الدومين الأساسي للتكرار
-                domain_match = re.match(r'^(?:@@\|\|)?\|?\|?([a-z0-9-]+\.[a-z]{2,})\^', line)
-                if domain_match:
-                    domain_key = domain_match.group(1)
-                    if domain_key in seen_domains:
-                        continue
-                    seen_domains.add(domain_key)
-                
-                unique_rules.append(line)
+                normalized = normalize_filter(line)
+                if normalized not in global_seen:
+                    global_seen.add(normalized)
+                    new_lines.append(line)
+                else:
+                    duplicate_count += 1
+            
+            print(f"📊 [{i}/{total_urls}] {domain}: {len(lines)} قاعدة | تمت إضافة {len(new_lines)} | التكرارات: {duplicate_count}")
             
             if i < total_urls:
                 time.sleep(REQUEST_DELAY)
     
-    return unique_rules
+    print(f"\n⚠️ إجمالي التكرارات المكتشفة: {duplicate_count}")
+    return list(global_seen)
 
 def save_filters(rules, output_dir="merged_filters"):
-    """حفظ القواعد مع التقسيم والترتيب"""
+    """حفظ القواعد مع التحقق النهائي من التكرار"""
     os.makedirs(output_dir, exist_ok=True)
     
-    # فرز القواعد: استثناءات أولاً، ثم الحظر
-    exceptions = [r for r in rules if r.startswith('@@')]
-    blocks = [r for r in rules if not r.startswith('@@')]
+    # التحقق النهائي من التكرار
+    final_rules = []
+    seen = set()
+    duplicate_count = 0
+    
+    for rule in rules:
+        normalized = normalize_filter(rule)
+        if normalized not in seen:
+            seen.add(normalized)
+            final_rules.append(rule)
+        else:
+            duplicate_count += 1
+    
+    if duplicate_count > 0:
+        print(f"⚠️ تم اكتشاف {duplicate_count} تكرار أثناء الحفظ النهائي")
+    
+    # فرز القواعد: استثناءات أولاً
+    exceptions = [r for r in final_rules if r.startswith('@@')]
+    blocks = [r for r in final_rules if not r.startswith('@@')]
     sorted_rules = exceptions + blocks
     
     # حفظ الملف الرئيسي
@@ -143,7 +118,7 @@ def save_filters(rules, output_dir="merged_filters"):
     with open(main_file, 'w', encoding='utf-8') as f:
         f.write("\n".join(sorted_rules))
     
-    print(f"\n✅ تم حفظ {len(sorted_rules)} قاعدة في {main_file}")
+    print(f"\n✅ تم حفظ {len(sorted_rules)} قاعدة فريدة في {main_file}")
     
     # التقسيم إذا لزم الأمر
     if len(sorted_rules) > MAX_LINES_PER_PART:
@@ -159,34 +134,6 @@ def save_filters(rules, output_dir="merged_filters"):
                 f.write("\n".join(sorted_rules[start:end]))
             
             print(f"✅ تم حفظ الجزء {i+1}: {len(sorted_rules[start:end])} قاعدة")
-
-def main(filter_urls):
-    """الدالة الرئيسية"""
-    start_time = time.perf_counter()
-    
-    try:
-        print("🛠️ بدء عملية دمج الفلاتر...")
-        rules = process_filters(filter_urls)
-        save_filters(rules)
-        
-        elapsed = time.perf_counter() - start_time
-        stats = {
-            "إجمالي القواعد": len(rules),
-            "قواعد الاستثناء": len([r for r in rules if r.startswith('@@')]),
-            "قواعد الحظر": len([r for r in rules if not r.startswith('@@')]),
-            "الوقت المستغرق": f"{elapsed:.2f} ثانية",
-            "السرعة": f"{len(rules)/max(elapsed, 1):.1f} قاعدة/ثانية",
-            "نطاقات فريدة": len(set(re.match(r'^(?:@@\|\|)?\|?\|?([a-z0-9-]+\.[a-z]{2,})\^', r).group(1) for r in rules if re.match(r'^(?:@@\|\|)?\|?\|?([a-z0-9-]+\.[a-z]{2,})\^', r)))
-        }
-        
-        print("\n📊 الإحصائيات النهائية:")
-        for k, v in stats.items():
-            print(f"- {k}: {v}")
-            
-    except KeyboardInterrupt:
-        print("\n⏹ تم إيقاف العملية بواسطة المستخدم")
-    except Exception as e:
-        print(f"❌ خطأ غير متوقع: {str(e)}")
 
 if __name__ == "__main__":
     FILTER_URLS = [
@@ -263,4 +210,13 @@ if __name__ == "__main__":
         "https://easylist-downloads.adblockplus.org/antiadblockfilters.txt",
     ]
     
-    main(FILTER_URLS)
+    start_time = time.perf_counter()
+    try:
+        rules = process_filters(FILTER_URLS)
+        save_filters(rules)
+        
+        elapsed = time.perf_counter() - start_time
+        print(f"\n⏱️ الوقت الإجمالي: {elapsed:.2f} ثانية")
+        
+    except Exception as e:
+        print(f"❌ خطأ: {str(e)}")
