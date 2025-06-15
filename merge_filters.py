@@ -56,6 +56,24 @@ def normalize_filter(line):
         return f"||{line.split()[1]}^"
     return line
 
+def download_filter(url):
+    """تحميل الفلتر من URL مع معالجة أولية"""
+    try:
+        headers = {'User-Agent': USER_AGENT}
+        response = requests.get(url, timeout=REQUEST_TIMEOUT, headers=headers)
+        response.raise_for_status()
+        
+        processed_lines = []
+        for line in response.text.splitlines():
+            converted = convert_rule(line)
+            if converted and is_valid_filter(converted):
+                processed_lines.append(converted)
+                
+        return processed_lines, url
+    except Exception as e:
+        print(f"⚠️ خطأ في تحميل {urlparse(url).netloc}: {str(e)}")
+        return [], url
+
 def process_filters(urls):
     """معالجة الفلاتر مع إزالة التكرارات الشاملة"""
     global_seen = set()
