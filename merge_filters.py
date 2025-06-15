@@ -11,151 +11,105 @@ MAX_LINE_LENGTH = 5000
 REQUEST_TIMEOUT = 45
 REQUEST_DELAY = 0.3
 MAX_WORKERS = 5
-USER_AGENT = "AdGuardHome-Filter-Merger/5.0"
+USER_AGENT = "AdGuardHome-Filter-Merger/8.0"
 
-def convert_rule(line):
-    """تحويل القواعد إلى صيغة AdGuard مع معالجة التكرار"""
+def is_valid_rule(line):
+    """تحديد إذا كانت القاعدة من الأنواع المدعومة"""
     line = line.strip()
-    if not line:
-        return None
-
+    if not line or len(line) > MAX_LINE_LENGTH:
+        return False
+    
     # تجاهل التعليقات والبيانات الوصفية
     if line.startswith(('!', '#', '[', '&')):
-        return None
-
-    # 1. قواعد AdGuard (موجودة بالفعل)
-    if line.startswith(('||', '@@||')) and line.endswith('^'):
-        return line.lower()  # توحيد الحروف للتكرار
-
-    # 2. قواعد DNS (127.0.0.1 أو 0.0.0.0)
-    if re.match(r'^(?:127\.0\.0\.1|0\.0\.0\.0)\s+[a-z0-9-]+\.[a-z]{2,}$', line, re.IGNORECASE):
-        domain = line.split()[1].lower()
-        return f"||{domain}^"
-
-    return None
-
-def is_valid_filter(line):
-    """التحقق من صحة السطر حسب الأنواع المدعومة"""
-    line = line.strip()
+        return False
+    
+    # قبول فقط القواعد الأساسية بدون مسارات أو معلمات
     return (
-        len(line) <= MAX_LINE_LENGTH and
-        not line.startswith(('!', '#', '[', '&', '/')) and
-        not any(patt in line for patt in ('##', '#@#', '!#', '##^')) and
-        (
-            (line.startswith(('||', '@@||')) and line.endswith('^')) or
-            re.match(r'^(?:127\.0\.0\.1|0\.0\.0\.0)\s+[a-z0-9-]+\.[a-z]{2,}$', line, re.IGNORECASE)
-        )
+        re.fullmatch(r'^(@@\|\|)?\|\|[a-z0-9-]+\.[a-z]{2,}\^$', line, re.IGNORECASE) or
+        re.fullmatch(r'^(127\.0\.0\.1|0\.0\.0\.0)\s+[a-z0-9-]+\.[a-z]{2,}$', line, re.IGNORECASE)
     )
 
-def normalize_filter(line):
-    """توحيد صيغة السطر للتكرار"""
+def convert_rule(line):
+    """تحويل القواعد إلى صيغة AdGuard الموحدة"""
     line = line.strip().lower()
-    if line.startswith(('||', '@@||')) and line.endswith('^'):
-        return line
-    if re.match(r'^(?:127\.0\.0\.1|0\.0\.0\.0)\s+[a-z0-9-]+\.[a-z]{2,}$', line):
+    if not is_valid_rule(line):
+        return None
+    
+    # تحويل قواعد DNS إلى صيغة AdGuard
+    if re.fullmatch(r'^(127\.0\.0\.1|0\.0\.0\.0)\s+[a-z0-9-]+\.[a-z]{2,}$', line):
         return f"||{line.split()[1]}^"
+    
     return line
 
 def download_filter(url):
-    """تحميل الفلتر من URL مع معالجة أولية"""
+    """تحميل الفلتر مع التصفية الأولية"""
     try:
         headers = {'User-Agent': USER_AGENT}
         response = requests.get(url, timeout=REQUEST_TIMEOUT, headers=headers)
         response.raise_for_status()
         
-        processed_lines = []
+        valid_rules = []
         for line in response.text.splitlines():
             converted = convert_rule(line)
-            if converted and is_valid_filter(converted):
-                processed_lines.append(converted)
+            if converted:
+                valid_rules.append(converted)
                 
-        return processed_lines, url
+        return valid_rules, url
     except Exception as e:
         print(f"⚠️ خطأ في تحميل {urlparse(url).netloc}: {str(e)}")
         return [], url
 
 def process_filters(urls):
-    """معالجة الفلاتر مع إزالة التكرارات الشاملة"""
+    """معالجة الفلاتر مع إزالة التكرارات"""
     global_seen = set()
-    duplicate_count = 0
     total_urls = len(urls)
     
-    print(f"🔍 بدء معالجة {total_urls} مصدر فلتر مع التحقق من التكرارات...")
+    print(f"🔍 بدء معالجة {total_urls} مصدر فلتر...")
     
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
         future_to_url = {executor.submit(download_filter, url): url for url in urls}
         
+        results = []
         for i, future in enumerate(as_completed(future_to_url), 1):
-            lines, url = future.result()
-            domain = urlparse(url).netloc
-            new_lines = []
+            rules, url = future.result()
+            new_rules = [r for r in rules if r not in global_seen]
+            global_seen.update(new_rules)
             
-            for line in lines:
-                normalized = normalize_filter(line)
-                if normalized not in global_seen:
-                    global_seen.add(normalized)
-                    new_lines.append(line)
-                else:
-                    duplicate_count += 1
-            
-            print(f"📊 [{i}/{total_urls}] {domain}: {len(lines)} قاعدة | تمت إضافة {len(new_lines)} | التكرارات: {duplicate_count}")
+            print(f"📊 [{i}/{total_urls}] {urlparse(url).netloc}: تمت إضافة {len(new_rules)} قاعدة جديدة")
+            results.extend(new_rules)
             
             if i < total_urls:
                 time.sleep(REQUEST_DELAY)
     
-    print(f"\n⚠️ إجمالي التكرارات المكتشفة: {duplicate_count}")
-    return list(global_seen)
+    return sorted(results, key=lambda x: (not x.startswith('@@'), x))
 
 def save_filters(rules, output_dir="merged_filters"):
-    """حفظ القواعد مع التحقق النهائي من التكرار"""
+    """حفظ القواعد مع التقسيم إذا لزم الأمر"""
     os.makedirs(output_dir, exist_ok=True)
-    
-    # التحقق النهائي من التكرار
-    final_rules = []
-    seen = set()
-    duplicate_count = 0
-    
-    for rule in rules:
-        normalized = normalize_filter(rule)
-        if normalized not in seen:
-            seen.add(normalized)
-            final_rules.append(rule)
-        else:
-            duplicate_count += 1
-    
-    if duplicate_count > 0:
-        print(f"⚠️ تم اكتشاف {duplicate_count} تكرار أثناء الحفظ النهائي")
-    
-    # فرز القواعد: استثناءات أولاً
-    exceptions = [r for r in final_rules if r.startswith('@@')]
-    blocks = [r for r in final_rules if not r.startswith('@@')]
-    sorted_rules = exceptions + blocks
     
     # حفظ الملف الرئيسي
     main_file = os.path.join(output_dir, "adguard_rules.txt")
     with open(main_file, 'w', encoding='utf-8') as f:
-        f.write("\n".join(sorted_rules))
+        f.write("\n".join(rules))
     
-    print(f"\n✅ تم حفظ {len(sorted_rules)} قاعدة فريدة في {main_file}")
+    print(f"\n✅ تم حفظ {len(rules)} قاعدة فريدة في {main_file}")
     
     # التقسيم إذا لزم الأمر
-    if len(sorted_rules) > MAX_LINES_PER_PART:
-        parts = (len(sorted_rules) // MAX_LINES_PER_PART) + 1
+    if len(rules) > MAX_LINES_PER_PART:
+        parts = (len(rules) // MAX_LINES_PER_PART) + 1
         print(f"📦 تقسيم إلى {parts} أجزاء...")
         
         for i in range(parts):
-            start = i * MAX_LINES_PER_PART
-            end = start + MAX_LINES_PER_PART
             part_file = os.path.join(output_dir, f"adguard_rules_part_{i+1}.txt")
-            
             with open(part_file, 'w', encoding='utf-8') as f:
-                f.write("\n".join(sorted_rules[start:end]))
-            
-            print(f"✅ تم حفظ الجزء {i+1}: {len(sorted_rules[start:end])} قاعدة")
+                start = i * MAX_LINES_PER_PART
+                end = start + MAX_LINES_PER_PART
+                f.write("\n".join(rules[start:end]))
+            print(f"✅ الجزء {i+1}: {len(rules[start:end])} قاعدة")
 
 if __name__ == "__main__":
     FILTER_URLS = [
-        "https://raw.githubusercontent.com/AdguardTeam/FiltersRegistry/master/filters/filter_2_Base/filter.txt",
+       "https://raw.githubusercontent.com/AdguardTeam/FiltersRegistry/master/filters/filter_2_Base/filter.txt",
         "https://raw.githubusercontent.com/AdguardTeam/FiltersRegistry/master/filters/filter_3_Spyware/filter.txt",
         "https://raw.githubusercontent.com/AdguardTeam/FiltersRegistry/master/filters/filter_17_TrackParam/filter.txt",
         "https://raw.githubusercontent.com/AdguardTeam/FiltersRegistry/master/filters/filter_14_Annoyances/filter.txt",
@@ -228,13 +182,10 @@ if __name__ == "__main__":
         "https://easylist-downloads.adblockplus.org/antiadblockfilters.txt",
     ]
     
-    start_time = time.perf_counter()
+    start_time = time.time()
     try:
         rules = process_filters(FILTER_URLS)
         save_filters(rules)
-        
-        elapsed = time.perf_counter() - start_time
-        print(f"\n⏱️ الوقت الإجمالي: {elapsed:.2f} ثانية")
-        
+        print(f"\n⏱️ تم الانتهاء في {time.time()-start_time:.2f} ثانية")
     except Exception as e:
         print(f"❌ خطأ: {str(e)}")
