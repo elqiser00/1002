@@ -8,93 +8,88 @@ from urllib.parse import urlparse
 # إعدادات التكوين
 MAX_LINES_PER_PART = 2_000_000
 MAX_LINE_LENGTH = 5000
-REQUEST_TIMEOUT = 45
-REQUEST_DELAY = 0.3
-MAX_WORKERS = 5
-USER_AGENT = "AdGuardHome-Filter-Merger/8.0"
+REQUEST_TIMEOUT = 60
+REQUEST_DELAY = 0.5
+MAX_WORKERS = 10
+USER_AGENT = "AdGuardHome-Filter-Merger/12.0"
 
-def is_valid_rule(line):
-    """تحديد إذا كانت القاعدة من الأنواع المدعومة"""
+def process_rule(line):
+    """معالجة القواعد مع الحفاظ على النطاقات الكاملة"""
     line = line.strip()
     if not line or len(line) > MAX_LINE_LENGTH:
-        return False
-    
-    # تجاهل التعليقات والبيانات الوصفية
-    if line.startswith(('!', '#', '[', '&')):
-        return False
-    
-    # قبول فقط القواعد الأساسية بدون مسارات أو معلمات
-    return (
-        re.fullmatch(r'^(@@\|\|)?\|\|[a-z0-9-]+\.[a-z]{2,}\^$', line, re.IGNORECASE) or
-        re.fullmatch(r'^(127\.0\.0\.1|0\.0\.0\.0)\s+[a-z0-9-]+\.[a-z]{2,}$', line, re.IGNORECASE)
-    )
-
-def convert_rule(line):
-    """تحويل القواعد إلى صيغة AdGuard الموحدة"""
-    line = line.strip().lower()
-    if not is_valid_rule(line):
         return None
     
-    # تحويل قواعد DNS إلى صيغة AdGuard
-    if re.fullmatch(r'^(127\.0\.0\.1|0\.0\.0\.0)\s+[a-z0-9-]+\.[a-z]{2,}$', line):
-        return f"||{line.split()[1]}^"
+    # 1. الاحتفاظ بالتعليقات
+    if line.startswith(('!', '#')):
+        return line
     
-    return line
+    # 2. قبول القواعد الكاملة (بما فيها التي تحتوي على -)
+    if re.fullmatch(r'^(@@\|\|)?\|\|([a-z0-9-]+\.)+[a-z]{2,}\^$', line, re.IGNORECASE):
+        return line
+    
+    # 3. تحويل قواعد DNS مع الحفاظ على الهيكل الكامل
+    if re.fullmatch(r'^(127\.0\.0\.1|0\.0\.0\.0)\s+([a-z0-9-]+\.)+[a-z]{2,}$', line, re.IGNORECASE):
+        domain = line.split()[1]
+        return f"||{domain}^"
+    
+    return None
 
 def download_filter(url):
-    """تحميل الفلتر مع التصفية الأولية"""
+    """تحميل الفلتر مع الاحتفاظ بالقواعد الكاملة"""
     try:
         headers = {'User-Agent': USER_AGENT}
         response = requests.get(url, timeout=REQUEST_TIMEOUT, headers=headers)
         response.raise_for_status()
         
-        valid_rules = []
+        processed_lines = []
         for line in response.text.splitlines():
-            converted = convert_rule(line)
-            if converted:
-                valid_rules.append(converted)
+            processed = process_rule(line)
+            if processed is not None:
+                processed_lines.append(processed)
                 
-        return valid_rules, url
+        return processed_lines, url
     except Exception as e:
         print(f"⚠️ خطأ في تحميل {urlparse(url).netloc}: {str(e)}")
         return [], url
 
 def process_filters(urls):
-    """معالجة الفلاتر مع إزالة التكرارات"""
-    global_seen = set()
+    """المعالجة النهائية مع الاحتفاظ بالقواعد المركبة"""
+    seen_rules = set()
     total_urls = len(urls)
     
-    print(f"🔍 بدء معالجة {total_urls} مصدر فلتر...")
+    print(f"🔍 بدء معالجة {total_urls} مصدر فلتر (مع الاحتفاظ بالنطاقات الكاملة)...")
     
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
         future_to_url = {executor.submit(download_filter, url): url for url in urls}
         
         results = []
         for i, future in enumerate(as_completed(future_to_url), 1):
-            rules, url = future.result()
-            new_rules = [r for r in rules if r not in global_seen]
-            global_seen.update(new_rules)
+            lines, url = future.result()
+            new_lines = []
             
-            print(f"📊 [{i}/{total_urls}] {urlparse(url).netloc}: تمت إضافة {len(new_rules)} قاعدة جديدة")
-            results.extend(new_rules)
+            for line in lines:
+                if line.startswith(('!', '#')) or line not in seen_rules:
+                    seen_rules.add(line)
+                    new_lines.append(line)
+            
+            print(f"📊 [{i}/{total_urls}] {urlparse(url).netloc}: {len(new_lines)} قاعدة")
+            results.extend(new_lines)
             
             if i < total_urls:
                 time.sleep(REQUEST_DELAY)
     
-    return sorted(results, key=lambda x: (not x.startswith('@@'), x))
+    return results
 
 def save_filters(rules, output_dir="merged_filters"):
-    """حفظ القواعد مع التقسيم إذا لزم الأمر"""
+    """حفظ النتائج النهائية"""
     os.makedirs(output_dir, exist_ok=True)
     
-    # حفظ الملف الرئيسي
     main_file = os.path.join(output_dir, "adguard_rules.txt")
     with open(main_file, 'w', encoding='utf-8') as f:
         f.write("\n".join(rules))
     
-    print(f"\n✅ تم حفظ {len(rules)} قاعدة فريدة في {main_file}")
+    print(f"\n✅ تم حفظ {len(rules)} قاعدة في {main_file}")
     
-    # التقسيم إذا لزم الأمر
     if len(rules) > MAX_LINES_PER_PART:
         parts = (len(rules) // MAX_LINES_PER_PART) + 1
         print(f"📦 تقسيم إلى {parts} أجزاء...")
@@ -105,11 +100,12 @@ def save_filters(rules, output_dir="merged_filters"):
                 start = i * MAX_LINES_PER_PART
                 end = start + MAX_LINES_PER_PART
                 f.write("\n".join(rules[start:end]))
+            
             print(f"✅ الجزء {i+1}: {len(rules[start:end])} قاعدة")
 
 if __name__ == "__main__":
     FILTER_URLS = [
-       "https://raw.githubusercontent.com/AdguardTeam/FiltersRegistry/master/filters/filter_2_Base/filter.txt",
+        "https://raw.githubusercontent.com/AdguardTeam/FiltersRegistry/master/filters/filter_2_Base/filter.txt",
         "https://raw.githubusercontent.com/AdguardTeam/FiltersRegistry/master/filters/filter_3_Spyware/filter.txt",
         "https://raw.githubusercontent.com/AdguardTeam/FiltersRegistry/master/filters/filter_17_TrackParam/filter.txt",
         "https://raw.githubusercontent.com/AdguardTeam/FiltersRegistry/master/filters/filter_14_Annoyances/filter.txt",
@@ -184,8 +180,9 @@ if __name__ == "__main__":
     
     start_time = time.time()
     try:
+        print("🚀 بدء عملية الدمج...")
         rules = process_filters(FILTER_URLS)
         save_filters(rules)
-        print(f"\n⏱️ تم الانتهاء في {time.time()-start_time:.2f} ثانية")
+        print(f"\n⏱️ الوقت الإجمالي: {time.time() - start_time:.2f} ثانية")
     except Exception as e:
         print(f"❌ خطأ: {str(e)}")
