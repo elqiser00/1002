@@ -58,3 +58,8 @@
 ||unpkg.com^$important
 ||msn.com^$important
 ||eetspaae.net^$important
+||analytics.google.com^$important
+||adtago.s3.amazonaws.com^$important
+||analyticsengine.s3.amazonaws.com^$important
+||analytics.s3.amazonaws.com^$important
+||advice-ads.s3.amazonaws.com^$important
