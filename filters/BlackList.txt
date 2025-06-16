@@ -63,3 +63,5 @@
 ||analyticsengine.s3.amazonaws.com^$important
 ||analytics.s3.amazonaws.com^$important
 ||advice-ads.s3.amazonaws.com^$important
+||browser.sentry-cdn.com^$important
+||jsdelivr.net^$important
