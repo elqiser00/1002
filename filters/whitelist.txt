@@ -44,3 +44,4 @@
 @@||imoapps.com^$important
 @@||imo-landing.com^$important
 @@||n8n.partnerlinks.io^$important
+@@||freewha.com^$important
