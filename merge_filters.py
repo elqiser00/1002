@@ -113,7 +113,7 @@ def save_filters(rules, output_dir="merged_filters"):
 
 if __name__ == "__main__":
     FILTER_URLS = [
-       "https://raw.githubusercontent.com/AdguardTeam/FiltersRegistry/master/filters/filter_2_Base/filter.txt",
+    "https://raw.githubusercontent.com/AdguardTeam/FiltersRegistry/master/filters/filter_2_Base/filter.txt",
     "https://raw.githubusercontent.com/AdguardTeam/FiltersRegistry/master/filters/filter_3_Spyware/filter.txt",
     "https://raw.githubusercontent.com/AdguardTeam/FiltersRegistry/master/filters/filter_17_TrackParam/filter.txt",
     "https://raw.githubusercontent.com/AdguardTeam/FiltersRegistry/master/filters/filter_14_Annoyances/filter.txt",
@@ -271,6 +271,34 @@ if __name__ == "__main__":
     "https://raw.githubusercontent.com/AdguardTeam/FiltersRegistry/master/filters/filter_17_TrackParam/filter.txt",
     "https://raw.githubusercontent.com/AdguardTeam/FiltersRegistry/master/filters/filter_19_Annoyances_Popups/filter.txt",
     "https://raw.githubusercontent.com/uBlockOrigin/uAssets/master/filters/filters.txt",
+    "https://easylist.to/easylist/easylist.txt",
+    "https://easylist.to/easylist/easyprivacy.txt",
+    "https://easylist.to/easylist-cookie/easylist-cookie.txt",
+    "https://easylist.to/easylist/fanboy-annoyance.txt",
+    "https://easylist.to/easylist/fanboy-social.txt",
+    "https://easylist.to/easylist/abpindo.txt",
+    "https://easylist.to/easylist/abpvn.txt",
+    "https://easylist.to/easylist/bulgarian_list.txt",
+    "https://easylist.to/easylist/dandelion_sprout_nordic.txt",
+    "https://easylist.to/easylist/chinalist.txt",
+    "https://easylist.to/easylist/czechoslovaklist.txt",
+    "https://easylist.to/easylist/dutchlist.txt",
+    "https://easylist.to/easylistgermany/easylistgermany.txt",
+    "https://easylist.to/easylist/hebrewlist.txt",
+    "https://easylist.to/easylist/italianlist.txt",
+    "https://easylist.to/easylist/lithuanianlist.txt",
+    "https://easylist.to/easylist/polishlist.txt",
+    "https://easylist.to/easylist/portugueselist.txt",
+    "https://easylist.to/easylist/spanishlist.txt",
+    "https://easylist.to/easylist/indianlist.txt",
+    "https://easylist.to/easylist/koreanlist.txt",
+    "https://easylist.to/easylist/latvianlist.txt",
+    "https://easylist.to/easylist/liste_ar.txt",
+    "https://easylist.to/easylist/liste_fr.txt",
+    "https://easylist.to/easylist/rolist.txt",
+    "https://easylist.to/easylist/ruadlist.txt",
+    "https://easylist.to/easylist/antiadblockfilters.txt",
+    
     ]
     
     start_time = time.time()
