@@ -45,3 +45,5 @@
 @@||imo-landing.com^$important
 @@||n8n.partnerlinks.io^$important
 @@||freewha.com^$important
+@@||telemetry.n8n.io^$important
+@@||n8n.io^$important
