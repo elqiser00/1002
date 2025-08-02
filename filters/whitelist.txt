@@ -47,5 +47,3 @@
 @@||freewha.com^$important
 @@||telemetry.n8n.io^$important
 @@||n8n.io^$important
-@@||graph.facebook.com^$important
-@@||b-graph.facebook.com^$important
