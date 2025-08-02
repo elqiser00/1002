@@ -77,7 +77,6 @@
 ||an.facebook.com
 ||an.m.facebook.com
 ||an.mobile.facebook.com
-||graph.facebook.com
 ||graph.instagram.com
 ||pixel.facebook.com
 ||connect.facebook.net
@@ -127,7 +126,6 @@
 ||facebook.com^$app=com.facebook.katana,object-subrequest
 ||facebook.com^$elemhide
 ||b-graph.facebook.com^$important
-||graph.facebook.com^$important
 ||an.facebook.com^
 ||an.m.facebook.com^
 ||an.mobile.facebook.com^
