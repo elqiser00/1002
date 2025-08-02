@@ -49,3 +49,4 @@
 @@||n8n.io^$important
 @@||connect.facebook.net^$important
 @@||www.facebook.com^$app=com.facebook.katana
+@@||graph.facebook.com^$important
