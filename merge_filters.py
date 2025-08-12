@@ -298,6 +298,7 @@ if __name__ == "__main__":
     "https://www.zoso.ro/pages/rolist.txt",
     "https://easylist-downloads.adblockplus.org/advblock.txt",
     "https://easylist-downloads.adblockplus.org/antiadblockfilters.txt",
+    "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/adblock/popupads.txt",
     ]
     
     start_time = time.time()
