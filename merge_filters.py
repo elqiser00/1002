@@ -170,7 +170,6 @@ if __name__ == "__main__":
     "https://adguardteam.github.io/HostlistsRegistry/assets/filter_16.txt",
     "https://adguardteam.github.io/HostlistsRegistry/assets/filter_30.txt",
     "https://adguardteam.github.io/HostlistsRegistry/assets/filter_12.txt",
-    "https://adguardteam.github.io/HostlistsRegistry/assets/filter_52.txt",
     "https://adguardteam.github.io/HostlistsRegistry/assets/filter_8.txt",
     "https://adguardteam.github.io/HostlistsRegistry/assets/filter_18.txt",
     "https://adguardteam.github.io/HostlistsRegistry/assets/filter_10.txt",
