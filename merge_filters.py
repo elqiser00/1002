@@ -256,7 +256,6 @@ if __name__ == "__main__":
     "https://cdn.jsdelivr.net/gh/hufilter/hufilter@gh-pages/hufilter-adguard.txt",
     "https://raw.githubusercontent.com/abpvn/abpvn/master/filter/abpvn_adguard.txt",
     "https://raw.githubusercontent.com/MajkiIT/polish-ads-filter/master/polish-adblock-filters/adblock.txt",
-    "https://adblock.ee/list.txt",
     "https://cdn.jsdelivr.net/gh/List-KR/List-KR@latest/filter-AdGuard.txt",
     "https://raw.githubusercontent.com/finnish-easylist-addition/finnish-easylist-addition/gh-pages/Finland_adb.txt",
     "https://raw.githubusercontent.com/MasterKia/PersianBlocker/main/PersianBlocker.txt",
