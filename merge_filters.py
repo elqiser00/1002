@@ -327,6 +327,9 @@ if __name__ == "__main__":
     "https://raw.githubusercontent.com/d3ward/toolz/master/src/d3host.txt",
     "https://malware-filter.gitlab.io/malware-filter/phishing-filter-agh.txt",
     "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/adblock/gambling.txt",
+    "https://malware-filter.gitlab.io/malware-filter/urlhaus-filter-agh-online.txt",
+    "https://malware-filter.gitlab.io/malware-filter/phishing-filter-agh.txt",
+    "https://raw.githubusercontent.com/durablenapkin/scamblocklist/master/adguard.txt",
     ]
     
     start_time = time.time()
