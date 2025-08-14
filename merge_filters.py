@@ -362,6 +362,7 @@ if __name__ == "__main__":
     "https://raw.githubusercontent.com/olegwukr/polish-privacy-filters/refs/heads/master/anti-adblock.txt",
     "https://raw.githubusercontent.com/lassekongo83/Frellwits-filter-lists/refs/heads/master/Frellwits-Swedish-Filter.txt",
     "https://raw.githubusercontent.com/DeepSpaceHarbor/Macedonian-adBlock-Filters/refs/heads/master/Filters",
+    "https://raw.githubusercontent.com/elqiser00/1002/refs/heads/main/filters/BlackList.txt",
     ]
     
     start_time = time.time()
