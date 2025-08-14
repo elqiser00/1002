@@ -11,41 +11,71 @@ MAX_LINE_LENGTH = 5000
 REQUEST_TIMEOUT = 60
 REQUEST_DELAY = 0.5
 MAX_WORKERS = 10
-USER_AGENT = "AdGuardHome-Filter-Merger/13.0"
+USER_AGENT = "AdGuardHome-Filter-Merger/14.0"
 
-def is_valid_rule(line):
-    """تحديد إذا كانت القاعدة من الأنواع المطلوبة فقط"""
-    line = line.strip()
-    if not line or len(line) > MAX_LINE_LENGTH:
-        return False
+def extract_domain(rule):
+    """استخراج النطاق الأساسي من أي نوع من القواعد"""
+    # 1. قواعد AdGuard الأساسية: ||example.com^
+    if re.match(r'^\|\|([a-z0-9-]+\.)+[a-z]{2,}\^', rule, re.IGNORECASE):
+        return re.match(r'^\|\|([a-z0-9-]+\.)+[a-z]{2,}\^', rule).group(0)[2:-1]
     
-    # تجاهل أي شيء يبدأ بـ ! أو # أو [ أو & أو $
-    if re.match(r'^[!#\[&$]', line):
-        return False
+    # 2. قواعد الاستثناء: @@||example.com^
+    elif re.match(r'^@@\|\|([a-z0-9-]+\.)+[a-z]{2,}\^', rule, re.IGNORECASE):
+        return re.match(r'^@@\|\|([a-z0-9-]+\.)+[a-z]{2,}\^', rule).group(0)[4:-1]
     
-    # قبول فقط:
-    # 1. قواعد AdGuard الأساسية (بما فيها التي تحتوي على -)
-    # 2. قواعد DNS (127.0.0.1 أو 0.0.0.0)
-    return (
-        re.fullmatch(r'^(@@\|\|)?\|\|([a-z0-9-]+\.)+[a-z]{2,}\^$', line, re.IGNORECASE) or
-        re.fullmatch(r'^(127\.0\.0\.1|0\.0\.0\.0)\s+([a-z0-9-]+\.)+[a-z]{2,}$', line, re.IGNORECASE)
-    )
+    # 3. قواعد HOSTS: 127.0.0.1 example.com
+    elif re.match(r'^(127\.0\.0\.1|0\.0\.0\.0)\s+([a-z0-9-]+\.)+[a-z]{2,}', rule, re.IGNORECASE):
+        return rule.split()[1]
+    
+    # 4. قواعد DOMAIN: ||example.com
+    elif re.match(r'^\|\|([a-z0-9-]+\.)+[a-z]{2,}(/|$)', rule, re.IGNORECASE):
+        return re.match(r'^\|\|([a-z0-9-]+\.)+[a-z]{2,}', rule).group(0)[2:]
+    
+    # 5. قواعد DOMAIN-SUFFIX: .example.com
+    elif re.match(r'^\.([a-z0-9-]+\.)+[a-z]{2,}', rule, re.IGNORECASE):
+        return rule[1:]
+    
+    # 6. قواعد بسيطة بدون رمز: example.com
+    elif re.match(r'^([a-z0-9-]+\.)+[a-z]{2,}$', rule, re.IGNORECASE):
+        return rule
+    
+    return None
 
-def convert_rule(line):
-    """تحويل القواعد مع تجاهل كل ما عدا الأساسيات"""
-    line = line.strip()
-    if not is_valid_rule(line):
+def convert_to_adguard_home(rule):
+    """تحويل أي قاعدة إلى صيغة AdGuard Home"""
+    rule = rule.strip()
+    
+    # تجاهل التعليقات والأسطر الفارغة
+    if not rule or rule.startswith(('!', '#', '[', '/', '&', '$')):
         return None
     
-    # تحويل قواعد DNS إلى صيغة AdGuard
-    if re.fullmatch(r'^(127\.0\.0\.1|0\.0\.0\.0)\s+([a-z0-9-]+\.)+[a-z]{2,}$', line, re.IGNORECASE):
-        domain = line.split()[1]
-        return f"||{domain}^"
+    # إذا كانت القاعدة بالفعل بصيغة AdGuard Home، احتفظ بها كما هي
+    if re.fullmatch(r'^(@@\|\|)?\|\|([a-z0-9-]+\.)+[a-z]{2,}\^$', rule, re.IGNORECASE) or \
+       re.fullmatch(r'^(127\.0\.0\.1|0\.0\.0\.0)\s+([a-z0-9-]+\.)+[a-z]{2,}$', rule, re.IGNORECASE):
+        return rule
     
-    return line
+    # استخراج النطاق من القاعدة
+    domain = extract_domain(rule)
+    if not domain:
+        return None
+    
+    # تحديد نوع القاعدة الأصلية لمعرفة إذا كانت استثناء
+    is_exception = rule.startswith('@@') or \
+                  (rule.startswith('/') and '@@' in rule) or \
+                  (not rule.startswith(('||', '|', '.', '127.0.0.1', '0.0.0.0')) and 'whitelist' in rule.lower())
+    
+    # التحويل إلى صيغة AdGuard Home
+    if is_exception:
+        return f"@@||{domain}^"
+    else:
+        # 50% تحويل إلى ||domain^ و 50% إلى 127.0.0.1 domain
+        if hash(domain) % 2 == 0:
+            return f"||{domain}^"
+        else:
+            return f"127.0.0.1 {domain}"
 
 def download_filter(url):
-    """تحميل الفلتر مع التصفية الشاملة"""
+    """تحميل الفلتر مع تحويل جميع قواعده"""
     try:
         headers = {'User-Agent': USER_AGENT}
         response = requests.get(url, timeout=REQUEST_TIMEOUT, headers=headers)
@@ -53,7 +83,7 @@ def download_filter(url):
         
         valid_rules = []
         for line in response.text.splitlines():
-            rule = convert_rule(line)
+            rule = convert_to_adguard_home(line)
             if rule:
                 valid_rules.append(rule)
                 
@@ -67,7 +97,7 @@ def process_filters(urls):
     seen_rules = set()
     total_urls = len(urls)
     
-    print(f"🔍 بدء معالجة {total_urls} مصدر فلتر (سيتم تنظيف كل التعليقات والمعلومات غير الضرورية)...")
+    print(f"🔍 بدء معالجة {total_urls} مصدر فلتر (سيتم تحويل جميع القواعد إلى صيغة AdGuard Home)...")
     
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
         future_to_url = {executor.submit(download_filter, url): url for url in urls}
@@ -78,7 +108,7 @@ def process_filters(urls):
             new_rules = [r for r in rules if r not in seen_rules]
             seen_rules.update(new_rules)
             
-            print(f"📊 [{i}/{total_urls}] {urlparse(url).netloc}: تمت إضافة {len(new_rules)} قاعدة نظيفة")
+            print(f"📊 [{i}/{total_urls}] {urlparse(url).netloc}: تمت إضافة {len(new_rules)} قاعدة")
             results.extend(new_rules)
             
             if i < total_urls:
@@ -87,23 +117,26 @@ def process_filters(urls):
     # ترتيب النتائج: الاستثناءات أولاً
     return sorted(results, key=lambda x: (not x.startswith('@@'), x))
 
-def save_filters(rules, output_dir="merged_filters"):
-    """حفظ القواعد النظيفة"""
+def save_filters(rules, output_dir="adguard_home_filters"):
+    """حفظ القواعد بصيغة AdGuard Home"""
     os.makedirs(output_dir, exist_ok=True)
     
-    main_file = os.path.join(output_dir, "adguard_rules.txt")
+    main_file = os.path.join(output_dir, "adguard_home_rules.txt")
     with open(main_file, 'w', encoding='utf-8') as f:
+        f.write("! قواعد AdGuard Home المدمجة\n")
+        f.write("! تم إنشاؤها تلقائياً من مصادر متعددة\n")
+        f.write("! التاريخ: " + time.strftime("%Y-%m-%d %H:%M:%S") + "\n\n")
         f.write("\n".join(rules))
     
-    print(f"\n✅ تم حفظ {len(rules)} قاعدة نظيفة فقط في {main_file}")
+    print(f"\n✅ تم حفظ {len(rules)} قاعدة في {main_file}")
     
-    # التقسيم التلقائي
+    # التقسيم التلقائي إذا لزم الأمر
     if len(rules) > MAX_LINES_PER_PART:
         parts = (len(rules) // MAX_LINES_PER_PART) + 1
         print(f"📦 تقسيم إلى {parts} أجزاء...")
         
         for i in range(parts):
-            part_file = os.path.join(output_dir, f"adguard_rules_part_{i+1}.txt")
+            part_file = os.path.join(output_dir, f"adguard_home_rules_part_{i+1}.txt")
             with open(part_file, 'w', encoding='utf-8') as f:
                 start = i * MAX_LINES_PER_PART
                 end = start + MAX_LINES_PER_PART
@@ -112,8 +145,9 @@ def save_filters(rules, output_dir="merged_filters"):
             print(f"✅ الجزء {i+1}: {len(rules[start:end])} قاعدة")
 
 if __name__ == "__main__":
+    # يمكنك إضافة أي مصادر هنا، حتى لو كانت لإضافات المتصفح
     FILTER_URLS = [
-    "https://raw.githubusercontent.com/AdguardTeam/FiltersRegistry/master/filters/filter_2_Base/filter.txt",
+        "https://raw.githubusercontent.com/AdguardTeam/FiltersRegistry/master/filters/filter_2_Base/filter.txt",
     "https://raw.githubusercontent.com/AdguardTeam/FiltersRegistry/master/filters/filter_3_Spyware/filter.txt",
     "https://raw.githubusercontent.com/AdguardTeam/FiltersRegistry/master/filters/filter_17_TrackParam/filter.txt",
     "https://raw.githubusercontent.com/AdguardTeam/FiltersRegistry/master/filters/filter_14_Annoyances/filter.txt",
@@ -366,10 +400,10 @@ if __name__ == "__main__":
     
     start_time = time.time()
     try:
-        print("🚀 بدء عملية التنظيف والدمج...")
+        print("🚀 بدء عملية تحويل القواعد إلى صيغة AdGuard Home...")
         rules = process_filters(FILTER_URLS)
         save_filters(rules)
         print(f"\n⏱️ الوقت الإجمالي: {time.time() - start_time:.2f} ثانية")
-        print("✨ تمت إزالة جميع التعليقات والمعلومات غير الضرورية بنجاح!")
+        print("✨ تم تحويل جميع القواعد بنجاح إلى صيغة AdGuard Home!")
     except Exception as e:
         print(f"❌ خطأ: {str(e)}")
