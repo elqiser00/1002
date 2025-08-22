@@ -48,3 +48,4 @@
 @@||telemetry.n8n.io^$important
 @@||n8n.io^$important
 @@||graph.facebook.com^$important
+@@||accounts.hsoub.com^$important
