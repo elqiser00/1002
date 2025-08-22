@@ -468,7 +468,6 @@ if __name__ == "__main__":
     "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/adblock/popupads.txt",
     "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts",
     "https://small.oisd.nl",
-    "https://nsfw-small.oisd.nl",
     "https://gitlab.com/quidsup/notrack-blocklists/raw/master/notrack-blocklist.txt",
     "https://gitlab.com/quidsup/notrack-blocklists/raw/master/notrack-malware.txt",
     "https://raw.githubusercontent.com/crazy-max/WindowsSpyBlocker/master/data/hosts/spy.txt",
