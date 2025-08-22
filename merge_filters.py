@@ -476,6 +476,12 @@ if __name__ == "__main__":
     "https://blocklistproject.github.io/Lists/malware.txt",
     "https://blocklistproject.github.io/Lists/phishing.txt",
     "https://raw.githubusercontent.com/cjx82630/cjxlist/master/cjx-annoyance.txt",
+    "https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/fakenews-gambling/hosts",
+    "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts",
+    "https://raw.githubusercontent.com/durablenapkin/scamblocklist/master/hosts.txt",
+    "https://raw.githubusercontent.com/durablenapkin/scamblocklist/master/adguard.txt",
+    "https://raw.githubusercontent.com/hoshsadiq/adblock-nocoin-list/master/nocoin.txt",
+    "https://raw.githubusercontent.com/hoshsadiq/adblock-nocoin-list/master/hosts.txt",
     ]
     
     start_time = time.time()
