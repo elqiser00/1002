@@ -133,24 +133,17 @@ def process_filters(urls):
     return sorted(results, key=lambda x: x.lower())
 
 def save_filters(rules, output_dir="pi-hole_filters"):
-    """حفظ القواعد النظيفة"""
+    """حفظ القواعد النظيفة - ملف واحد فقط"""
     os.makedirs(output_dir, exist_ok=True)
     
+    # حفظ ملف النطاقات فقط (pi-hole_domains.txt)
     main_file = os.path.join(output_dir, "pi-hole_domains.txt")
     with open(main_file, 'w', encoding='utf-8') as f:
         f.write("\n".join(rules))
     
     print(f"\n✅ تم حفظ {len(rules)} قاعدة في {main_file}")
     
-    # حفظ إصدار مناسب لـ Pi-hole Gravity
-    gravity_file = os.path.join(output_dir, "gravity.list")
-    with open(gravity_file, 'w', encoding='utf-8') as f:
-        for rule in rules:
-            f.write(f"0.0.0.0 {rule}\n")
-    
-    print(f"✅ تم حفظ {len(rules)} قاعدة بصيغة Gravity في {gravity_file}")
-    
-    # التقسيم التلقائي
+    # التقسيم التلقائي إذا لزم الأمر
     if len(rules) > MAX_LINES_PER_PART:
         parts = (len(rules) // MAX_LINES_PER_PART) + 1
         print(f"📦 تقسيم إلى {parts} أجزاء...")
@@ -182,6 +175,10 @@ if __name__ == "__main__":
             print(f"\n⏱️ الوقت الإجمالي: {time.time() - start_time:.2f} ثانية")
             print(f"📊 تم جمع {len(rules)} قاعدة فلترة")
             print("✨ تمت العملية بنجاح!")
+            print("\n📋 كيفية الاستخدام في Pi-hole:")
+            print("1. اذهب إلى Group Management > Adlists")
+            print("2. أضف الرابط: https://raw.githubusercontent.com/elqiser00/1002/main/pi-hole_filters/pi-hole_domains.txt")
+            print("3. اذهب إلى Tools > Update Gravity")
         else:
             print("❌ لم يتم العثور على أي قواعد صالحة")
             
