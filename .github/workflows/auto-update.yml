@@ -1,0 +1,56 @@
+name: Auto-update Pi-hole filters
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'  # كل 6 ساعات
+  workflow_dispatch:
+
+jobs:
+  merge_filters:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install requests
+
+    - name: Run Pi-hole merge script
+      run: |
+        python pi-hole_filter_merger.py
+
+    - name: Create README with stats
+      run: |
+        # إنشاء ملف README مع إحصائيات
+        total_rules=$(wc -l < pi-hole_filters/pi-hole_domains.txt)
+        echo "# Pi-hole Merged Filters" > README.md
+        echo "## Auto-generated filter list for Pi-hole" >> README.md
+        echo "" >> README.md
+        echo "### 📊 Statistics" >> README.md
+        echo "- Total domains: $total_rules" >> README.md
+        echo "- Last update: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> README.md
+        echo "" >> README.md
+        echo "### 🚀 Usage" >> README.md
+        echo "1. Add the following URL to your Pi-hole Adlists:" >> README.md
+        echo "   \`https://raw.githubusercontent.com/${{ github.repository }}/main/pi-hole_filters/pi-hole_domains.txt\`" >> README.md
+        echo "2. Or use the gravity format: \`https://raw.githubusercontent.com/${{ github.repository }}/main/pi-hole_filters/gravity.list\`" >> README.md
+        echo "3. Update Gravity in your Pi-hole admin panel" >> README.md
+
+    - name: Commit and push changes
+      run: |
+        git config user.name "GitHub Actions"
+        git config user.email "github-actions@github.com"
+        git add -A
+        git commit -m "🔄 Auto-update Pi-hole filters - $(date -u '+%Y-%m-%d %H:%M:%S UTC')" || echo "Nothing to commit"
+        git push
