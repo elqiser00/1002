@@ -11,7 +11,7 @@ MAX_LINE_LENGTH = 5000
 REQUEST_TIMEOUT = 60
 REQUEST_DELAY = 0.5
 MAX_WORKERS = 10
-USER_AGENT = "Pi-hole-Filter-Merger/13.0"
+USER_AGENT = "Pi-hole-Filter-Merger/1.0"
 
 def is_valid_rule(line):
     """تحديد إذا كانت القاعدة من الأنواع المطلوبة فقط"""
@@ -85,7 +85,7 @@ def process_filters(urls):
     seen_rules = set()
     total_urls = len(urls)
     
-    print(f"🔍 بدء معالجة {total_urls} مصدر فلتر (سيتم تنظيف كل التعليقات والمعلومات غير الضرورية)...")
+    print(f"🔍 بدء معالجة {total_urls} مصدر فلتر...")
     
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
         future_to_url = {executor.submit(download_filter, url): url for url in urls}
@@ -96,7 +96,7 @@ def process_filters(urls):
             new_rules = [r for r in rules if r not in seen_rules]
             seen_rules.update(new_rules)
             
-            print(f"📊 [{i}/{total_urls}] {urlparse(url).netloc}: تمت إضافة {len(new_rules)} قاعدة نظيفة")
+            print(f"📊 [{i}/{total_urls}] {urlparse(url).netloc}: تمت إضافة {len(new_rules)} قاعدة")
             results.extend(new_rules)
             
             if i < total_urls:
@@ -113,7 +113,7 @@ def save_filters(rules, output_dir="pi-hole_filters"):
     with open(main_file, 'w', encoding='utf-8') as f:
         f.write("\n".join(rules))
     
-    print(f"\n✅ تم حفظ {len(rules)} قاعدة نظيفة فقط في {main_file}")
+    print(f"\n✅ تم حفظ {len(rules)} قاعدة في {main_file}")
     
     # حفظ إصدار مناسب لـ Pi-hole Gravity
     gravity_file = os.path.join(output_dir, "gravity.list")
@@ -516,11 +516,6 @@ if __name__ == "__main__":
         rules = process_filters(FILTER_URLS)
         save_filters(rules)
         print(f"\n⏱️ الوقت الإجمالي: {time.time() - start_time:.2f} ثانية")
-        print("✨ تمت إزالة جميع التعليقات والمعلومات غير الضرورية بنجاح!")
-        print("\n📋 تعليمات الاستخدام في Pi-hole:")
-        print("1. انتقل إلى Admin Console -> Group Management -> Adlists")
-        print("2. أضف ملف pi-hole_domains.txt كقائمة مخصصة")
-        print("3. انتقل إلى Tools -> Update Gravity لتطبيق التغييرات")
-        print("4. أو استخدم gravity.list كملف hosts مخصص")
+        print("✨ تمت العملية بنجاح!")
     except Exception as e:
         print(f"❌ خطأ: {str(e)}")
