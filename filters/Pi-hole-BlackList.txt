@@ -97,4 +97,4 @@ csp.withgoogle.com
 downet.net
 0.gravatar.com
 gravatar.com
-www.youtube.com/watch?v=6nd7BZXJ8Pc
+wpad.lan
