@@ -13,21 +13,14 @@ REQUEST_DELAY = 0.5
 MAX_WORKERS = 10
 USER_AGENT = "AdGuardHome-Filter-Merger/13.0"
 
-def load_filter_urls_from_file(filename="list.txt"):
-    """تحميل روابط الفلاتر من ملف نصي"""
-    urls = []
+def load_filter_urls():
+    """تحميل روابط الفلاتر من ملف list.txt"""
     try:
-        with open(filename, 'r', encoding='utf-8') as f:
-            for line in f:
-                line = line.strip()
-                if line and not line.startswith('#'):  # تجاهل الأسطر الفارغة والتعليقات
-                    urls.append(line)
+        with open("list.txt", "r", encoding="utf-8") as file:
+            urls = [line.strip() for line in file if line.strip() and not line.startswith("#")]
         return urls
     except FileNotFoundError:
-        print(f"❌ ملف {filename} غير موجود")
-        return []
-    except Exception as e:
-        print(f"❌ خطأ في قراءة ملف {filename}: {str(e)}")
+        print("❌ ملف list.txt غير موجود")
         return []
 
 def is_valid_rule(line):
@@ -129,8 +122,8 @@ def save_filters(rules, output_dir="merged_filters"):
             print(f"✅ الجزء {i+1}: {len(rules[start:end])} قاعدة")
 
 if __name__ == "__main__":
-    # تحميل الروابط من ملف list.txt بدلاً من القائمة الثابتة
-    FILTER_URLS = load_filter_urls_from_file("list.txt")
+    # تحميل الروابط من ملف list.txt
+    FILTER_URLS = load_filter_urls()
     
     if not FILTER_URLS:
         print("❌ لا توجد روابط فلاتر للمعالجة")
