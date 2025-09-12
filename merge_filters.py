@@ -4,6 +4,9 @@ import time
 import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from urllib.parse import urlparse
+import ssl
+import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # إعدادات التكوين
 MAX_LINES_PER_PART = 2_000_000
@@ -58,7 +61,7 @@ def download_filter(url):
     """تحميل الفلتر مع التصفية الشاملة"""
     try:
         headers = {'User-Agent': USER_AGENT}
-        response = requests.get(url, timeout=REQUEST_TIMEOUT, headers=headers)
+        response = requests.get(url, timeout=REQUEST_TIMEOUT, headers=headers, verify=False)
         response.raise_for_status()
         
         valid_rules = []
