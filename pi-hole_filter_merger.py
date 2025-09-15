@@ -57,73 +57,40 @@ def load_filter_sources():
         return []
 
 def is_valid_rule(line):
-    """تحديد إذا كانت القاعدة من الأنواع المطلوبة فقط"""
+    """التحقق من صحة القاعدة مع الحفاظ على RegEx"""
     line = line.strip()
+    
     if not line or len(line) > MAX_LINE_LENGTH:
         return False
     
-    # تجاهل أي شيء يبدأ بـ ! أو # أو [ أو & أو $
-    if re.match(r'^[!#\[&$]', line):
+    # تجاهل التعليقات والأسطر الفارغة
+    if line.startswith(('!', '#', '[', '&', '$')) or line == '':
         return False
     
-    # قبول فقط:
-    # 1. نطاقات Pi-hole الأساسية (بدون قواعد AdGuard المعقدة)
-    # 2. قواعد DNS (127.0.0.1 أو 0.0.0.0)
-    # 3. النطاقات البسيطة (example.com)
-    return (
-        re.fullmatch(r'^([a-z0-9-]+\.)+[a-z]{2,}$', line, re.IGNORECASE) or
-        re.fullmatch(r'^(127\.0\.0\.1|0\.0\.0\.0)\s+([a-z0-9-]+\.)+[a-z]{2,}$', line, re.IGNORECASE) or
-        re.fullmatch(r'^\|\|([a-z0-9-]+\.)+[a-z]{2,}\^$', line, re.IGNORECASE) or
-        re.fullmatch(r'^([a-z0-9-]+\.)+[a-z]{2,}\s+([a-z0-9-]+\.)+[a-z]{2,}$', line, re.IGNORECASE)
-    )
+    # قبول جميع أنواع القواعد بما فيها RegEx
+    return True
 
-def convert_rule(line):
-    """تحويل القواعد إلى صيغة Pi-hole وتحديد نوعها (blacklist/whitelist)"""
+def process_rule(line):
+    """معالجة القاعدة مع الحفاظ على RegEx"""
     line = line.strip()
     if not line:
         return None, None
     
-    # معالجة قواعد الاستثناءات (Whitelist)
+    # تجاهل التعليقات
+    if line.startswith(('!', '#', '[', '&', '$')):
+        return None, None
+    
+    # تحديد نوع القاعدة (blacklist/whitelist)
     if line.startswith('@@'):
-        # استخراج النطاق من قاعدة الاستثناء
-        domain = None
-        if re.fullmatch(r'^@@\|\|([a-z0-9-]+\.)+[a-z]{2,}\^$', line, re.IGNORECASE):
-            domain = line[4:-1]  # إزالة @@|| من البداية و ^ من النهاية
-        elif re.fullmatch(r'^@@([a-z0-9-]+\.)+[a-z]{2,}$', line, re.IGNORECASE):
-            domain = line[2:]  # إزالة @@ من البداية
-        
-        if domain and is_valid_rule(domain):
-            return domain, 'whitelist'
-        return None, None
-    
-    # تجاهل القواعد غير الصالحة للبلاك ليست
-    if not is_valid_rule(line):
-        return None, None
-    
-    # تحويل قواعد DNS إلى صيغة Pi-hole
-    if re.fullmatch(r'^(127\.0\.0\.1|0\.0\.0\.0)\s+([a-z0-9-]+\.)+[a-z]{2,}$', line, re.IGNORECASE):
-        domain = line.split()[1]
-        return domain, 'blacklist'
-    
-    # تحويل قواعد AdGuard (||example.com^) إلى صيغة Pi-hole
-    if re.fullmatch(r'^\|\|([a-z0-9-]+\.)+[a-z]{2,}\^$', line, re.IGNORECASE):
-        domain = line[2:-1]  # إزالة || من البداية و ^ من النهاية
-        return domain, 'blacklist'
-    
-    # معالجة قواعد HOSTS (نطاقين متجاورين)
-    if re.fullmatch(r'^([a-z0-9-]+\.)+[a-z]{2,}\s+([a-z0-9-]+\.)+[a-z]{2,}$', line, re.IGNORECASE):
-        parts = line.split()
-        if len(parts) >= 2:
-            return parts[1], 'blacklist'  # إرجاع النطاق الثاني
-    
-    # النطاقات البسيطة
-    if re.fullmatch(r'^([a-z0-9-]+\.)+[a-z]{2,}$', line, re.IGNORECASE):
+        # قاعدة whitelist
+        rule = line[2:] if line.startswith('@@') else line
+        return rule, 'whitelist'
+    else:
+        # قاعدة blacklist
         return line, 'blacklist'
-    
-    return None, None
 
 def download_filter(url):
-    """تحميل الفلتر مع التصفية الشاملة"""
+    """تحميل الفلتر مع الحفاظ على جميع القواعد"""
     try:
         session = create_session()
         response = session.get(url, timeout=REQUEST_TIMEOUT)
@@ -133,7 +100,7 @@ def download_filter(url):
         whitelist_rules = []
         
         for line in response.text.splitlines():
-            rule, rule_type = convert_rule(line)
+            rule, rule_type = process_rule(line)
             if rule and rule_type == 'blacklist':
                 blacklist_rules.append(rule)
             elif rule and rule_type == 'whitelist':
@@ -142,7 +109,7 @@ def download_filter(url):
         return blacklist_rules, whitelist_rules, url
         
     except requests.exceptions.SSLError:
-        # تحويل HTTPS إلى HTTP بشكل صامت بدون رسائل خطأ
+        # تحويل HTTPS إلى HTTP بشكل صامت
         try:
             http_url = url.replace('https://', 'http://')
             session = requests.Session()
@@ -154,7 +121,7 @@ def download_filter(url):
             whitelist_rules = []
             
             for line in response.text.splitlines():
-                rule, rule_type = convert_rule(line)
+                rule, rule_type = process_rule(line)
                 if rule and rule_type == 'blacklist':
                     blacklist_rules.append(rule)
                 elif rule and rule_type == 'whitelist':
@@ -169,7 +136,7 @@ def download_filter(url):
         return [], [], url
 
 def process_filters(urls):
-    """المعالجة النهائية مع التنظيف الكامل"""
+    """المعالجة النهائية مع إزالة التكرار فقط"""
     if not urls:
         return [], []
         
@@ -188,30 +155,22 @@ def process_filters(urls):
         for i, future in enumerate(as_completed(future_to_url), 1):
             black_rules, white_rules, url = future.result()
             
-            # معالجة البلاك ليست
-            new_black_rules = [r for r in black_rules if r not in seen_blacklist and r not in seen_whitelist]
+            # إزالة التكرار من البلاك ليست
+            new_black_rules = [r for r in black_rules if r not in seen_blacklist]
             seen_blacklist.update(new_black_rules)
             blacklist_results.extend(new_black_rules)
             
-            # معالجة الويت ليست (تأخذ الأولوية)
+            # إزالة التكرار من الويت ليست
             new_white_rules = [r for r in white_rules if r not in seen_whitelist]
             seen_whitelist.update(new_white_rules)
             whitelist_results.extend(new_white_rules)
-            
-            # إزالة أي نطاقات من البلاك ليست إذا كانت في الويت ليست
-            blacklist_results = [r for r in blacklist_results if r not in seen_whitelist]
-            seen_blacklist = seen_blacklist - seen_whitelist
             
             print(f"📊 [{i}/{total_urls}] {urlparse(url).netloc}: {len(new_black_rules)} بلاك ليست, {len(new_white_rules)} ويت ليست")
             
             if i < total_urls:
                 time.sleep(REQUEST_DELAY)
     
-    # ترتيب النتائج أبجدياً
-    blacklist_sorted = sorted(blacklist_results, key=lambda x: x.lower())
-    whitelist_sorted = sorted(whitelist_results, key=lambda x: x.lower())
-    
-    return blacklist_sorted, whitelist_sorted
+    return blacklist_results, whitelist_results
 
 def save_filters(blacklist_rules, whitelist_rules, output_dir="pi-hole_filters"):
     """حفظ القوائم المنفصلة"""
@@ -231,12 +190,12 @@ def save_filters(blacklist_rules, whitelist_rules, output_dir="pi-hole_filters")
             f.write("\n".join(whitelist_rules))
         print(f"✅ تم حفظ {len(whitelist_rules)} قاعدة في {whitelist_file}")
     
-    # حفظ ملف موحد للتوافق مع الإصدار السابق
+    # حفظ ملف موحد
     if blacklist_rules:
-        main_file = os.path.join(output_dir, "pi-hole_domains.txt")
+        main_file = os.path.join(output_dir, "merged_filters.txt")
         with open(main_file, 'w', encoding='utf-8') as f:
             f.write("\n".join(blacklist_rules))
-        print(f"✅ تم حفظ {len(blacklist_rules)} قاعدة في {main_file} (للتوافق)")
+        print(f"✅ تم حفظ {len(blacklist_rules)} قاعدة في {main_file}")
 
 if __name__ == "__main__":
     # تحميل الروابط من ملف list.txt فقط
@@ -248,7 +207,8 @@ if __name__ == "__main__":
     
     start_time = time.time()
     try:
-        print("🚀 بدء عملية التنظيف والدمج لـ Pi-hole...")
+        print("🚀 بدء عملية الدمج لـ Pi-hole...")
+        print("📝 ملاحظة: يتم الحفاظ على جميع القواعد بما فيها RegEx")
         blacklist, whitelist = process_filters(FILTER_URLS)
         
         if blacklist or whitelist:
