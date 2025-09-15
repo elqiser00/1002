@@ -141,11 +141,9 @@ def download_filter(url):
                 
         return blacklist_rules, whitelist_rules, url
         
-    except requests.exceptions.SSLError as ssl_error:
-        print(f"⚠️ خطأ SSL في {urlparse(url).netloc}: {ssl_error}")
-        print(f"   ⚡ جرب التحويل إلى HTTP بدلاً من HTTPS...")
+    except requests.exceptions.SSLError:
+        # تحويل HTTPS إلى HTTP بشكل صامت بدون رسائل خطأ
         try:
-            # تحويل HTTPS إلى HTTP
             http_url = url.replace('https://', 'http://')
             session = requests.Session()
             session.headers.update({'User-Agent': USER_AGENT})
@@ -162,15 +160,12 @@ def download_filter(url):
                 elif rule and rule_type == 'whitelist':
                     whitelist_rules.append(rule)
                     
-            print(f"   ✅ تم التحميل بنجاح عبر HTTP")
             return blacklist_rules, whitelist_rules, url
             
-        except Exception as fallback_error:
-            print(f"   ❌ فشل التحويل إلى HTTP أيضًا: {fallback_error}")
+        except Exception:
             return [], [], url
             
-    except Exception as e:
-        print(f"⚠️ خطأ في تحميل {urlparse(url).netloc}: {str(e)}")
+    except Exception:
         return [], [], url
 
 def process_filters(urls):
