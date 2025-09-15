@@ -50,3 +50,8 @@ n8n.io
 graph.facebook.com
 accounts.hsoub.com
 b-graph.facebook.com
+firebaseinstallations.googleapis.com
+firebaselogging.googleapis.com
+logservice-dra.dt.hihonorcloud.com
+graph.instagram.com
+metrics.dt.hihonorcloud.com
