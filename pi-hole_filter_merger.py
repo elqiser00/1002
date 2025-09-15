@@ -2,8 +2,11 @@ import requests
 import os
 import time
 import re
+import ssl
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from urllib.parse import urlparse
+from requests.adapters import HTTPAdapter
+from urllib3.util.ssl_ import create_urllib3_context
 
 # إعدادات التكوين
 MAX_LINES_PER_PART = 2_000_000
@@ -13,6 +16,22 @@ REQUEST_DELAY = 0.5
 MAX_WORKERS = 10
 USER_AGENT = "Pi-hole-Filter-Merger/1.0"
 SOURCES_FILE = "list.txt"
+
+# تجاوز تحقق SSL للشهادات المنتهية
+class SSLAdapter(HTTPAdapter):
+    def init_poolmanager(self, *args, **kwargs):
+        ctx = create_urllib3_context()
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+        kwargs['ssl_context'] = ctx
+        return super().init_poolmanager(*args, **kwargs)
+
+def create_session():
+    """إنشاء جلسة مع تجاوز أخطاء SSL"""
+    session = requests.Session()
+    session.mount('https://', SSLAdapter())
+    session.headers.update({'User-Agent': USER_AGENT})
+    return session
 
 def load_filter_sources():
     """تحميل روابط الفلاتر من ملف list.txt"""
@@ -106,8 +125,8 @@ def convert_rule(line):
 def download_filter(url):
     """تحميل الفلتر مع التصفية الشاملة"""
     try:
-        headers = {'User-Agent': USER_AGENT}
-        response = requests.get(url, timeout=REQUEST_TIMEOUT, headers=headers)
+        session = create_session()
+        response = session.get(url, timeout=REQUEST_TIMEOUT)
         response.raise_for_status()
         
         blacklist_rules = []
@@ -121,6 +140,35 @@ def download_filter(url):
                 whitelist_rules.append(rule)
                 
         return blacklist_rules, whitelist_rules, url
+        
+    except requests.exceptions.SSLError as ssl_error:
+        print(f"⚠️ خطأ SSL في {urlparse(url).netloc}: {ssl_error}")
+        print(f"   ⚡ جرب التحويل إلى HTTP بدلاً من HTTPS...")
+        try:
+            # تحويل HTTPS إلى HTTP
+            http_url = url.replace('https://', 'http://')
+            session = requests.Session()
+            session.headers.update({'User-Agent': USER_AGENT})
+            response = session.get(http_url, timeout=REQUEST_TIMEOUT)
+            response.raise_for_status()
+            
+            blacklist_rules = []
+            whitelist_rules = []
+            
+            for line in response.text.splitlines():
+                rule, rule_type = convert_rule(line)
+                if rule and rule_type == 'blacklist':
+                    blacklist_rules.append(rule)
+                elif rule and rule_type == 'whitelist':
+                    whitelist_rules.append(rule)
+                    
+            print(f"   ✅ تم التحميل بنجاح عبر HTTP")
+            return blacklist_rules, whitelist_rules, url
+            
+        except Exception as fallback_error:
+            print(f"   ❌ فشل التحويل إلى HTTP أيضًا: {fallback_error}")
+            return [], [], url
+            
     except Exception as e:
         print(f"⚠️ خطأ في تحميل {urlparse(url).netloc}: {str(e)}")
         return [], [], url
