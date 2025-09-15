@@ -56,12 +56,23 @@ def load_filter_sources():
         print("📋 يرجى إنشاء ملف list.txt يحتوي على روابط الفلاتر")
         return []
 
-def is_regex_rule(line):
-    """التعرف على قواعد RegEx"""
-    return re.search(r'^/.*/$', line) or re.search(r'[\*^$]', line)
+def is_valid_domain(domain):
+    """التحقق من أن النطاق صالح لـ Pi-hole"""
+    if not domain:
+        return False
+    
+    # تجاهل القواعد المعقدة والمسارات
+    if re.search(r'[/\\?&=:%]', domain):
+        return False
+    
+    # قبول النطاقات العادية فقط
+    if re.match(r'^([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$', domain):
+        return True
+    
+    return False
 
-def extract_domain_from_advanced_rule(line):
-    """استخراج النطاق من قواعد AdGuard المتقدمة"""
+def extract_simple_domain(line):
+    """استخراج نطاقات بسيطة فقط لـ Pi-hole"""
     line = line.strip()
     
     # تجاهل التعليقات والأسطر الفارغة
@@ -70,41 +81,37 @@ def extract_domain_from_advanced_rule(line):
     
     # قواعد الاستثناء (@@)
     if line.startswith('@@'):
-        # استخراج من @@||domain.com^$removeparam=...
-        match = re.match(r'^@@\|\|([a-zA-Z0-9*.-]+)\^', line)
-        if match:
-            domain = match.group(1)
-            # استبدال * بـ wildcard مناسب لـ Pi-hole
-            domain = domain.replace('*', '')
-            return domain, 'whitelist' if domain else None
+        # من @@||domain.com^
+        match = re.match(r'^@@\|\|([a-zA-Z0-9.-]+)\^', line)
+        if match and is_valid_domain(match.group(1)):
+            return match.group(1), 'whitelist'
         
-        # استخراج من @@domain.com$removeparam=...
-        match = re.match(r'^@@([a-zA-Z0-9*.-]+)\$', line)
-        if match:
-            domain = match.group(1)
-            domain = domain.replace('*', '')
-            return domain, 'whitelist' if domain else None
+        # من @@domain.com
+        match = re.match(r'^@@([a-zA-Z0-9.-]+)$', line)
+        if match and is_valid_domain(match.group(1)):
+            return match.group(1), 'whitelist'
     
     # قواعد الحظر العادية
     else:
-        # استخراج من ||domain.com^$removeparam=...
-        match = re.match(r'^\|\|([a-zA-Z0-9*.-]+)\^', line)
-        if match:
-            domain = match.group(1)
-            domain = domain.replace('*', '')
-            return domain, 'blacklist' if domain else None
+        # من ||domain.com^
+        match = re.match(r'^\|\|([a-zA-Z0-9.-]+)\^', line)
+        if match and is_valid_domain(match.group(1)):
+            return match.group(1), 'blacklist'
         
-        # استخراج من domain.com$removeparam=...
-        match = re.match(r'^([a-zA-Z0-9*.-]+)\$', line)
-        if match:
-            domain = match.group(1)
-            domain = domain.replace('*', '')
-            return domain, 'blacklist' if domain else None
+        # من domain.com
+        match = re.match(r'^([a-zA-Z0-9.-]+)$', line)
+        if match and is_valid_domain(match.group(1)):
+            return match.group(1), 'blacklist'
+        
+        # من 127.0.0.1 domain.com
+        match = re.match(r'^(127\.0\.0\.1|0\.0\.0\.0)\s+([a-zA-Z0-9.-]+)$', line)
+        if match and is_valid_domain(match.group(2)):
+            return match.group(2), 'blacklist'
     
     return None, None
 
 def process_rule(line):
-    """معالجة القاعدة مع الحفاظ على RegEx واستخراج النطاقات"""
+    """معالجة القاعدة لأخذ النطاقات البسيطة فقط"""
     line = line.strip()
     if not line:
         return None, None
@@ -113,29 +120,21 @@ def process_rule(line):
     if line.startswith(('!', '#', '[', '&')):
         return None, None
     
-    # إذا كانت قاعدة RegEx عادية (مثل /ads?/ )
-    if is_regex_rule(line) and not re.search(r'\$(removeparam|xmlhttprequest|app|domain)', line):
-        if line.startswith('@@'):
-            return line[2:], 'whitelist'
-        else:
-            return line, 'blacklist'
+    # تجاهل قواعد RegEX (مثل /ads?/)
+    if re.match(r'^/.*/$', line) or '*' in line:
+        return None, None
     
-    # إذا كانت قاعدة AdGuard متقدمة ($removeparam, etc)
+    # تجاهل قواعد AdGuard المتقدمة ($removeparam, etc)
     if re.search(r'\$', line):
-        domain, rule_type = extract_domain_from_advanced_rule(line)
-        if domain:
-            return domain, rule_type
-        else:
-            return None, None
+        domain, rule_type = extract_simple_domain(line)
+        return domain, rule_type
     
-    # القواعد العادية
-    if line.startswith('@@'):
-        return line[2:], 'whitelist'
-    else:
-        return line, 'blacklist'
+    # القواعد البسيطة فقط
+    domain, rule_type = extract_simple_domain(line)
+    return domain, rule_type
 
 def download_filter(url):
-    """تحميل الفلتر مع معالجة القواعد"""
+    """تحميل الفلتر وأخذ النطاقات البسيطة فقط"""
     try:
         session = create_session()
         response = session.get(url, timeout=REQUEST_TIMEOUT)
@@ -234,13 +233,6 @@ def save_filters(blacklist_rules, whitelist_rules, output_dir="pi-hole_filters")
         with open(whitelist_file, 'w', encoding='utf-8') as f:
             f.write("\n".join(whitelist_rules))
         print(f"✅ تم حفظ {len(whitelist_rules)} قاعدة في {whitelist_file}")
-    
-    # حفظ ملف موحد
-    if blacklist_rules:
-        main_file = os.path.join(output_dir, "merged_filters.txt")
-        with open(main_file, 'w', encoding='utf-8') as f:
-            f.write("\n".join(blacklist_rules))
-        print(f"✅ تم حفظ {len(blacklist_rules)} قاعدة في {main_file}")
 
 if __name__ == "__main__":
     # تحميل الروابط من ملف list.txt فقط
@@ -253,7 +245,7 @@ if __name__ == "__main__":
     start_time = time.time()
     try:
         print("🚀 بدء عملية الدمج لـ Pi-hole...")
-        print("📝 ملاحظة: يتم استخراج النطاقات من قواعد AdGuard المتقدمة")
+        print("📝 ملاحظة: يتم أخذ النطاقات البسيطة فقط (بدون RegEx)")
         blacklist, whitelist = process_filters(FILTER_URLS)
         
         if blacklist or whitelist:
@@ -263,11 +255,11 @@ if __name__ == "__main__":
             print("✨ تمت العملية بنجاح!")
             
             # عرض أمثلة من القواعد
-            print("\n🔍 أمثلة من القواعد المستخرجة:")
+            print("\n🔍 أمثلة من النطاقات المستخرجة:")
             if blacklist:
-                print(f"بلاك ليست: {blacklist[:3]}...")
+                print(f"بلاك ليست: {blacklist[:5]}...")
             if whitelist:
-                print(f"ويت ليست: {whitelist[:3]}...")
+                print(f"ويت ليست: {whitelist[:5]}...")
                 
         else:
             print("❌ لم يتم العثور على أي قواعد صالحة")
