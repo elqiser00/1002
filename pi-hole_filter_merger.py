@@ -59,32 +59,49 @@ def is_valid_rule(line):
     )
 
 def convert_rule(line):
-    """تحويل القواعد إلى صيغة Pi-hole"""
+    """تحويل القواعد إلى صيغة Pi-hole وتحديد نوعها (blacklist/whitelist)"""
     line = line.strip()
+    if not line:
+        return None, None
+    
+    # معالجة قواعد الاستثناءات (Whitelist)
+    if line.startswith('@@'):
+        # استخراج النطاق من قاعدة الاستثناء
+        domain = None
+        if re.fullmatch(r'^@@\|\|([a-z0-9-]+\.)+[a-z]{2,}\^$', line, re.IGNORECASE):
+            domain = line[4:-1]  # إزالة @@|| من البداية و ^ من النهاية
+        elif re.fullmatch(r'^@@([a-z0-9-]+\.)+[a-z]{2,}$', line, re.IGNORECASE):
+            domain = line[2:]  # إزالة @@ من البداية
+        
+        if domain and is_valid_rule(domain):
+            return domain, 'whitelist'
+        return None, None
+    
+    # تجاهل القواعد غير الصالحة للبلاك ليست
     if not is_valid_rule(line):
-        return None
+        return None, None
     
     # تحويل قواعد DNS إلى صيغة Pi-hole
     if re.fullmatch(r'^(127\.0\.0\.1|0\.0\.0\.0)\s+([a-z0-9-]+\.)+[a-z]{2,}$', line, re.IGNORECASE):
         domain = line.split()[1]
-        return domain
+        return domain, 'blacklist'
     
     # تحويل قواعد AdGuard (||example.com^) إلى صيغة Pi-hole
     if re.fullmatch(r'^\|\|([a-z0-9-]+\.)+[a-z]{2,}\^$', line, re.IGNORECASE):
         domain = line[2:-1]  # إزالة || من البداية و ^ من النهاية
-        return domain
+        return domain, 'blacklist'
     
     # معالجة قواعد HOSTS (نطاقين متجاورين)
     if re.fullmatch(r'^([a-z0-9-]+\.)+[a-z]{2,}\s+([a-z0-9-]+\.)+[a-z]{2,}$', line, re.IGNORECASE):
         parts = line.split()
         if len(parts) >= 2:
-            return parts[1]  # إرجاع النطاق الثاني
+            return parts[1], 'blacklist'  # إرجاع النطاق الثاني
     
-    # تجاهل قواعد الاستثناءات في Pi-hole
-    if line.startswith('@@'):
-        return None
+    # النطاقات البسيطة
+    if re.fullmatch(r'^([a-z0-9-]+\.)+[a-z]{2,}$', line, re.IGNORECASE):
+        return line, 'blacklist'
     
-    return line
+    return None, None
 
 def download_filter(url):
     """تحميل الفلتر مع التصفية الشاملة"""
@@ -93,23 +110,28 @@ def download_filter(url):
         response = requests.get(url, timeout=REQUEST_TIMEOUT, headers=headers)
         response.raise_for_status()
         
-        valid_rules = []
+        blacklist_rules = []
+        whitelist_rules = []
+        
         for line in response.text.splitlines():
-            rule = convert_rule(line)
-            if rule:
-                valid_rules.append(rule)
+            rule, rule_type = convert_rule(line)
+            if rule and rule_type == 'blacklist':
+                blacklist_rules.append(rule)
+            elif rule and rule_type == 'whitelist':
+                whitelist_rules.append(rule)
                 
-        return valid_rules, url
+        return blacklist_rules, whitelist_rules, url
     except Exception as e:
         print(f"⚠️ خطأ في تحميل {urlparse(url).netloc}: {str(e)}")
-        return [], url
+        return [], [], url
 
 def process_filters(urls):
     """المعالجة النهائية مع التنظيف الكامل"""
     if not urls:
-        return []
+        return [], []
         
-    seen_rules = set()
+    seen_blacklist = set()
+    seen_whitelist = set()
     total_urls = len(urls)
     
     print(f"🔍 بدء معالجة {total_urls} مصدر فلتر...")
@@ -117,45 +139,61 @@ def process_filters(urls):
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
         future_to_url = {executor.submit(download_filter, url): url for url in urls}
         
-        results = []
+        blacklist_results = []
+        whitelist_results = []
+        
         for i, future in enumerate(as_completed(future_to_url), 1):
-            rules, url = future.result()
-            new_rules = [r for r in rules if r not in seen_rules]
-            seen_rules.update(new_rules)
+            black_rules, white_rules, url = future.result()
             
-            print(f"📊 [{i}/{total_urls}] {urlparse(url).netloc}: تمت إضافة {len(new_rules)} قاعدة")
-            results.extend(new_rules)
+            # معالجة البلاك ليست
+            new_black_rules = [r for r in black_rules if r not in seen_blacklist and r not in seen_whitelist]
+            seen_blacklist.update(new_black_rules)
+            blacklist_results.extend(new_black_rules)
+            
+            # معالجة الويت ليست (تأخذ الأولوية)
+            new_white_rules = [r for r in white_rules if r not in seen_whitelist]
+            seen_whitelist.update(new_white_rules)
+            whitelist_results.extend(new_white_rules)
+            
+            # إزالة أي نطاقات من البلاك ليست إذا كانت في الويت ليست
+            blacklist_results = [r for r in blacklist_results if r not in seen_whitelist]
+            seen_blacklist = seen_blacklist - seen_whitelist
+            
+            print(f"📊 [{i}/{total_urls}] {urlparse(url).netloc}: {len(new_black_rules)} بلاك ليست, {len(new_white_rules)} ويت ليست")
             
             if i < total_urls:
                 time.sleep(REQUEST_DELAY)
     
     # ترتيب النتائج أبجدياً
-    return sorted(results, key=lambda x: x.lower())
+    blacklist_sorted = sorted(blacklist_results, key=lambda x: x.lower())
+    whitelist_sorted = sorted(whitelist_results, key=lambda x: x.lower())
+    
+    return blacklist_sorted, whitelist_sorted
 
-def save_filters(rules, output_dir="pi-hole_filters"):
-    """حفظ القواعد النظيفة - ملف واحد فقط"""
+def save_filters(blacklist_rules, whitelist_rules, output_dir="pi-hole_filters"):
+    """حفظ القوائم المنفصلة"""
     os.makedirs(output_dir, exist_ok=True)
     
-    # حفظ ملف النطاقات فقط (pi-hole_domains.txt)
-    main_file = os.path.join(output_dir, "pi-hole_domains.txt")
-    with open(main_file, 'w', encoding='utf-8') as f:
-        f.write("\n".join(rules))
+    # حفظ البلاك ليست
+    if blacklist_rules:
+        blacklist_file = os.path.join(output_dir, "blacklist.txt")
+        with open(blacklist_file, 'w', encoding='utf-8') as f:
+            f.write("\n".join(blacklist_rules))
+        print(f"✅ تم حفظ {len(blacklist_rules)} قاعدة في {blacklist_file}")
     
-    print(f"\n✅ تم حفظ {len(rules)} قاعدة في {main_file}")
+    # حفظ الويت ليست
+    if whitelist_rules:
+        whitelist_file = os.path.join(output_dir, "whitelist.txt")
+        with open(whitelist_file, 'w', encoding='utf-8') as f:
+            f.write("\n".join(whitelist_rules))
+        print(f"✅ تم حفظ {len(whitelist_rules)} قاعدة في {whitelist_file}")
     
-    # التقسيم التلقائي إذا لزم الأمر
-    if len(rules) > MAX_LINES_PER_PART:
-        parts = (len(rules) // MAX_LINES_PER_PART) + 1
-        print(f"📦 تقسيم إلى {parts} أجزاء...")
-        
-        for i in range(parts):
-            part_file = os.path.join(output_dir, f"pi-hole_domains_part_{i+1}.txt")
-            with open(part_file, 'w', encoding='utf-8') as f:
-                start = i * MAX_LINES_PER_PART
-                end = start + MAX_LINES_PER_PART
-                f.write("\n".join(rules[start:end]))
-            
-            print(f"✅ الجزء {i+1}: {len(rules[start:end])} قاعدة")
+    # حفظ ملف موحد للتوافق مع الإصدار السابق
+    if blacklist_rules:
+        main_file = os.path.join(output_dir, "pi-hole_domains.txt")
+        with open(main_file, 'w', encoding='utf-8') as f:
+            f.write("\n".join(blacklist_rules))
+        print(f"✅ تم حفظ {len(blacklist_rules)} قاعدة في {main_file} (للتوافق)")
 
 if __name__ == "__main__":
     # تحميل الروابط من ملف list.txt فقط
@@ -168,17 +206,19 @@ if __name__ == "__main__":
     start_time = time.time()
     try:
         print("🚀 بدء عملية التنظيف والدمج لـ Pi-hole...")
-        rules = process_filters(FILTER_URLS)
+        blacklist, whitelist = process_filters(FILTER_URLS)
         
-        if rules:
-            save_filters(rules)
+        if blacklist or whitelist:
+            save_filters(blacklist, whitelist)
             print(f"\n⏱️ الوقت الإجمالي: {time.time() - start_time:.2f} ثانية")
-            print(f"📊 تم جمع {len(rules)} قاعدة فلترة")
+            print(f"📊 تم جمع {len(blacklist)} قاعدة بلاك ليست و {len(whitelist)} قاعدة ويت ليست")
             print("✨ تمت العملية بنجاح!")
             print("\n📋 كيفية الاستخدام في Pi-hole:")
             print("1. اذهب إلى Group Management > Adlists")
-            print("2. أضف الرابط: https://raw.githubusercontent.com/elqiser00/1002/main/pi-hole_filters/pi-hole_domains.txt")
-            print("3. اذهب إلى Tools > Update Gravity")
+            print("2. أضف الرابط: https://raw.githubusercontent.com/elqiser00/1002/main/pi-hole_filters/blacklist.txt")
+            print("3. اذهب إلى Group Management > Domainlist")
+            print("4. أضف الرابط: https://raw.githubusercontent.com/elqiser00/1002/main/pi-hole_filters/whitelist.txt")
+            print("5. اذهب إلى Tools > Update Gravity")
         else:
             print("❌ لم يتم العثور على أي قواعد صالحة")
             
