@@ -98,3 +98,11 @@ downet.net
 0.gravatar.com
 gravatar.com
 wpad.lan
+ak.sv###ofc9
+##center:nth-child(12)
+a.asd.homes##center:nth-child(12)
+obqj2.com
+madurird.com
+###downloadButton
+/blockadblock.$script,redirect=prevent-fab-3.2.0
+/^https:\/\/[a-z-]{6,15}\.(?:com|net|tv|xyz)\/(?:40[01]|50?0?)\/\d{6,7}\??\S*$/$script,xmlhttprequest,third-party
