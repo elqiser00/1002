@@ -2,8 +2,11 @@ import requests
 import os
 import time
 import re
+import ssl
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from urllib.parse import urlparse
+from requests.adapters import HTTPAdapter
+from urllib3.util.ssl_ import create_urllib3_context
 
 # إعدادات التكوين
 MAX_LINES_PER_PART = 2_000_000
@@ -13,6 +16,22 @@ REQUEST_DELAY = 0.5
 MAX_WORKERS = 10
 USER_AGENT = "Pi-hole-Filter-Merger/1.0"
 SOURCES_FILE = "list.txt"
+
+# تجاوز تحقق SSL للشهادات المنتهية
+class SSLAdapter(HTTPAdapter):
+    def init_poolmanager(self, *args, **kwargs):
+        ctx = create_urllib3_context()
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+        kwargs['ssl_context'] = ctx
+        return super().init_poolmanager(*args, **kwargs)
+
+def create_session():
+    """إنشاء جلسة مع تجاوز أخطاء SSL"""
+    session = requests.Session()
+    session.mount('https://', SSLAdapter())
+    session.headers.update({'User-Agent': USER_AGENT})
+    return session
 
 def load_filter_sources():
     """تحميل روابط الفلاتر من ملف list.txt"""
@@ -89,8 +108,8 @@ def convert_rule(line):
 def download_filter(url):
     """تحميل الفلتر مع التصفية الشاملة"""
     try:
-        headers = {'User-Agent': USER_AGENT}
-        response = requests.get(url, timeout=REQUEST_TIMEOUT, headers=headers)
+        session = create_session()
+        response = session.get(url, timeout=REQUEST_TIMEOUT)
         response.raise_for_status()
         
         valid_rules = []
@@ -100,6 +119,26 @@ def download_filter(url):
                 valid_rules.append(rule)
                 
         return valid_rules, url
+        
+    except requests.exceptions.SSLError:
+        # إذا فشل HTTPS، جرب HTTP
+        try:
+            http_url = url.replace('https://', 'http://')
+            response = requests.get(http_url, timeout=REQUEST_TIMEOUT, headers={'User-Agent': USER_AGENT})
+            response.raise_for_status()
+            
+            valid_rules = []
+            for line in response.text.splitlines():
+                rule = convert_rule(line)
+                if rule:
+                    valid_rules.append(rule)
+                    
+            return valid_rules, url
+            
+        except Exception as e:
+            print(f"⚠️ خطأ في تحميل {urlparse(url).netloc}: {str(e)}")
+            return [], url
+            
     except Exception as e:
         print(f"⚠️ خطأ في تحميل {urlparse(url).netloc}: {str(e)}")
         return [], url
