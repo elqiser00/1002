@@ -55,3 +55,4 @@ firebaselogging.googleapis.com
 logservice-dra.dt.hihonorcloud.com
 graph.instagram.com
 metrics.dt.hihonorcloud.com
+metrics-dra.dt.hihonorcloud.com
