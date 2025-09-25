@@ -82,3 +82,4 @@
 ||connect.facebook.net^$important
 ||b-graph.facebook.com^$important
 ||hub.sv^$important
+||scontent.faly8-2.fna.fbcdn.net^$important
