@@ -49,3 +49,16 @@
 @@||n8n.io^$important
 @@||graph.facebook.com^$important
 @@||accounts.hsoub.com^$important
+@@||userlocation.googleapis.com^$important
+@@||b-graph.facebook.com^$important
+@@||metrics.dt.hihonorcloud.com^$important
+@@||dns.google.com^$important
+@@||mozilla.cloudflare-dns.com^$important
+@@||in.appcenter.ms^$important
+@@||optimizationguide-pa.googleapis.com^$important
+@@||grs.hihonorcloud.com^$important
+@@||metrics-dra.dt.hihonorcloud.com^$important
+@@||old.downet.net^$important
+@@||graph.instagram.com^$important
+@@||gateway.instagram.com^$important
+@@||superapp.atspace.eu^$important
