@@ -19,9 +19,7 @@ https://raw.githubusercontent.com/AdguardTeam/FiltersRegistry/master/filters/fil
 https://raw.githubusercontent.com/AdguardTeam/FiltersRegistry/master/filters/filter_11_Mobile/filter.txt
 https://raw.githubusercontent.com/AdguardTeam/FiltersRegistry/master/filters/filter_15_DnsFilter/filter.txt
 https://adguardteam.github.io/HostlistsRegistry/assets/filter_1.txt
-https://adguardteam.github.io/HostlistsRegistry/assets/filter_45.txt
 https://adguardteam.github.io/HostlistsRegistry/assets/filter_67.txt
-https://adguardteam.github.io/HostlistsRegistry/assets/filter_46.txt
 https://adguardteam.github.io/HostlistsRegistry/assets/filter_66.txt
 https://adguardteam.github.io/HostlistsRegistry/assets/filter_53.txt
 https://adguardteam.github.io/HostlistsRegistry/assets/filter_59.txt
