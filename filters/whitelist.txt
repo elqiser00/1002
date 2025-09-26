@@ -62,3 +62,5 @@
 @@||graph.instagram.com^$important
 @@||gateway.instagram.com^$important
 @@||superapp.atspace.eu^$important
+@@||doodstream.com^$important
+@@||streamtape.com^$important
