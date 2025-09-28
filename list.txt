@@ -19,23 +19,13 @@ https://raw.githubusercontent.com/AdguardTeam/FiltersRegistry/master/filters/fil
 https://raw.githubusercontent.com/AdguardTeam/FiltersRegistry/master/filters/filter_11_Mobile/filter.txt
 https://raw.githubusercontent.com/AdguardTeam/FiltersRegistry/master/filters/filter_15_DnsFilter/filter.txt
 https://adguardteam.github.io/HostlistsRegistry/assets/filter_1.txt
-https://adguardteam.github.io/HostlistsRegistry/assets/filter_55.txt
-https://adguardteam.github.io/HostlistsRegistry/assets/filter_67.txt
-https://adguardteam.github.io/HostlistsRegistry/assets/filter_66.txt
 https://adguardteam.github.io/HostlistsRegistry/assets/filter_53.txt
 https://adguardteam.github.io/HostlistsRegistry/assets/filter_59.txt
 https://adguardteam.github.io/HostlistsRegistry/assets/filter_56.txt
-https://adguardteam.github.io/HostlistsRegistry/assets/filter_65.txt
 https://adguardteam.github.io/HostlistsRegistry/assets/filter_24.txt
-https://adguardteam.github.io/HostlistsRegistry/assets/filter_3.txt
 https://adguardteam.github.io/HostlistsRegistry/assets/filter_4.txt
 https://adguardteam.github.io/HostlistsRegistry/assets/filter_5.txt
 https://adguardteam.github.io/HostlistsRegistry/assets/filter_27.txt
-https://adguardteam.github.io/HostlistsRegistry/assets/filter_34.txt
-https://adguardteam.github.io/HostlistsRegistry/assets/filter_51.txt
-https://adguardteam.github.io/HostlistsRegistry/assets/filter_48.txt
-https://adguardteam.github.io/HostlistsRegistry/assets/filter_49.txt
-https://adguardteam.github.io/HostlistsRegistry/assets/filter_69.txt
 https://adguardteam.github.io/HostlistsRegistry/assets/filter_64.txt
 https://adguardteam.github.io/HostlistsRegistry/assets/filter_33.txt
 https://adguardteam.github.io/HostlistsRegistry/assets/filter_39.txt
@@ -44,8 +34,6 @@ https://adguardteam.github.io/HostlistsRegistry/assets/filter_47.txt
 https://adguardteam.github.io/HostlistsRegistry/assets/filter_61.txt
 https://adguardteam.github.io/HostlistsRegistry/assets/filter_63.txt
 https://adguardteam.github.io/HostlistsRegistry/assets/filter_60.txt
-https://adguardteam.github.io/HostlistsRegistry/assets/filter_54.txt
-https://adguardteam.github.io/HostlistsRegistry/assets/filter_68.txt
 https://adguardteam.github.io/HostlistsRegistry/assets/filter_7.txt
 https://adguardteam.github.io/HostlistsRegistry/assets/filter_57.txt
 https://adguardteam.github.io/HostlistsRegistry/assets/filter_62.txt
@@ -73,7 +61,6 @@ https://adguardteam.github.io/HostlistsRegistry/assets/filter_18.txt
 https://adguardteam.github.io/HostlistsRegistry/assets/filter_10.txt
 https://adguardteam.github.io/HostlistsRegistry/assets/filter_42.txt
 https://adguardteam.github.io/HostlistsRegistry/assets/filter_31.txt
-https://adguardteam.github.io/HostlistsRegistry/assets/filter_44.txt
 https://adguardteam.github.io/HostlistsRegistry/assets/filter_9.txt
 https://adguardteam.github.io/HostlistsRegistry/assets/filter_50.txt
 https://adguardteam.github.io/HostlistsRegistry/assets/filter_11.txt
@@ -375,6 +362,5 @@ https://raw.githubusercontent.com/cjx82630/cjxlist/master/cjx-annoyance.txt
 https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/fakenews-gambling/hosts
 https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
 https://raw.githubusercontent.com/durablenapkin/scamblocklist/master/hosts.txt
-https://raw.githubusercontent.com/durablenapkin/scamblocklist/master/adguard.txt
 https://raw.githubusercontent.com/hoshsadiq/adblock-nocoin-list/master/nocoin.txt
 https://raw.githubusercontent.com/hoshsadiq/adblock-nocoin-list/master/hosts.txt
