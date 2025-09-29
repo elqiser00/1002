@@ -83,3 +83,4 @@
 ||b-graph.facebook.com^$important
 ||hub.sv^$important
 ||scontent.faly8-2.fna.fbcdn.net^$important
+||.^$important
