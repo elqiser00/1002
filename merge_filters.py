@@ -26,6 +26,46 @@ def load_filter_urls():
         print("❌ ملف list.txt غير موجود")
         return []
 
+def is_valid_domain(domain):
+    """التحقق من صحة النطاق"""
+    if not domain or len(domain) < 4:
+        return False
+    
+    # لا يبدأ بشرطة أو نقطة أو رقم
+    if re.match(r'^[-\.0-9]', domain):
+        return False
+    
+    # لا ينتهي بشرطة أو نقطة
+    if re.match(r'[-\.]$', domain):
+        return False
+    
+    # يحتوي على نقطة على الأقل
+    if '.' not in domain:
+        return False
+    
+    # الجزء الأخير (TLD) يجب أن يكون حروف فقط وطوله بين 2-10 أحرف
+    tld = domain.split('.')[-1]
+    if not re.match(r'^[a-zA-Z]{2,10}$', tld):
+        return False
+    
+    # لا يحتوي على أحرف غير مسموح بها
+    if not re.match(r'^[a-zA-Z0-9.-]+$', domain):
+        return False
+    
+    # الطول المعقول للنطاق
+    if len(domain) > 63:
+        return False
+    
+    # كل جزء بين النقاط لا يزيد عن 63 حرف
+    parts = domain.split('.')
+    for part in parts:
+        if len(part) > 63:
+            return False
+        if part.startswith('-') or part.endswith('-'):
+            return False
+    
+    return True
+
 def is_valid_rule(line):
     """تحديد إذا كانت القاعدة من الأنواع المطلوبة فقط"""
     line = line.strip()
@@ -69,29 +109,39 @@ def convert_rule(line):
     if re.match(r'^[\[&$]', line):
         return None
     
-    # 4. قواعد AdGuard الأساسية (نتركها كما هي)
-    # مثل: ||example.org^ أو @@||example.org^
-    if re.match(r'^(@@\|\|)?\|\|([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})\^$', line):
-        return line
+    # 4. قواعد AdGuard الأساسية (نتحقق من صحتها أولاً)
+    ag_match = re.match(r'^(@@\|\|)?\|\|([^\/\^]+)\^$', line)
+    if ag_match:
+        domain = ag_match.group(2)
+        if is_valid_domain(domain):
+            return line
+        else:
+            return None
     
     # 5. تحويل قواعد 127.0.0.1 أو 0.0.0.0
-    # مثال: "127.0.0.1 example.org" → "||example.org^"
     dns_match = re.match(r'^(127\.0\.0\.1|0\.0\.0\.0)\s+([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})$', line)
     if dns_match:
         domain = dns_match.group(2)
-        return f"||{domain}^"
+        if is_valid_domain(domain):
+            return f"||{domain}^"
+        else:
+            return None
     
     # 6. قواعد النطاقات مع النقطتين
-    # مثال: "example.org:" → "||example.org^"
     colon_match = re.match(r'^([a-zA-Z0-9.-]+\.[a-zA-Z]{2,}):$', line)
     if colon_match:
         domain = colon_match.group(1)
-        return f"||{domain}^"
+        if is_valid_domain(domain):
+            return f"||{domain}^"
+        else:
+            return None
     
     # 7. قواعد المضيف (hosts) بدون عنوان IP
-    # مثال: "example.org" → "||example.org^"
     if re.match(r'^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', line):
-        return f"||{line}^"
+        if is_valid_domain(line):
+            return f"||{line}^"
+        else:
+            return None
     
     # تجاهل أي شيء آخر لا يتطابق مع الأنواع المطلوبة
     return None
@@ -118,8 +168,9 @@ def process_filters(urls):
     """المعالجة النهائية مع التنظيف الكامل"""
     seen_rules = set()
     total_urls = len(urls)
+    removed_count = 0
     
-    print(f"🔍 بدء معالجة {total_urls} مصدر فلتر (سيتم إزالة التعبيرات العادية والتعليقات)...")
+    print(f"🔍 بدء معالجة {total_urls} مصدر فلتر (سيتم إزالة التعبيرات العادية والتعليقات والنطاقات غير الصالحة)...")
     
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
         future_to_url = {executor.submit(download_filter, url): url for url in urls}
@@ -130,11 +181,17 @@ def process_filters(urls):
             new_rules = [r for r in rules if r not in seen_rules]
             seen_rules.update(new_rules)
             
+            # حساب القواعد المرفوضة
+            rejected = len(rules) - len(new_rules)
+            removed_count += rejected
+            
             print(f"📊 [{i}/{total_urls}] {urlparse(url).netloc}: تمت إضافة {len(new_rules)} قاعدة نظيفة")
             results.extend(new_rules)
             
             if i < total_urls:
                 time.sleep(REQUEST_DELAY)
+    
+    print(f"🗑️ تم إزالة {removed_count} قاعدة مكررة أو غير صالحة")
     
     # ترتيب النتائج: الاستثناءات أولاً
     return sorted(results, key=lambda x: (not x.startswith('@@'), x))
@@ -148,7 +205,20 @@ def save_filters(rules, output_dir="merged_filters"):
         f.write("\n".join(rules))
     
     print(f"\n✅ تم حفظ {len(rules)} قاعدة نظيفة فقط في {main_file}")
-    print("🗑️ تم إزالة جميع التعبيرات العادية والتعليقات")
+    print("🗑️ تم إزالة جميع التعبيرات العادية والتعليقات والنطاقات غير الصالحة")
+    
+    # حفظ قائمة بالنطاقات فقط (للمراجعة)
+    domains_file = os.path.join(output_dir, "domains_only.txt")
+    domains = []
+    for rule in rules:
+        domain_match = re.search(r'\|\|([^\/\^]+)\^', rule)
+        if domain_match:
+            domains.append(domain_match.group(1))
+    
+    with open(domains_file, 'w', encoding='utf-8') as f:
+        f.write("\n".join(sorted(set(domains))))
+    
+    print(f"🌐 تم حفظ {len(domains)} نطاق فريد في domains_only.txt")
     
     # التقسيم التلقائي
     if len(rules) > MAX_LINES_PER_PART:
@@ -175,10 +245,10 @@ if __name__ == "__main__":
     start_time = time.time()
     try:
         print("🚀 بدء عملية التنظيف والدمج...")
-        print("⚠️ سيتم إزالة جميع التعبيرات العادية من الفلاتر النهائية")
+        print("⚠️ سيتم إزالة جميع التعبيرات العادية والنطاقات غير الصالحة من الفلاتر النهائية")
         rules = process_filters(FILTER_URLS)
         save_filters(rules)
         print(f"\n⏱️ الوقت الإجمالي: {time.time() - start_time:.2f} ثانية")
-        print("✨ تمت إزالة جميع التعبيرات العادية والتعليقات بنجاح!")
+        print("✨ تمت إزالة جميع التعبيرات العادية والتعليقات والنطاقات غير الصالحة بنجاح!")
     except Exception as e:
         print(f"❌ خطأ: {str(e)}")
