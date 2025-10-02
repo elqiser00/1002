@@ -38,39 +38,37 @@ def is_valid_rule(line):
     
     # قبول أنواع أكثر من القواعد لمنع التكرار
     return (
-        # قواعد AdGuard الأساسية
+        # قواعد AdGuard الأساسية (بما فيها الاستثناءات)
         re.match(r'^(@@\|\|)?\|\|([a-z0-9-]+\.)+[a-z]{2,}\^', line, re.IGNORECASE) or
         # قواعد DNS التقليدية
         re.match(r'^(127\.0\.0\.1|0\.0\.0\.0)\s+([a-z0-9-]+\.)+[a-z]{2,}', line, re.IGNORECASE) or
         # قواعد النطاقات البسيطة
         re.match(r'^([a-z0-9-]+\.)+[a-z]{2,}$', line, re.IGNORECASE) or
         # قواعد مع $ 
-        re.match(r'^\|\|([a-z0-9-]+\.)+[a-z]{2,}\^\$.*', line, re.IGNORECASE)
+        re.match(r'^(@@\|\|)?\|\|([a-z0-9-]+\.)+[a-z]{2,}\^\$.*', line, re.IGNORECASE)
     )
 
 def convert_rule(line):
-    """تحويل جميع القواعد إلى صيغة AdGuard موحدة"""
+    """تحويل القواعد مع تجاهل كل ما عدا الأساسيات"""
     line = line.strip()
     if not is_valid_rule(line):
         return None
     
-    # استخراج النطاق من أي صيغة
-    domain_match = re.search(r'(([a-z0-9-]+\.)+[a-z]{2,})', line, re.IGNORECASE)
-    if not domain_match:
+    # إذا كانت قاعدة استثناء (تبدأ بـ @@) - احتفظ بيها كما هي
+    if line.startswith('@@'):
+        # استخراج النطاق من قاعدة الاستثناء
+        domain_match = re.search(r'@@\|\|([a-z0-9-]+\.)+[a-z]{2,}\^', line, re.IGNORECASE)
+        if domain_match:
+            return line  # ارجع القاعدة كما هي بدون تعديل
         return None
     
-    domain = domain_match.group(1)
-    
-    # إذا كانت قاعدة استثناء
-    if line.startswith('@@'):
-        return f"@@||{domain}^"
-    
-    # إذا كانت قاعدة DNS تقليدية
-    if re.match(r'^(127\.0\.0\.1|0\.0\.0\.0)\s+', line):
+    # تحويل قواعد DNS إلى صيغة AdGuard
+    if re.match(r'^(127\.0\.0\.1|0\.0\.0\.0)\s+([a-z0-9-]+\.)+[a-z]{2,}$', line, re.IGNORECASE):
+        domain = line.split()[1]
         return f"||{domain}^"
     
-    # إذا كانت قاعدة حظر عادية
-    return f"||{domain}^"
+    # إذا كانت قاعدة حظر عادية - ارجعها كما هي
+    return line
 
 def download_filter(url):
     """تحميل الفلتر مع التصفية الشاملة"""
@@ -91,8 +89,8 @@ def download_filter(url):
         return [], url
 
 def process_filters(urls):
-    """المعالجة النهائية مع التنظيف الكامل ومنع التكرار"""
-    seen_domains = set()  # استخدام النطاقات بدل القواعد لمنع التكرار
+    """المعالجة النهائية مع التنظيف الكامل"""
+    seen_rules = set()  # العودة لاستخدام seen_rules علشان نحافظ على الاستثناءات
     total_urls = len(urls)
     
     print(f"🔍 بدء معالجة {total_urls} مصدر فلتر (سيتم تنظيف كل التعليقات والمعلومات غير الضرورية)...")
@@ -103,19 +101,10 @@ def process_filters(urls):
         results = []
         for i, future in enumerate(as_completed(future_to_url), 1):
             rules, url = future.result()
-            new_rules = []
+            new_rules = [r for r in rules if r not in seen_rules]
+            seen_rules.update(new_rules)
             
-            for rule in rules:
-                # استخراج النطاق من القاعدة
-                domain_match = re.search(r'\|\|([a-z0-9-]+\.)+[a-z]{2,}\^', rule, re.IGNORECASE)
-                if domain_match:
-                    domain = domain_match.group(0)  # سيأخذ النطاق كامل مع ||
-                    
-                    if domain not in seen_domains:
-                        seen_domains.add(domain)
-                        new_rules.append(rule)
-            
-            print(f"📊 [{i}/{total_urls}] {urlparse(url).netloc}: تمت إضافة {len(new_rules)} قاعدة فريدة")
+            print(f"📊 [{i}/{total_urls}] {urlparse(url).netloc}: تمت إضافة {len(new_rules)} قاعدة نظيفة")
             results.extend(new_rules)
             
             if i < total_urls:
