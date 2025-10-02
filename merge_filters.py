@@ -66,11 +66,9 @@ def is_valid_domain(domain):
             return False
         if not part:  # جزء فارغ
             return False
-    
-    # التأكد من أن الجزء الأول (قبل أول نقطة) يبدأ بحرف وليس رقم
-    first_part = parts[0]
-    if not re.match(r'^[a-zA-Z]', first_part):
-        return False
+        # 🔥 رفض أي جزء يبدأ برقم
+        if re.match(r'^[0-9]', part):
+            return False
     
     return True
 
@@ -180,7 +178,6 @@ def download_filter_fast(url):
         
         lines = response.text.splitlines()
         valid_rules = []
-        total_rejected = 0
         
         for i in range(0, len(lines), CHUNK_SIZE):
             chunk = lines[i:i + CHUNK_SIZE]
@@ -202,6 +199,7 @@ def process_filters_fast(urls):
     
     print(f"🚀 بدء المعالجة السريعة لـ {total_urls} مصدر فلتر...")
     print("🔍 سيتم فحص جميع النطاقات بشكل صارم وإزالة غير الصالحة")
+    print("⚠️ سيتم رفض أي نطاق يحتوي على جزء يبدأ برقم")
     start_time = time.time()
     
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
@@ -275,7 +273,10 @@ if __name__ == "__main__":
     total_start_time = time.time()
     try:
         print("⚡ بدء عملية الدمج السريع مع الفحص الصارم...")
-        print("⚠️ سيتم رفض جميع النطاقات التي تبدأ بأرقام أو شرطات أو نقاط")
+        print("⚠️ سيتم رفض جميع النطاقات التي:")
+        print("   - تبدأ بأرقام أو شرطات أو نقاط")
+        print("   - تحتوي على أي جزء يبدأ برقم")
+        print("   - تكون طويلة جداً أو غير صالحة")
         rules = process_filters_fast(FILTER_URLS)
         save_filters_fast(rules)
         
