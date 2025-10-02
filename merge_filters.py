@@ -70,23 +70,31 @@ def is_valid_domain(domain):
         if re.match(r'^[0-9]', part):
             return False
     
-    # 🔥 **فحص إضافي: رفض الدومينات التي تحتوي على أنماط مشبوهة**
+    # 🔥 **شروط أقسى للرفض**
     
-    # رفض الدومينات التي تحتوي على hash طويل (أكثر من 12 حرف أبجدي رقمي)
-    if re.search(r'[a-f0-9]{12,}', domain.lower()):
+    # رفض الدومينات التي تحتوي على hash طويل (أكثر من 8 حرف أبجدي رقمي)
+    if re.search(r'[a-f0-9]{8,}', domain.lower()):
         return False
     
-    # رفض الدومينات التي تحتوي على أرقام متتالية طويلة (أكثر من 4 أرقام)
-    if re.search(r'\d{5,}', domain):
+    # رفض الدومينات التي تحتوي على أرقام متتالية (أكثر من 3 أرقام)
+    if re.search(r'\d{4,}', domain):
+        return False
+    
+    # رفض الدومينات التي تحتوي على أكثر من شرطتين متتاليتين
+    if '--' in domain:
         return False
     
     # رفض الدومينات التي تحتوي على أجزاء كلها أرقام وحروف عشوائية
     for part in parts[:-1]:  # كل الأجزاء عدا TLD
-        # إذا كان الجزء يحتوي على أكثر من 70% أرقام وحروف hex
-        if len(part) > 8:
+        # إذا كان الجزء يحتوي على أكثر من 60% أرقام وحروف hex
+        if len(part) > 6:
             hex_chars = re.findall(r'[a-f0-9]', part.lower())
-            if len(hex_chars) / len(part) > 0.7:
+            if len(hex_chars) / len(part) > 0.6:
                 return False
+    
+    # رفض الدومينات التي تحتوي على أنماط IP-like (أرقام وشرطات)
+    if re.search(r'\d+-\d+', domain):
+        return False
     
     return True
 
@@ -219,8 +227,10 @@ def process_filters_fast(urls):
     print("🔍 سيتم فحص جميع النطاقات بشكل صارم وإزالة غير الصالحة")
     print("⚠️ سيتم رفض الدومينات التي تحتوي على:")
     print("   - أجزاء تبدأ بأرقام")
-    print("   - hash طويل (أكثر من 12 حرف)")
-    print("   - أرقام متتالية طويلة")
+    print("   - hash طويل (أكثر من 8 حرف)")
+    print("   - أرقام متتالية (4+ أرقام)")
+    print("   - شرطتين متتاليتين (--)")
+    print("   - أنماط IP-like (أرقام-أرقام)")
     start_time = time.time()
     
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
