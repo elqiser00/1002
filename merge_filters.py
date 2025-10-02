@@ -32,62 +32,64 @@ def is_valid_rule(line):
     if not line or len(line) > MAX_LINE_LENGTH:
         return False
     
-    # تجاهل التعليقات (سيتم التعامل معها في convert_rule)
+    # تجاهل التعليقات
     if re.match(r'^[!#]', line):
         return False
     
-    # قبول الأنواع التالية:
+    # تجاهل البيانات الوصفية
+    if re.match(r'^[\[&$]', line):
+        return False
+    
+    # تجاهل التعبيرات العادية
+    if re.match(r'^/.*/$', line):
+        return False
+    
+    # قبول الأنواع التالية فقط:
     # 1. قواعد AdGuard الأساسية
-    # 2. قواعد DNS (127.0.0.1 أو 0.0.0.0)
-    # 3. التعبيرات العادية
+    # 2. قواعد DNS
+    # 3. قواعد النطاقات
     return True
 
 def convert_rule(line):
     """تحويل القواعد المختلفة إلى صيغة AdGuard"""
     line = line.strip()
     
-    # تجاهل الأسطر الفارغة
     if not line:
         return None
     
-    # تجاهل التعليقات
+    # 1. تجاهل التعبيرات العادية تماماً
+    if re.match(r'^/.*/$', line):
+        return None
+    
+    # 2. التعليقات - نتجاهلها
     if re.match(r'^[!#]', line):
         return None
     
-    # تجاهل الأقواس المربعة (عادة للبيانات الوصفية)
-    if re.match(r'^\[', line):
+    # 3. البيانات الوصفية - نتجاهلها
+    if re.match(r'^[\[&$]', line):
         return None
-    
-    # تجاهل القواعد التي تبدأ بـ & أو $ (معلمات متقدمة)
-    if re.match(r'^[&$]', line):
-        return None
-    
-    # 1. تحويل قواعد 127.0.0.1 أو 0.0.0.0
-    # مثال: "127.0.0.1 example.org" → "||example.org^"
-    dns_match = re.match(r'^(127\.0\.0\.1|0\.0\.0\.0)\s+([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})$', line)
-    if dns_match:
-        domain = dns_match.group(2)
-        return f"||{domain}^"
-    
-    # 2. تحويل التعبيرات العادية
-    # مثال: "/regex/" → "/regex/"
-    # نترك التعبيرات العادية كما هي لأن AdGuard يدعمها
-    regex_match = re.match(r'^/(.+)/$', line)
-    if regex_match:
-        return line  # نعيدها كما هي لأن AdGuard يدعم التعبيرات العادية
-    
-    # 3. القواعد التي تحتوي على : (مثل example.org:)
-    colon_match = re.match(r'^([a-zA-Z0-9.-]+\.[a-zA-Z]{2,}):$', line)
-    if colon_match:
-        domain = colon_match.group(1)
-        return f"||{domain}^"
     
     # 4. قواعد AdGuard الأساسية (نتركها كما هي)
     # مثل: ||example.org^ أو @@||example.org^
     if re.match(r'^(@@\|\|)?\|\|([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})\^$', line):
         return line
     
-    # 5. قواعد المضيف (hosts) بدون عنوان IP
+    # 5. تحويل قواعد 127.0.0.1 أو 0.0.0.0
+    # مثال: "127.0.0.1 example.org" → "||example.org^"
+    dns_match = re.match(r'^(127\.0\.0\.1|0\.0\.0\.0)\s+([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})$', line)
+    if dns_match:
+        domain = dns_match.group(2)
+        return f"||{domain}^"
+    
+    # 6. قواعد النطاقات مع النقطتين
+    # مثال: "example.org:" → "||example.org^"
+    colon_match = re.match(r'^([a-zA-Z0-9.-]+\.[a-zA-Z]{2,}):$', line)
+    if colon_match:
+        domain = colon_match.group(1)
+        return f"||{domain}^"
+    
+    # 7. قواعد المضيف (hosts) بدون عنوان IP
+    # مثال: "example.org" → "||example.org^"
     if re.match(r'^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', line):
         return f"||{line}^"
     
@@ -117,7 +119,7 @@ def process_filters(urls):
     seen_rules = set()
     total_urls = len(urls)
     
-    print(f"🔍 بدء معالجة {total_urls} مصدر فلتر (سيتم تنظيف كل التعليقات والمعلومات غير الضرورية)...")
+    print(f"🔍 بدء معالجة {total_urls} مصدر فلتر (سيتم إزالة التعبيرات العادية والتعليقات)...")
     
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
         future_to_url = {executor.submit(download_filter, url): url for url in urls}
@@ -146,6 +148,7 @@ def save_filters(rules, output_dir="merged_filters"):
         f.write("\n".join(rules))
     
     print(f"\n✅ تم حفظ {len(rules)} قاعدة نظيفة فقط في {main_file}")
+    print("🗑️ تم إزالة جميع التعبيرات العادية والتعليقات")
     
     # التقسيم التلقائي
     if len(rules) > MAX_LINES_PER_PART:
@@ -172,9 +175,10 @@ if __name__ == "__main__":
     start_time = time.time()
     try:
         print("🚀 بدء عملية التنظيف والدمج...")
+        print("⚠️ سيتم إزالة جميع التعبيرات العادية من الفلاتر النهائية")
         rules = process_filters(FILTER_URLS)
         save_filters(rules)
         print(f"\n⏱️ الوقت الإجمالي: {time.time() - start_time:.2f} ثانية")
-        print("✨ تمت إزالة جميع التعليقات والمعلومات غير الضرورية بنجاح!")
+        print("✨ تمت إزالة جميع التعبيرات العادية والتعليقات بنجاح!")
     except Exception as e:
         print(f"❌ خطأ: {str(e)}")
