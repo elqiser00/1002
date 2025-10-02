@@ -66,9 +66,27 @@ def is_valid_domain(domain):
             return False
         if not part:  # جزء فارغ
             return False
-        # 🔥 رفض أي جزء يبدأ برقم
+        # رفض أي جزء يبدأ برقم
         if re.match(r'^[0-9]', part):
             return False
+    
+    # 🔥 **فحص إضافي: رفض الدومينات التي تحتوي على أنماط مشبوهة**
+    
+    # رفض الدومينات التي تحتوي على hash طويل (أكثر من 12 حرف أبجدي رقمي)
+    if re.search(r'[a-f0-9]{12,}', domain.lower()):
+        return False
+    
+    # رفض الدومينات التي تحتوي على أرقام متتالية طويلة (أكثر من 4 أرقام)
+    if re.search(r'\d{5,}', domain):
+        return False
+    
+    # رفض الدومينات التي تحتوي على أجزاء كلها أرقام وحروف عشوائية
+    for part in parts[:-1]:  # كل الأجزاء عدا TLD
+        # إذا كان الجزء يحتوي على أكثر من 70% أرقام وحروف hex
+        if len(part) > 8:
+            hex_chars = re.findall(r'[a-f0-9]', part.lower())
+            if len(hex_chars) / len(part) > 0.7:
+                return False
     
     return True
 
@@ -199,7 +217,10 @@ def process_filters_fast(urls):
     
     print(f"🚀 بدء المعالجة السريعة لـ {total_urls} مصدر فلتر...")
     print("🔍 سيتم فحص جميع النطاقات بشكل صارم وإزالة غير الصالحة")
-    print("⚠️ سيتم رفض أي نطاق يحتوي على جزء يبدأ برقم")
+    print("⚠️ سيتم رفض الدومينات التي تحتوي على:")
+    print("   - أجزاء تبدأ بأرقام")
+    print("   - hash طويل (أكثر من 12 حرف)")
+    print("   - أرقام متتالية طويلة")
     start_time = time.time()
     
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
@@ -273,10 +294,6 @@ if __name__ == "__main__":
     total_start_time = time.time()
     try:
         print("⚡ بدء عملية الدمج السريع مع الفحص الصارم...")
-        print("⚠️ سيتم رفض جميع النطاقات التي:")
-        print("   - تبدأ بأرقام أو شرطات أو نقاط")
-        print("   - تحتوي على أي جزء يبدأ برقم")
-        print("   - تكون طويلة جداً أو غير صالحة")
         rules = process_filters_fast(FILTER_URLS)
         save_filters_fast(rules)
         
