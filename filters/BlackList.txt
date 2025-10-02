@@ -84,3 +84,5 @@
 ||hub.sv^$important
 ||scontent.faly8-2.fna.fbcdn.net^$important
 ||.^$important
+||elqiser.ddnsfree.com^$important
+||samsung-com.112.2o7.net^$important
