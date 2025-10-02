@@ -11,10 +11,11 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 # إعدادات التكوين
 MAX_LINES_PER_PART = 2_000_000
 MAX_LINE_LENGTH = 5000
-REQUEST_TIMEOUT = 60
-REQUEST_DELAY = 0.5
-MAX_WORKERS = 10
+REQUEST_TIMEOUT = 30
+REQUEST_DELAY = 0.1
+MAX_WORKERS = 20
 USER_AGENT = "AdGuardHome-Filter-Merger/13.0"
+CHUNK_SIZE = 1000
 
 def load_filter_urls():
     """تحميل روابط الفلاتر من ملف list.txt"""
@@ -27,7 +28,7 @@ def load_filter_urls():
         return []
 
 def is_valid_domain(domain):
-    """التحقق من صحة النطاق"""
+    """التحقق من صحة النطاق بشكل صارم"""
     if not domain or len(domain) < 4:
         return False
     
@@ -52,192 +53,236 @@ def is_valid_domain(domain):
     if not re.match(r'^[a-zA-Z0-9.-]+$', domain):
         return False
     
-    # الطول المعقول للنطاق
+    # الطول المعقول للنطاق (لا يزيد عن 63 حرف للنطاق الكامل)
     if len(domain) > 63:
         return False
     
-    # كل جزء بين النقاط لا يزيد عن 63 حرف
+    # كل جزء بين النقاط لا يزيد عن 63 حرف ولا يبدأ/ينتهي بشرطة
     parts = domain.split('.')
     for part in parts:
         if len(part) > 63:
             return False
         if part.startswith('-') or part.endswith('-'):
             return False
+        if not part:  # جزء فارغ
+            return False
+    
+    # التأكد من أن الجزء الأول (قبل أول نقطة) يبدأ بحرف وليس رقم
+    first_part = parts[0]
+    if not re.match(r'^[a-zA-Z]', first_part):
+        return False
     
     return True
 
 def remove_duplicate_domains(rules):
-    """إزالة التكرارات بناءً على النطاق الأساسي (بدون www)"""
+    """إزالة التكرارات بناءً على النطاق الأساسي"""
     seen_domains = set()
     unique_rules = []
+    removed_count = 0
     
     for rule in rules:
-        # استخراج النطاق من القاعدة
         domain_match = re.search(r'\|\|([^\/\^]+)\^', rule)
         if domain_match:
             domain = domain_match.group(1)
-            
-            # إزالة www. للحصول على النطاق الأساسي
             base_domain = re.sub(r'^www\.', '', domain)
             
             if base_domain not in seen_domains:
                 seen_domains.add(base_domain)
                 unique_rules.append(rule)
+            else:
+                removed_count += 1
         else:
             unique_rules.append(rule)
     
+    if removed_count > 0:
+        print(f"🗑️ تم إزالة {removed_count} قاعدة مكررة بناءً على النطاق الأساسي")
+    
     return unique_rules
 
-def convert_rule(line):
-    """تحويل القواعد المختلفة إلى صيغة AdGuard"""
-    line = line.strip()
+def convert_rules_batch(lines):
+    """تحويل مجموعة من القواعد دفعة واحدة مع فحص صارم"""
+    valid_rules = []
+    rejected_count = 0
     
-    if not line:
-        return None
-    
-    # 1. تجاهل التعبيرات العادية تماماً
-    if re.match(r'^/.*/$', line):
-        return None
-    
-    # 2. التعليقات - نتجاهلها
-    if re.match(r'^[!#]', line):
-        return None
-    
-    # 3. البيانات الوصفية - نتجاهلها
-    if re.match(r'^[\[&$]', line):
-        return None
-    
-    # 4. قواعد AdGuard الأساسية (نتحقق من صحتها أولاً)
-    ag_match = re.match(r'^(@@\|\|)?\|\|([^\/\^]+)\^$', line)
-    if ag_match:
-        domain = ag_match.group(2)
-        if is_valid_domain(domain):
-            return line
+    for line in lines:
+        line = line.strip()
+        
+        if not line:
+            continue
+            
+        # تجاهل التعبيرات العادية والتعليقات والبيانات الوصفية بسرعة
+        if (re.match(r'^[!#\[&$/]', line) or 
+            len(line) > MAX_LINE_LENGTH):
+            rejected_count += 1
+            continue
+        
+        rule = None
+        
+        # 1. قواعد AdGuard الأساسية - فحص صارم
+        ag_match = re.match(r'^(@@\|\|)?\|\|([^\/\^]+)\^$', line)
+        if ag_match:
+            domain = ag_match.group(2)
+            if is_valid_domain(domain):
+                rule = line
+            else:
+                rejected_count += 1
+                continue
+        
+        # 2. تحويل قواعد DNS
+        elif re.match(r'^(127\.0\.0\.1|0\.0\.0\.0)\s+', line):
+            dns_match = re.match(r'^(127\.0\.0\.1|0\.0\.0\.0)\s+([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})$', line)
+            if dns_match:
+                domain = dns_match.group(2)
+                if is_valid_domain(domain):
+                    rule = f"||{domain}^"
+                else:
+                    rejected_count += 1
+                    continue
+        
+        # 3. قواعد النطاقات مع النقطتين
+        elif line.endswith(':'):
+            colon_match = re.match(r'^([a-zA-Z0-9.-]+\.[a-zA-Z]{2,}):$', line)
+            if colon_match:
+                domain = colon_match.group(1)
+                if is_valid_domain(domain):
+                    rule = f"||{domain}^"
+                else:
+                    rejected_count += 1
+                    continue
+        
+        # 4. قواعد المضيف بدون عنوان IP
+        elif re.match(r'^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', line):
+            if is_valid_domain(line):
+                rule = f"||{line}^"
+            else:
+                rejected_count += 1
+                continue
         else:
-            return None
+            rejected_count += 1
+            continue
+        
+        if rule:
+            valid_rules.append(rule)
     
-    # 5. تحويل قواعد 127.0.0.1 أو 0.0.0.0
-    dns_match = re.match(r'^(127\.0\.0\.1|0\.0\.0\.0)\s+([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})$', line)
-    if dns_match:
-        domain = dns_match.group(2)
-        if is_valid_domain(domain):
-            return f"||{domain}^"
-        else:
-            return None
-    
-    # 6. قواعد النطاقات مع النقطتين
-    colon_match = re.match(r'^([a-zA-Z0-9.-]+\.[a-zA-Z]{2,}):$', line)
-    if colon_match:
-        domain = colon_match.group(1)
-        if is_valid_domain(domain):
-            return f"||{domain}^"
-        else:
-            return None
-    
-    # 7. قواعد المضيف (hosts) بدون عنوان IP
-    if re.match(r'^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', line):
-        if is_valid_domain(line):
-            return f"||{line}^"
-        else:
-            return None
-    
-    # تجاهل أي شيء آخر لا يتطابق مع الأنواع المطلوبة
-    return None
+    return valid_rules
 
-def download_filter(url):
-    """تحميل الفلتر مع التصفية الشاملة"""
+def download_filter_fast(url):
+    """تحميل الفلتر بسرعة مع التصفية الصارمة"""
     try:
-        headers = {'User-Agent': USER_AGENT}
+        headers = {
+            'User-Agent': USER_AGENT,
+            'Accept-Encoding': 'gzip, deflate',
+            'Cache-Control': 'no-cache'
+        }
+        
         response = requests.get(url, timeout=REQUEST_TIMEOUT, headers=headers, verify=False)
         response.raise_for_status()
         
+        lines = response.text.splitlines()
         valid_rules = []
-        for line in response.text.splitlines():
-            rule = convert_rule(line)
-            if rule:
-                valid_rules.append(rule)
+        total_rejected = 0
+        
+        for i in range(0, len(lines), CHUNK_SIZE):
+            chunk = lines[i:i + CHUNK_SIZE]
+            chunk_rules = convert_rules_batch(chunk)
+            valid_rules.extend(chunk_rules)
                 
         return valid_rules, url
+        
     except Exception as e:
         print(f"⚠️ خطأ في تحميل {urlparse(url).netloc}: {str(e)}")
         return [], url
 
-def process_filters(urls):
-    """المعالجة النهائية مع التنظيف الكامل"""
+def process_filters_fast(urls):
+    """المعالجة النهائية السريعة مع فحص صارم"""
     seen_rules = set()
     total_urls = len(urls)
-    removed_count = 0
+    total_rules = 0
+    total_rejected = 0
     
-    print(f"🔍 بدء معالجة {total_urls} مصدر فلتر (سيتم إزالة التعبيرات العادية والتعليقات والنطاقات غير الصالحة)...")
+    print(f"🚀 بدء المعالجة السريعة لـ {total_urls} مصدر فلتر...")
+    print("🔍 سيتم فحص جميع النطاقات بشكل صارم وإزالة غير الصالحة")
+    start_time = time.time()
     
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
-        future_to_url = {executor.submit(download_filter, url): url for url in urls}
+        future_to_url = {executor.submit(download_filter_fast, url): url for url in urls}
         
         results = []
-        for i, future in enumerate(as_completed(future_to_url), 1):
+        completed = 0
+        
+        for future in as_completed(future_to_url):
             rules, url = future.result()
             new_rules = [r for r in rules if r not in seen_rules]
+            rejected_in_url = len(rules) - len(new_rules)
+            total_rejected += rejected_in_url
+            
             seen_rules.update(new_rules)
             
-            # حساب القواعد المرفوضة
-            rejected = len(rules) - len(new_rules)
-            removed_count += rejected
+            completed += 1
+            total_rules += len(new_rules)
             
-            print(f"📊 [{i}/{total_urls}] {urlparse(url).netloc}: تمت إضافة {len(new_rules)} قاعدة نظيفة")
+            print(f"📊 [{completed}/{total_urls}] {urlparse(url).netloc}: {len(new_rules)} قاعدة صالحة")
             results.extend(new_rules)
-            
-            if i < total_urls:
-                time.sleep(REQUEST_DELAY)
     
-    print(f"🗑️ تم إزالة {removed_count} قاعدة مكررة أو غير صالحة")
+    processing_time = time.time() - start_time
+    print(f"⏱️ وقت المعالجة: {processing_time:.2f} ثانية")
+    print(f"📈 متوسط السرعة: {total_rules/processing_time:.1f} قاعدة/ثانية")
+    print(f"🗑️ إجمالي القواعد المرفوضة: {total_rejected} قاعدة")
     
-    # 🔥 إزالة التكرارات بناءً على النطاق الأساسي
+    # إزالة التكرارات النهائية
+    final_count_before = len(results)
     results = remove_duplicate_domains(results)
-    print(f"🔥 تم إزالة التكرارات الإضافية بناءً على النطاق الأساسي")
+    final_count_after = len(results)
+    
+    print(f"🔥 تم إزالة {final_count_before - final_count_after} قاعدة مكررة إضافية")
     
     # ترتيب النتائج: الاستثناءات أولاً
     return sorted(results, key=lambda x: (not x.startswith('@@'), x))
 
-def save_filters(rules, output_dir="merged_filters"):
-    """حفظ القواعد النظيفة"""
+def save_filters_fast(rules, output_dir="merged_filters"):
+    """حفظ سريع للقواعد"""
     os.makedirs(output_dir, exist_ok=True)
     
     main_file = os.path.join(output_dir, "adguard_rules.txt")
-    with open(main_file, 'w', encoding='utf-8') as f:
+    
+    with open(main_file, 'w', encoding='utf-8', buffering=8192) as f:
         f.write("\n".join(rules))
     
-    print(f"\n✅ تم حفظ {len(rules)} قاعدة نظيفة فقط في {main_file}")
-    print("🗑️ تم إزالة جميع التعبيرات العادية والتعليقات والنطاقات غير الصالحة")
+    print(f"\n✅ تم حفظ {len(rules)} قاعدة نظيفة في {main_file}")
     
-    # التقسيم التلقائي
+    # التقسيم التلقائي السريع
     if len(rules) > MAX_LINES_PER_PART:
         parts = (len(rules) // MAX_LINES_PER_PART) + 1
         print(f"📦 تقسيم إلى {parts} أجزاء...")
         
         for i in range(parts):
             part_file = os.path.join(output_dir, f"adguard_rules_part_{i+1}.txt")
-            with open(part_file, 'w', encoding='utf-8') as f:
-                start = i * MAX_LINES_PER_PART
-                end = start + MAX_LINES_PER_PART
+            start = i * MAX_LINES_PER_PART
+            end = start + MAX_LINES_PER_PART
+            
+            with open(part_file, 'w', encoding='utf-8', buffering=8192) as f:
                 f.write("\n".join(rules[start:end]))
             
             print(f"✅ الجزء {i+1}: {len(rules[start:end])} قاعدة")
 
 if __name__ == "__main__":
-    # تحميل الروابط من ملف list.txt
     FILTER_URLS = load_filter_urls()
     
     if not FILTER_URLS:
         print("❌ لا توجد روابط فلاتر للمعالجة")
         exit(1)
     
-    start_time = time.time()
+    total_start_time = time.time()
     try:
-        print("🚀 بدء عملية التنظيف والدمج...")
-        print("⚠️ سيتم إزالة جميع التعبيرات العادية والنطاقات غير الصالحة من الفلاتر النهائية")
-        rules = process_filters(FILTER_URLS)
-        save_filters(rules)
-        print(f"\n⏱️ الوقت الإجمالي: {time.time() - start_time:.2f} ثانية")
-        print("✨ تمت إزالة جميع التعبيرات العادية والتعليقات والنطاقات غير الصالحة بنجاح!")
+        print("⚡ بدء عملية الدمج السريع مع الفحص الصارم...")
+        print("⚠️ سيتم رفض جميع النطاقات التي تبدأ بأرقام أو شرطات أو نقاط")
+        rules = process_filters_fast(FILTER_URLS)
+        save_filters_fast(rules)
+        
+        total_time = time.time() - total_start_time
+        print(f"\n🎉 اكتملت العملية في {total_time:.2f} ثانية")
+        print(f"📊 إجمالي القواعد الصالحة: {len(rules):,} قاعدة")
+        print(f"🚀 متوسط الأداء: {len(rules)/total_time:.1f} قاعدة/ثانية")
+        
     except Exception as e:
         print(f"❌ خطأ: {str(e)}")
