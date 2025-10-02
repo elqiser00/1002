@@ -66,29 +66,27 @@ def is_valid_domain(domain):
     
     return True
 
-def is_valid_rule(line):
-    """تحديد إذا كانت القاعدة من الأنواع المطلوبة فقط"""
-    line = line.strip()
-    if not line or len(line) > MAX_LINE_LENGTH:
-        return False
+def remove_duplicate_domains(rules):
+    """إزالة التكرارات بناءً على النطاق الأساسي (بدون www)"""
+    seen_domains = set()
+    unique_rules = []
     
-    # تجاهل التعليقات
-    if re.match(r'^[!#]', line):
-        return False
+    for rule in rules:
+        # استخراج النطاق من القاعدة
+        domain_match = re.search(r'\|\|([^\/\^]+)\^', rule)
+        if domain_match:
+            domain = domain_match.group(1)
+            
+            # إزالة www. للحصول على النطاق الأساسي
+            base_domain = re.sub(r'^www\.', '', domain)
+            
+            if base_domain not in seen_domains:
+                seen_domains.add(base_domain)
+                unique_rules.append(rule)
+        else:
+            unique_rules.append(rule)
     
-    # تجاهل البيانات الوصفية
-    if re.match(r'^[\[&$]', line):
-        return False
-    
-    # تجاهل التعبيرات العادية
-    if re.match(r'^/.*/$', line):
-        return False
-    
-    # قبول الأنواع التالية فقط:
-    # 1. قواعد AdGuard الأساسية
-    # 2. قواعد DNS
-    # 3. قواعد النطاقات
-    return True
+    return unique_rules
 
 def convert_rule(line):
     """تحويل القواعد المختلفة إلى صيغة AdGuard"""
@@ -193,6 +191,10 @@ def process_filters(urls):
     
     print(f"🗑️ تم إزالة {removed_count} قاعدة مكررة أو غير صالحة")
     
+    # 🔥 إزالة التكرارات بناءً على النطاق الأساسي
+    results = remove_duplicate_domains(results)
+    print(f"🔥 تم إزالة التكرارات الإضافية بناءً على النطاق الأساسي")
+    
     # ترتيب النتائج: الاستثناءات أولاً
     return sorted(results, key=lambda x: (not x.startswith('@@'), x))
 
@@ -206,19 +208,6 @@ def save_filters(rules, output_dir="merged_filters"):
     
     print(f"\n✅ تم حفظ {len(rules)} قاعدة نظيفة فقط في {main_file}")
     print("🗑️ تم إزالة جميع التعبيرات العادية والتعليقات والنطاقات غير الصالحة")
-    
-    # حفظ قائمة بالنطاقات فقط (للمراجعة)
-    domains_file = os.path.join(output_dir, "domains_only.txt")
-    domains = []
-    for rule in rules:
-        domain_match = re.search(r'\|\|([^\/\^]+)\^', rule)
-        if domain_match:
-            domains.append(domain_match.group(1))
-    
-    with open(domains_file, 'w', encoding='utf-8') as f:
-        f.write("\n".join(sorted(set(domains))))
-    
-    print(f"🌐 تم حفظ {len(domains)} نطاق فريد في domains_only.txt")
     
     # التقسيم التلقائي
     if len(rules) > MAX_LINES_PER_PART:
