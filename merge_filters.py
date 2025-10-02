@@ -26,109 +26,76 @@ def load_filter_urls():
         print("❌ ملف list.txt غير موجود")
         return []
 
-def is_valid_domain(domain):
-    """التحقق من صحة النطاق"""
-    if not domain or len(domain) < 4 or len(domain) > 255:
+def is_valid_rule(line):
+    """تحديد إذا كانت القاعدة من الأنواع المطلوبة فقط"""
+    line = line.strip()
+    if not line or len(line) > MAX_LINE_LENGTH:
         return False
     
-    # يجب أن يحتوي على نقطة على الأقل
-    if '.' not in domain:
+    # تجاهل التعليقات (سيتم التعامل معها في convert_rule)
+    if re.match(r'^[!#]', line):
         return False
     
-    # يجب أن ينتهي بـ TLD صالح
-    valid_tlds = ['com', 'org', 'net', 'edu', 'gov', 'mil', 'int', 
-                  'io', 'co', 'info', 'biz', 'me', 'tv', 'us', 'uk',
-                  'ca', 'de', 'fr', 'jp', 'cn', 'in', 'ru', 'br', 'au']
-    
-    tld = domain.split('.')[-1].lower()
-    if tld not in valid_tlds and len(tld) < 2:
-        return False
-    
-    # يجب أن يحتوي على أحرف وأرقام وشرطات فقط
-    if not re.match(r'^[a-z0-9-\.]+$', domain, re.IGNORECASE):
-        return False
-    
-    # لا يمكن أن يبدأ أو ينتهي بشرطة أو نقطة
-    if domain.startswith('-') or domain.endswith('-') or domain.startswith('.') or domain.endswith('.'):
-        return False
-    
-    # يجب أن يحتوي على جزء اسم نطاق على الأقل
-    parts = domain.split('.')
-    if len(parts) < 2:
-        return False
-    
-    # كل جزء يجب أن يكون بين 1 و 63 حرف
-    for part in parts:
-        if len(part) < 1 or len(part) > 63:
-            return False
-    
+    # قبول الأنواع التالية:
+    # 1. قواعد AdGuard الأساسية
+    # 2. قواعد DNS (127.0.0.1 أو 0.0.0.0)
+    # 3. التعبيرات العادية
     return True
 
-def extract_domain(line):
-    """استخراج النطاق من أي صيغة وتحويلها لصيغة AdGuard"""
+def convert_rule(line):
+    """تحويل القواعد المختلفة إلى صيغة AdGuard"""
     line = line.strip()
     
-    # تجاهل التعليقات والأسطر الفارغة
-    if not line or line.startswith('!') or line.startswith('#') or line.startswith('/'):
-        return None
-    
-    # تجاهل الأسطر التي تبدأ بـ [ أو &
-    if line.startswith('[') or line.startswith('&'):
-        return None
-    
-    # تنظيف التعليقات من نهاية السطر
-    line = re.sub(r'\s*[#!].*$', '', line)
-    line = line.strip()
-    
+    # تجاهل الأسطر الفارغة
     if not line:
         return None
     
-    # تحديد إذا كانت قاعدة استثناء
-    is_exception = line.startswith('@@')
+    # تجاهل التعليقات
+    if re.match(r'^[!#]', line):
+        return None
     
-    # استخراج النطاق من مختلف الصيغ
-    domain = None
-    extracted_domain = None
+    # تجاهل الأقواس المربعة (عادة للبيانات الوصفية)
+    if re.match(r'^\[', line):
+        return None
     
-    # 1. صيغة AdGuard: @@||example.com^ أو ||example.com^
-    match = re.search(r'@@\|\|([a-z0-9-]+\.[a-z0-9-\.]+)\^', line, re.IGNORECASE)
-    if match:
-        extracted_domain = match.group(1)
-        domain = f"||{extracted_domain}^"
+    # تجاهل القواعد التي تبدأ بـ & أو $ (معلمات متقدمة)
+    if re.match(r'^[&$]', line):
+        return None
     
-    # 2. صيغة DNS قديمة: 0.0.0.0 example.com أو 127.0.0.1 example.com
-    if not domain:
-        match = re.search(r'^(127\.0\.0\.1|0\.0\.0\.0)\s+([a-z0-9-]+\.[a-z0-9-\.]+)', line, re.IGNORECASE)
-        if match:
-            extracted_domain = match.group(2)
-            domain = f"||{extracted_domain}^"
+    # 1. تحويل قواعد 127.0.0.1 أو 0.0.0.0
+    # مثال: "127.0.0.1 example.org" → "||example.org^"
+    dns_match = re.match(r'^(127\.0\.0\.1|0\.0\.0\.0)\s+([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})$', line)
+    if dns_match:
+        domain = dns_match.group(2)
+        return f"||{domain}^"
     
-    # 3. صيغة HOSTS بدون IP: example.com
-    if not domain:
-        match = re.search(r'^\s*([a-z0-9-]+\.[a-z0-9-\.]+)\s*$', line, re.IGNORECASE)
-        if match:
-            extracted_domain = match.group(1).strip()
-            domain = f"||{extracted_domain}^"
+    # 2. تحويل التعبيرات العادية
+    # مثال: "/regex/" → "/regex/"
+    # نترك التعبيرات العادية كما هي لأن AdGuard يدعمها
+    regex_match = re.match(r'^/(.+)/$', line)
+    if regex_match:
+        return line  # نعيدها كما هي لأن AdGuard يدعم التعبيرات العادية
     
-    # 4. صيغة مع التعليقات: 127.0.0.1 example.org # تعليق
-    if not domain:
-        match = re.search(r'^(127\.0\.0\.1|0\.0\.0\.0)\s+([a-z0-9-]+\.[a-z0-9-\.]+)', line, re.IGNORECASE)
-        if match:
-            extracted_domain = match.group(2)
-            domain = f"||{extracted_domain}^"
+    # 3. القواعد التي تحتوي على : (مثل example.org:)
+    colon_match = re.match(r'^([a-zA-Z0-9.-]+\.[a-zA-Z]{2,}):$', line)
+    if colon_match:
+        domain = colon_match.group(1)
+        return f"||{domain}^"
     
-    # التحقق من صحة النطاق المستخرج
-    if domain and extracted_domain:
-        if is_valid_domain(extracted_domain):
-            # إضافة @@ إذا كانت قاعدة استثناء
-            if is_exception:
-                return f"@@{domain}"
-            return domain
+    # 4. قواعد AdGuard الأساسية (نتركها كما هي)
+    # مثل: ||example.org^ أو @@||example.org^
+    if re.match(r'^(@@\|\|)?\|\|([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})\^$', line):
+        return line
     
+    # 5. قواعد المضيف (hosts) بدون عنوان IP
+    if re.match(r'^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', line):
+        return f"||{line}^"
+    
+    # تجاهل أي شيء آخر لا يتطابق مع الأنواع المطلوبة
     return None
 
 def download_filter(url):
-    """تحميل الفلتر وتحويل جميع القواعد لصيغة AdGuard"""
+    """تحميل الفلتر مع التصفية الشاملة"""
     try:
         headers = {'User-Agent': USER_AGENT}
         response = requests.get(url, timeout=REQUEST_TIMEOUT, headers=headers, verify=False)
@@ -136,7 +103,7 @@ def download_filter(url):
         
         valid_rules = []
         for line in response.text.splitlines():
-            rule = extract_domain(line)
+            rule = convert_rule(line)
             if rule:
                 valid_rules.append(rule)
                 
@@ -146,11 +113,11 @@ def download_filter(url):
         return [], url
 
 def process_filters(urls):
-    """المعالجة النهائية مع التأكد من فريدة النطاقات"""
-    seen_domains = set()  # تخزين النطاقات الفريدة
+    """المعالجة النهائية مع التنظيف الكامل"""
+    seen_rules = set()
     total_urls = len(urls)
     
-    print(f"🔍 بدء معالجة {total_urls} مصدر فلتر...")
+    print(f"🔍 بدء معالجة {total_urls} مصدر فلتر (سيتم تنظيف كل التعليقات والمعلومات غير الضرورية)...")
     
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
         future_to_url = {executor.submit(download_filter, url): url for url in urls}
@@ -158,19 +125,10 @@ def process_filters(urls):
         results = []
         for i, future in enumerate(as_completed(future_to_url), 1):
             rules, url = future.result()
-            new_rules = []
+            new_rules = [r for r in rules if r not in seen_rules]
+            seen_rules.update(new_rules)
             
-            for rule in rules:
-                # استخراج النطاق من القاعدة
-                domain_match = re.search(r'\|\|([a-z0-9-]+\.[a-z0-9-\.]+)\^', rule, re.IGNORECASE)
-                if domain_match:
-                    domain = domain_match.group(1)  # النطاق بدون ||
-                    
-                    if domain not in seen_domains:
-                        seen_domains.add(domain)
-                        new_rules.append(rule)
-            
-            print(f"📊 [{i}/{total_urls}] {urlparse(url).netloc}: تمت إضافة {len(new_rules)} قاعدة فريدة")
+            print(f"📊 [{i}/{total_urls}] {urlparse(url).netloc}: تمت إضافة {len(new_rules)} قاعدة نظيفة")
             results.extend(new_rules)
             
             if i < total_urls:
@@ -187,15 +145,7 @@ def save_filters(rules, output_dir="merged_filters"):
     with open(main_file, 'w', encoding='utf-8') as f:
         f.write("\n".join(rules))
     
-    print(f"\n✅ تم حفظ {len(rules)} قاعدة AdGuard فريدة في {main_file}")
-    print("📝 الصيغ المدعومة:")
-    print("   - AdGuard: ||example.com^ أو @@||example.com^")
-    print("   - HOSTS: 127.0.0.1 example.com أو 0.0.0.0 example.com")
-    print("   - النطاقات البسيطة: example.com")
-    print("📝 الصيغ المرفوضة:")
-    print("   - التعليقات: ! أو #")
-    print("   - التعبيرات العادية: /REGEX/")
-    print("   - الرموز الخاصة: [ أو &")
+    print(f"\n✅ تم حفظ {len(rules)} قاعدة نظيفة فقط في {main_file}")
     
     # التقسيم التلقائي
     if len(rules) > MAX_LINES_PER_PART:
@@ -221,10 +171,10 @@ if __name__ == "__main__":
     
     start_time = time.time()
     try:
-        print("🚀 بدء عملية تحويل جميع القواعد لصيغة AdGuard...")
+        print("🚀 بدء عملية التنظيف والدمج...")
         rules = process_filters(FILTER_URLS)
         save_filters(rules)
         print(f"\n⏱️ الوقت الإجمالي: {time.time() - start_time:.2f} ثانية")
-        print("✨ تم تحويل جميع القواعد لصيغة AdGuard بنجاح!")
+        print("✨ تمت إزالة جميع التعليقات والمعلومات غير الضرورية بنجاح!")
     except Exception as e:
         print(f"❌ خطأ: {str(e)}")
