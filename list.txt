@@ -11,6 +11,8 @@ https://adguardteam.github.io/HostlistsRegistry/assets/filter_65.txt
 https://adguardteam.github.io/HostlistsRegistry/assets/filter_63.txt
 https://adguardteam.github.io/HostlistsRegistry/assets/filter_60.txt
 https://adguardteam.github.io/HostlistsRegistry/assets/filter_68.txt
+https://gitlab.com/hagezi/mirror/-/raw/main/dns-blocklists/adblock/popupads.txt
+https://gitlab.com/hagezi/mirror/-/raw/main/dns-blocklists/adblock/fake.txt
 https://raw.githubusercontent.com/AdguardTeam/FiltersRegistry/master/filters/filter_2_Base/filter.txt
 https://raw.githubusercontent.com/AdguardTeam/FiltersRegistry/master/filters/filter_3_Spyware/filter.txt
 https://raw.githubusercontent.com/AdguardTeam/FiltersRegistry/master/filters/filter_17_TrackParam/filter.txt
