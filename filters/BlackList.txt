@@ -62,7 +62,6 @@
 ||unpkg.com^$important
 ||unity3d.com^$important
 ||up.ousaqb.tech^$important
-||googleadsapis.com^$important
 ||*.ad.byteoversea.com^$important
 ||*.ad.tiktok.com^$important
 ||*.ads.imo.im^$important
@@ -73,7 +72,6 @@
 ||adservice.imo.net^$important
 ||adtago.s3.amazonaws.com^$important
 ||advice-ads.s3.amazonaws.com^$important
-||unity3d.com^$important
 ||an.facebook.com^$important
 ||an.m.facebook.com^$important
 ||an.mobile.facebook.com^$important
@@ -83,6 +81,6 @@
 ||b-graph.facebook.com^$important
 ||hub.sv^$important
 ||scontent.faly8-2.fna.fbcdn.net^$important
-||.^$important
 ||elqiser.ddnsfree.com^$important
 ||samsung-com.112.2o7.net^$important
+||.^$important
