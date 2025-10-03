@@ -64,3 +64,5 @@
 @@||fawrypayments.com^$important
 @@||instapay.egyptianbanks.net^$important
 @@||egyptianbanks.net^$important
+@@||googleapis.com^$important
+@@||appsflyersdk.com^$important
