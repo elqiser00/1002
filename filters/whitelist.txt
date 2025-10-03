@@ -20,7 +20,6 @@
 @@||snssdk.com^$important
 @@||bytedance.com^$important
 @@||tiktokcdn.com^$important
-@@||facebook.com^$important
 @@||fb.com^$important
 @@||messenger.com^$important
 @@||fbcdn.net^$important
