@@ -63,3 +63,5 @@
 @@||superapp.atspace.eu^$important
 @@||doodstream.com^$important
 @@||streamtape.com^$important
+@@||configserver-drcn.platform.hihonorcloud.com^$important
+@@||myfawryapp-dev.fawrypayments.com^$important
