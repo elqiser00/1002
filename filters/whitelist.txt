@@ -20,10 +20,10 @@
 @@||snssdk.com^$important
 @@||bytedance.com^$important
 @@||tiktokcdn.com^$important
-@@||facebook.com^$domain=facebook.com|fb.com|messenger.com
-@@||fb.com^
-@@||messenger.com^
-@@||fbcdn.net^$domain=facebook.com|fb.com|messenger.com
+@@||facebook.com^$important
+@@||fb.com^$important
+@@||messenger.com^$important
+@@||fbcdn.net^$important
 @@||imo.im^$important
 @@||imo.me^$important
 @@||imogroups.com^$important
@@ -64,4 +64,3 @@
 @@||superapp.atspace.eu^$important
 @@||doodstream.com^$important
 @@||streamtape.com^$important
-@@||fbcdn.net^$important
