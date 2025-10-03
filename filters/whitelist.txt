@@ -69,3 +69,5 @@
 @@||nullcave.club^$important
 @@||wecima.now^$important
 @@||img.downet.net^$important
+@@||www.minimaxi.com^$important
+@@||agent.minimax.io^$important
