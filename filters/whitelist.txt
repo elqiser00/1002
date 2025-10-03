@@ -72,4 +72,4 @@
 @@||www.minimaxi.com^$important
 @@||minimax.io^$important
 @@||hipodi.com^$important
-@@||cdn.hailuo.ai^$important
+@@||hailuo.ai^$important
