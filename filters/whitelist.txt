@@ -71,3 +71,5 @@
 @@||img.downet.net^$important
 @@||www.minimaxi.com^$important
 @@||minimax.io^$important
+@@||hipodi.com^$important
+@@||cdn.hailuo.ai^$important
