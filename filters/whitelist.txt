@@ -66,3 +66,4 @@
 @@||egyptianbanks.net^$important
 @@||googleapis.com^$important
 @@||appsflyersdk.com^$important
+@@||nullcave.club^$important
