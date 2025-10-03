@@ -67,3 +67,5 @@
 @@||googleapis.com^$important
 @@||appsflyersdk.com^$important
 @@||nullcave.club^$important
+@@||wecima.now^$important
+@@||img.downet.net^$important
