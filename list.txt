@@ -1,3 +1,6 @@
+https://raw.githubusercontent.com/mitchellkrogza/The-Big-List-of-Hacked-Malware-Web-Sites/master/hosts
+https://urlhaus.abuse.ch/downloads/text_online/
+---------------------------------------------------------------------------------------------------------------------------------------------------------------
 https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/fakenews-social/hosts
 https://raw.githubusercontent.com/anudeepND/blacklist/master/facebook.txt
 https://pgl.yoyo.org/adservers/serverlist.php?hostformat=hosts&showintro=0&mimetype=plaintext
