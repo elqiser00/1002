@@ -1,3 +1,6 @@
+https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/fakenews-social/hosts
+https://raw.githubusercontent.com/anudeepND/blacklist/master/facebook.txt
+---------------------------------------------------------------------------------------------------------------------------------------------------------------
 https://raw.githubusercontent.com/mitchellkrogza/Phishing.Database/master/phishing-domains-ACTIVE.txt
 https://raw.githubusercontent.com/mitchellkrogza/The-Big-List-of-Hacked-Malware-Web-Sites/master/hacked-domains.list
 https://raw.githubusercontent.com/firehol/blocklist-ipsets/master/firehol_level1.netset
