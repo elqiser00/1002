@@ -84,3 +84,4 @@
 ||elqiser.ddnsfree.com^$important
 ||samsung-com.112.2o7.net^$important
 ||.^$important
+||ads.tiktok.com^$important
