@@ -23,6 +23,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+          cache: 'pip'
 
       - name: Install dependencies
         run: |
@@ -36,13 +37,15 @@ jobs:
         run: |
           git config user.name "GitHub Actions Bot"
           git config user.email "github-actions@github.com"
-          git add merged_filters/adguard_app_filter.txt
+          # إضافة الملفات الجديدة أو المحدثة (قد تكون blocklist.txt و allowlist.txt أو adguard_app_filter.txt)
+          git add merged_filters/
           git add Adguard_App_filters.py
           if git diff --staged --quiet; then
             echo "✅ No changes to commit"
           else
-            git commit -m "🔄 Auto-update AdGuard filters - $(date '+%Y-%m-%d %H:%M:%S')"
+            # سحب التغييرات عن بُعد أولاً لتجنب الرفض
             git pull --rebase origin main || true
+            git commit -m "🔄 Auto-update AdGuard filters - $(date '+%Y-%m-%d %H:%M:%S')"
             git push origin main
           fi
         env:
