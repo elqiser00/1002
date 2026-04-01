@@ -8,7 +8,6 @@ import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # إعدادات التكوين
-MAX_LINES_PER_PART = 2_000_000
 MAX_LINE_LENGTH = 5000
 REQUEST_TIMEOUT = 60
 REQUEST_DELAY = 0.5
@@ -44,12 +43,6 @@ def is_valid_rule(line):
         return False
     
     # قبول الأنواع التالية (متوافقة مع تطبيق AdGuard):
-    # 1. ||domain^ (حظر النطاق بالكامل)
-    # 2. @@||domain^ (استثناء)
-    # 3. domain.com (صيغة بسيطة)
-    # 4. 0.0.0.0 domain.com (صيغة hosts)
-    # 5. 127.0.0.1 domain.com (صيغة hosts)
-    # 6. ||domain.com^ (حظر كامل)
     return (
         # صيغة AdGuard الأساسية
         re.fullmatch(r'^(@@\|\|)?\|\|([a-z0-9-]+\.)+[a-z]{2,}\^$', line, re.IGNORECASE) or
@@ -72,7 +65,6 @@ def convert_rule(line):
     # تحويل قواعد hosts العادية
     if re.fullmatch(r'^(127\.0\.0\.1|0\.0\.0\.0)\s+([a-z0-9-]+\.)+[a-z]{2,}$', line, re.IGNORECASE):
         domain = line.split()[1]
-        # استخدام الصيغة البسيطة domain.com للتطبيق
         return domain
     
     # تحويل قواعد hosts مع استثناءات
@@ -90,7 +82,6 @@ def convert_rule(line):
     
     # تحويل domain.com البسيطة
     if re.fullmatch(r'^(@@)?([a-z0-9-]+\.)+[a-z]{2,}$', line, re.IGNORECASE):
-        # إذا كانت القاعدة مجرد نطاق بدون رموز، نحتفظ بها كما هي
         return line
     
     # إذا كانت القاعدة بصيغة AdGuard كاملة (||domain^) نحولها للصيغة البسيطة
@@ -115,9 +106,7 @@ def download_filter(url):
         for line in response.text.splitlines():
             rule = convert_rule(line)
             if rule:
-                # إزالة المسافات الزائدة
                 rule = rule.strip()
-                # التأكد من عدم وجود تكرار للـ @@
                 if rule.startswith('@@'):
                     rule = rule.strip('@@')
                     rule = f"@@{rule}"
@@ -157,7 +146,7 @@ def process_filters(urls):
     return sorted(results, key=lambda x: (not x.startswith('@@'), x))
 
 def save_filters(rules, output_dir="merged_filters"):
-    """حفظ القواعد بصيغة متوافقة مع تطبيق AdGuard"""
+    """حفظ القواعد في ملف واحد فقط (بدون تقسيم)"""
     os.makedirs(output_dir, exist_ok=True)
     
     # إضافة رأس الملف لتطبيق AdGuard
@@ -170,14 +159,15 @@ def save_filters(rules, output_dir="merged_filters"):
 !
 """
     
+    # ملف واحد فقط - الفلتر الرئيسي
     main_file = os.path.join(output_dir, "adguard_app_filter.txt")
     with open(main_file, 'w', encoding='utf-8') as f:
         f.write(header)
         f.write("\n".join(rules))
     
-    print(f"\n✅ تم حفظ {len(rules)} قاعدة متوافقة مع تطبيق AdGuard في {main_file}")
+    print(f"\n✅ تم حفظ {len(rules)} قاعدة في ملف واحد: {main_file}")
     
-    # إنشاء ملف بصيغة hosts إضافية كنسخة احتياطية
+    # إنشاء ملف بصيغة hosts إضافية (اختياري)
     hosts_file = os.path.join(output_dir, "hosts_format.txt")
     with open(hosts_file, 'w', encoding='utf-8') as f:
         f.write("# Hosts format for AdGuard App\n")
@@ -188,21 +178,6 @@ def save_filters(rules, output_dir="merged_filters"):
                 f.write(f"0.0.0.0 {rule}\n")
     
     print(f"✅ تم إنشاء نسخة بصيغة hosts في {hosts_file}")
-    
-    # التقسيم التلقائي إذا كان الملف كبيراً
-    if len(rules) > MAX_LINES_PER_PART:
-        parts = (len(rules) // MAX_LINES_PER_PART) + 1
-        print(f"📦 تقسيم إلى {parts} أجزاء...")
-        
-        for i in range(parts):
-            part_file = os.path.join(output_dir, f"adguard_app_filter_part_{i+1}.txt")
-            with open(part_file, 'w', encoding='utf-8') as f:
-                f.write(header)
-                start = i * MAX_LINES_PER_PART
-                end = start + MAX_LINES_PER_PART
-                f.write("\n".join(rules[start:end]))
-            
-            print(f"✅ الجزء {i+1}: {len(rules[start:end])} قاعدة")
 
 def create_metadata():
     """إنشاء ملف metadata.json لتطبيق AdGuard"""
@@ -249,12 +224,12 @@ if __name__ == "__main__":
         print("🗑️  سيتم حذف: التعقيدات غير المدعومة في التطبيق")
         
         rules = process_filters(FILTER_URLS)
-        save_filters(rules)
+        save_filters(rules)  # بدون تقسيم
         create_metadata()
         
         print(f"\n⏱️ الوقت الإجمالي: {time.time() - start_time:.2f} ثانية")
         print("✨ تم تحويل الفلاتر بنجاح لتطبيق AdGuard!")
-        print(f"📊 الإحصائيات النهائية: {len(rules)} قاعدة")
+        print(f"📊 الإحصائيات النهائية: {len(rules)} قاعدة في ملف واحد")
         
         # عرض بعض الأمثلة
         if rules:
