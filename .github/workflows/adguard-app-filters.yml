@@ -9,18 +9,21 @@ jobs:
   build-adguard-app-filters:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    permissions:
+      contents: write  # إضافة صلاحيات الكتابة
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4  # تم التحديث إلى v4
+      uses: actions/checkout@v4
       with:
-        token: ${{ secrets.GH_TOKEN }}
-        fetch-depth: 0
+        token: ${{ secrets.GITHUB_TOKEN }}  # استخدام GITHUB_TOKEN بدلاً من GH_TOKEN
+        fetch-depth: 1  # تغيير من 0 إلى 1 لتسريع العملية
+        persist-credentials: true  # الحفاظ على التوكن للاستخدام لاحقاً
 
     - name: Set up Python
-      uses: actions/setup-python@v5  # تم التحديث إلى v5
+      uses: actions/setup-python@v5
       with:
-        python-version: '3.11'  # استخدام إصدار أحدث من Python
+        python-version: '3.11'
         cache: 'pip'
 
     - name: Install dependencies
@@ -35,10 +38,10 @@ jobs:
     - name: List generated files
       run: |
         echo "📁 Generated files:"
-        ls -la merged_filters/
+        ls -la merged_filters/ || echo "No merged_filters directory yet"
         echo ""
         echo "📊 File sizes:"
-        du -sh merged_filters/*
+        du -sh merged_filters/* 2>/dev/null || echo "No files found"
 
     - name: Commit and push changes
       run: |
@@ -54,16 +57,18 @@ jobs:
           echo "✅ No changes to commit"
         else
           git commit -m "🔄 Auto-update AdGuard App filters - $(date '+%Y-%m-%d %H:%M:%S')"
-          git push https://${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }}.git HEAD:${{ github.ref_name }}
+          git push
           echo "✅ Changes pushed successfully"
         fi
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # استخدام التوكن المدمج
 
     - name: Upload artifacts (optional)
-      if: always()  # سيتم رفع الملفات حتى لو فشلت بعض الخطوات
-      uses: actions/upload-artifact@v4  # تم التحديث إلى v4
+      if: always()
+      uses: actions/upload-artifact@v4
       with:
         name: adguard-app-filters
         path: merged_filters/
         retention-days: 7
-        compression-level: 6  # ضغط أفضل للملفات (اختياري)
-        if-no-files-found: warn  # إظهار تحذير إذا لم يتم العثور على ملفات
+        compression-level: 6
+        if-no-files-found: ignore  # تغيير إلى ignore بدلاً من warn
