@@ -10,97 +10,117 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 REQUEST_TIMEOUT = 60
 REQUEST_DELAY = 0.5
 MAX_WORKERS = 10
-USER_AGENT = "AdGuard-Merger/14.0"
+USER_AGENT = "AdGuard-Cleaner/1.0"
 
-def clean_rule(line):
-    """استخراج النطاق فقط وإزالة أي شروط أو أحرف غير مرغوب فيها"""
-    original = line.strip()
-    if not original or original.startswith(('!', '#')):
-        return None, False
+def extract_domain_only(line):
+    """
+    استخراج النطاق من أي قاعدة وتجاهل أي شيء آخر
+    الإخراج: (domain, is_exception) أو (None, None)
+    """
+    line = line.strip()
+    if not line or line.startswith(('!', '#')):
+        return None, None
 
-    is_exception = original.startswith('@@')
-    # إزالة @@
-    clean = original[2:] if is_exception else original
+    # تحديد إذا كانت استثناء
+    is_exception = line.startswith('@@')
+    # إزالة @@ إن وجدت
+    content = line[2:] if is_exception else line
 
-    # إزالة أي شيء بعد $ أو / (الشروط)
-    # نقسم على $ ونأخذ الجزء الأول
-    clean = clean.split('$')[0]
-    # إذا كان هناك /، نأخذ الجزء الأول
-    clean = clean.split('/')[0]
+    # إزالة أي شيء بعد $ (الشروط)
+    content = content.split('$')[0]
+    # إزالة أي شيء بعد / (إذا كان هناك regex)
+    content = content.split('/')[0]
 
-    # البحث عن نطاق صالح: يجب أن يحتوي على نقطة على الأقل وألا يبدأ برقم متبوع بشرطة
-    # نمط النطاق: حرف (أو رقم) متبوعًا بنقاط وشرطات، وينتهي بـ TLD حروف
-    match = re.search(r'([a-z0-9][a-z0-9\-]*\.[a-z0-9\-]+\.[a-z]{2,}|[a-z0-9][a-z0-9\-]*\.[a-z]{2,})', clean, re.IGNORECASE)
+    # البحث عن نطاق صالح (يتكون من حروف/أرقام/نقاط/شرطات ويحتوي على نقطة)
+    # نمط النطاق: يبدأ بحرف أو رقم (لكن ليس شرطة) ويحتوي على نقطة
+    # نستخدم نمطاً صارماً: يبدأ بحرف أو رقم، ثم أي عدد من الأحرف/الأرقام/الشرطات/النقاط، وينتهي بـ TLD حروف
+    match = re.search(r'([a-z0-9][a-z0-9\-\.]*\.[a-z]{2,})', content, re.IGNORECASE)
     if not match:
-        return None, False
+        return None, None
 
     domain = match.group(1).lower()
+    # تنظيف: إزالة الشرطات الزائدة من البداية والنهاية
     domain = domain.strip('-')
     # منع الشرطات المتتالية
     if '--' in domain:
-        return None, False
+        return None, None
+    # منع النطاق الذي يبدأ برقم يليه شرطة مباشرة
+    if re.match(r'^[0-9]+-', domain):
+        return None, None
     # منع النطاق القصير جداً
     if len(domain) < 4:
-        return None, False
-    # منع النطاق الذي يبدأ برقم ثم شرطة
-    if re.match(r'^[0-9]+-', domain):
-        return None, False
-    # منع النطاق الذي لا يحتوي على نقطة (لن يحدث)
+        return None, None
+    # منع النطاق الذي لا يحتوي على نقطة
     if '.' not in domain:
-        return None, False
+        return None, None
 
-    # بناء الصيغة النهائية
-    if is_exception:
-        return f"@@||{domain}^", True
-    else:
-        return f"||{domain}^", False
+    return domain, is_exception
 
 def download_filter(url):
     try:
         headers = {'User-Agent': USER_AGENT}
         r = requests.get(url, timeout=REQUEST_TIMEOUT, headers=headers, verify=False)
         r.raise_for_status()
-        rules = set()
+        domains = set()
+        exceptions = set()
         for line in r.text.splitlines():
-            rule, _ = clean_rule(line)
-            if rule:
-                rules.add(rule)
-        return rules, url
+            domain, is_exception = extract_domain_only(line)
+            if domain:
+                if is_exception:
+                    exceptions.add(domain)
+                else:
+                    domains.add(domain)
+        return domains, exceptions, url
     except Exception as e:
         print(f"⚠️ {urlparse(url).netloc}: {str(e)}")
-        return set(), url
+        return set(), set(), url
 
 def process_filters(urls):
-    all_rules = set()
+    all_domains = set()
+    all_exceptions = set()
     total = len(urls)
-    print(f"🔍 معالجة {total} مصدر (تنظيف كامل)...")
+    print(f"🔍 معالجة {total} مصدر (استخراج النطاقات فقط)...")
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
         futures = {executor.submit(download_filter, url): url for url in urls}
         for i, future in enumerate(as_completed(futures), 1):
-            rules, url = future.result()
-            new_count = len(rules - all_rules)
-            all_rules.update(rules)
-            print(f"📊 [{i}/{total}] {urlparse(url).netloc}: +{new_count} قاعدة")
+            domains, exceptions, url = future.result()
+            new_domains = domains - all_domains
+            new_exceptions = exceptions - all_exceptions
+            all_domains.update(domains)
+            all_exceptions.update(exceptions)
+            print(f"📊 [{i}/{total}] {urlparse(url).netloc}: +{len(new_domains)} حظر, +{len(new_exceptions)} استثناء")
             if i < total:
                 time.sleep(REQUEST_DELAY)
-    return sorted(all_rules)
 
-def save_filters(rules, output_dir="merged_filters"):
+    # إزالة المستثناة من قائمة الحظر
+    final_domains = all_domains - all_exceptions
+    return sorted(final_domains), sorted(all_exceptions)
+
+def save_filters(domains, exceptions, output_dir="merged_filters"):
     os.makedirs(output_dir, exist_ok=True)
     main_file = os.path.join(output_dir, "adguard_app_filter.txt")
     with open(main_file, 'w', encoding='utf-8') as f:
-        f.write("! Title: AdGuard App Filter (Strict DNS)\n")
+        f.write("! Title: AdGuard App Filter (Clean Domains Only)\n")
         f.write(f"! Version: {time.strftime('%Y.%m.%d')}\n")
-        f.write(f"! Total rules: {len(rules)}\n\n")
-        f.write("\n".join(rules))
+        f.write(f"! Total blocked domains: {len(domains)}\n")
+        f.write(f"! Total exceptions: {len(exceptions)}\n\n")
+        for d in domains:
+            f.write(f"||{d}^\n")
+        for e in exceptions:
+            f.write(f"@@||{e}^\n")
     size_mb = os.path.getsize(main_file) / (1024 * 1024)
-    print(f"\n✅ تم حفظ {len(rules)} قاعدة في {main_file} (حجم {size_mb:.2f} ميجابايت)")
+    print(f"\n✅ تم حفظ {len(domains)} قاعدة حظر و {len(exceptions)} استثناء في {main_file}")
+    print(f"📦 حجم الملف: {size_mb:.2f} ميجابايت")
 
-    # عرض عينة من الأسطر للتأكد من خلوه من الشروط
-    print("\n🔍 عينة من القواعد (يجب أن تكون كلها بصيغة ||domain^ أو @@||domain^):")
-    for r in rules[:10]:
-        print(f"   {r}")
-    return main_file
+    # عرض عينة
+    print("\n🔍 عينة من القواعد النهائية (يجب أن تكون فقط بصيغة ||domain^ أو @@||domain^):")
+    sample = []
+    for d in list(domains)[:5]:
+        sample.append(f"||{d}^")
+    for e in list(exceptions)[:3]:
+        sample.append(f"@@||{e}^")
+    for s in sample:
+        print(f"   {s}")
 
 if __name__ == "__main__":
     try:
@@ -115,6 +135,6 @@ if __name__ == "__main__":
         exit(1)
 
     start = time.time()
-    rules = process_filters(urls)
-    save_filters(rules)
+    domains, exceptions = process_filters(urls)
+    save_filters(domains, exceptions)
     print(f"\n⏱️ الوقت: {time.time() - start:.2f} ثانية")
