@@ -2,73 +2,67 @@ name: Update AdGuard App Filters
 
 on:
   schedule:
-    - cron: '0 */6 * * *'  # كل 6 ساعات
-  workflow_dispatch:  # يمكن تشغيله يدوياً
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
 
 jobs:
-  build-adguard-app-filters:
+  build:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
-      contents: write  # إضافة صلاحيات الكتابة
+      contents: write
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}  # استخدام GITHUB_TOKEN بدلاً من GH_TOKEN
-        fetch-depth: 1  # تغيير من 0 إلى 1 لتسريع العملية
-        persist-credentials: true  # الحفاظ على التوكن للاستخدام لاحقاً
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.11'
-        cache: 'pip'
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install requests
+      - name: Install dependencies
+        run: |
+          pip install requests
 
-    - name: Run AdGuard App filter merger
-      run: |
-        python Adguard_App_filters.py
+      - name: Run filter merger
+        run: |
+          python Adguard_App_filters.py
 
-    - name: List generated files
-      run: |
-        echo "📁 Generated files:"
-        ls -la merged_filters/ || echo "No merged_filters directory yet"
-        echo ""
-        echo "📊 File sizes:"
-        du -sh merged_filters/* 2>/dev/null || echo "No files found"
+      - name: Check file size
+        id: check_size
+        run: |
+          FILE="merged_filters/adguard_app_filter.txt"
+          if [ -f "$FILE" ]; then
+            SIZE=$(stat -c%s "$FILE")
+            SIZE_MB=$((SIZE / 1024 / 1024))
+            echo "size_mb=$SIZE_MB" >> $GITHUB_OUTPUT
+            echo "File size: ${SIZE_MB} MB"
+            if [ $SIZE_MB -gt 100 ]; then
+              echo "File exceeds 100 MB limit. Consider reducing rules."
+              exit 1
+            fi
+          else
+            echo "File not found!"
+            exit 1
+          fi
 
-    - name: Commit and push changes
-      run: |
-        git config user.name "GitHub Actions Bot"
-        git config user.email "github-actions@github.com"
-        
-        # إضافة الملفات الجديدة أو المحدثة
-        git add merged_filters/
-        git add Adguard_App_filters.py
-        
-        # التحقق من وجود تغييرات
-        if git diff --staged --quiet; then
-          echo "✅ No changes to commit"
-        else
-          git commit -m "🔄 Auto-update AdGuard App filters - $(date '+%Y-%m-%d %H:%M:%S')"
-          git push
-          echo "✅ Changes pushed successfully"
-        fi
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # استخدام التوكن المدمج
-
-    - name: Upload artifacts (optional)
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: adguard-app-filters
-        path: merged_filters/
-        retention-days: 7
-        compression-level: 6
-        if-no-files-found: ignore  # تغيير إلى ignore بدلاً من warn
+      - name: Commit and push changes
+        if: success()
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "github-actions@github.com"
+          git add merged_filters/adguard_app_filter.txt
+          git add Adguard_App_filters.py
+          if git diff --staged --quiet; then
+            echo "✅ No changes to commit"
+          else
+            git commit -m "🔄 Auto-update AdGuard App filters - $(date '+%Y-%m-%d %H:%M:%S')"
+            git push
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
