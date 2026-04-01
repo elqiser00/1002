@@ -1,4 +1,4 @@
-All filters To Adguard Home & Pi-hole
+All filters To Adguard Home & Pi-hole & Adguard App filters
 
 To Adguard Home 
 
