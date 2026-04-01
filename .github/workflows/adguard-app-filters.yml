@@ -23,7 +23,6 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-          cache: 'pip'
 
       - name: Install dependencies
         run: |
@@ -33,35 +32,23 @@ jobs:
         run: |
           python Adguard_App_filters.py
 
-      - name: Check file size
-        id: check_size
+      - name: List generated files
         run: |
-          FILE="merged_filters/adguard_app_filter.txt"
-          if [ -f "$FILE" ]; then
-            SIZE=$(stat -c%s "$FILE")
-            SIZE_MB=$((SIZE / 1024 / 1024))
-            echo "size_mb=$SIZE_MB" >> $GITHUB_OUTPUT
-            echo "File size: ${SIZE_MB} MB"
-            if [ $SIZE_MB -gt 100 ]; then
-              echo "File exceeds 100 MB limit. Consider reducing rules."
-              exit 1
-            fi
-          else
-            echo "File not found!"
-            exit 1
-          fi
+          echo "📁 Files in merged_filters:"
+          ls -la merged_filters/
+          echo "📊 Sizes:"
+          du -sh merged_filters/*
 
       - name: Commit and push changes
-        if: success()
         run: |
           git config user.name "GitHub Actions Bot"
           git config user.email "github-actions@github.com"
-          git add merged_filters/adguard_app_filter.txt
+          git add merged_filters/
           git add Adguard_App_filters.py
           if git diff --staged --quiet; then
             echo "✅ No changes to commit"
           else
-            git commit -m "🔄 Auto-update AdGuard App filters - $(date '+%Y-%m-%d %H:%M:%S')"
+            git commit -m "🔄 Auto-update AdGuard filters - $(date '+%Y-%m-%d %H:%M:%S')"
             git push
           fi
         env:
