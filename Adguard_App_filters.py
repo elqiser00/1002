@@ -10,38 +10,27 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 REQUEST_TIMEOUT = 60
 REQUEST_DELAY = 0.5
 MAX_WORKERS = 10
-USER_AGENT = "AdGuard-Cleaner/2.0"
+USER_AGENT = "AdGuard-Cleaner/3.0"
 
-# الحد الأقصى لحجم كل جزء (بالميجابايت)
-MAX_PART_SIZE_MB = 10
-
-def clean_domain(domain):
-    """تنظيف النطاق من الرموز غير المسموحة"""
-    domain = domain.strip().lower()
-    # إزالة الشرطات الزائدة
-    domain = domain.strip('-')
-    # منع الشرطات المتتالية
+def is_valid_domain(domain):
+    """التحقق من صحة النطاق (لا يبدأ برقم/شرطة، لا يحتوي --، به نقطة)"""
+    domain = domain.lower().strip('-')
+    if not domain or len(domain) < 4:
+        return False
     if '--' in domain:
-        return None
-    # منع النطاق الذي يبدأ برقم يليه شرطة
+        return False
+    if domain.startswith(('.', '-')) or domain.endswith('.'):
+        return False
     if re.match(r'^[0-9]+-', domain):
-        return None
-    # منع النطاق الذي يبدأ أو ينتهي بنقطة
-    if domain.startswith('.') or domain.endswith('.'):
-        return None
-    # منع النطاق القصير جداً
-    if len(domain) < 4:
-        return None
-    # منع الأحرف غير المسموحة
+        return False
     if re.search(r'[^a-z0-9\.\-]', domain):
-        return None
-    # يجب أن يحتوي على نقطة على الأقل
+        return False
     if '.' not in domain:
-        return None
-    return domain
+        return False
+    return True
 
-def extract_domain_only(line):
-    """استخراج النطاق فقط من أي قاعدة، مع تجاهل الشروط والنجوم"""
+def extract_domain(line):
+    """استخراج النطاق من أي قاعدة وإرجاع (domain, is_exception)"""
     line = line.strip()
     if not line or line.startswith(('!', '#')):
         return None, None
@@ -49,27 +38,22 @@ def extract_domain_only(line):
     is_exception = line.startswith('@@')
     content = line[2:] if is_exception else line
 
-    # إزالة أي شيء بعد $ (شروط)
+    # إزالة الشروط ($) والمسارات (/) والنجوم (*)
     content = content.split('$')[0]
-    # إزالة أي شيء بعد / (إن وجد)
     content = content.split('/')[0]
-    # إزالة النجمة * (لا يمكن استخدامها في DNS)
     content = content.replace('*', '')
 
-    # البحث عن نطاق صالح: يبدأ بحرف أو رقم، ثم أي عدد من الحروف/الأرقام/الشرطات/النقاط، وينتهي بـ TLD
-    # نستخدم نمطاً صارماً يمنع الأرقام كبداية غير طبيعية
+    # البحث عن نطاق صالح: يجب أن يبدأ بحرف (a-z) ويحتوي على نقطة
     match = re.search(r'([a-z][a-z0-9\-]*\.[a-z0-9\-]+\.[a-z]{2,}|[a-z][a-z0-9\-]*\.[a-z]{2,})', content, re.IGNORECASE)
     if not match:
         return None, None
 
-    domain = match.group(1).lower()
-    domain = clean_domain(domain)
-    if not domain:
-        return None, None
+    domain = match.group(1).lower().strip('-')
+    if is_valid_domain(domain):
+        return domain, is_exception
+    return None, None
 
-    return domain, is_exception
-
-def download_filter(url):
+def download_source(url):
     try:
         headers = {'User-Agent': USER_AGENT}
         r = requests.get(url, timeout=REQUEST_TIMEOUT, headers=headers, verify=False)
@@ -77,7 +61,7 @@ def download_filter(url):
         domains = set()
         exceptions = set()
         for line in r.text.splitlines():
-            domain, is_exception = extract_domain_only(line)
+            domain, is_exception = extract_domain(line)
             if domain:
                 if is_exception:
                     exceptions.add(domain)
@@ -88,13 +72,13 @@ def download_filter(url):
         print(f"⚠️ {urlparse(url).netloc}: {str(e)}")
         return set(), set(), url
 
-def process_filters(urls):
+def merge_filters(urls):
     all_domains = set()
     all_exceptions = set()
     total = len(urls)
-    print(f"🔍 معالجة {total} مصدر (استخراج النطاقات الصالحة فقط)...")
+    print(f"🔍 معالجة {total} مصدر (استخراج النطاقات الصالحة)...")
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
-        futures = {executor.submit(download_filter, url): url for url in urls}
+        futures = {executor.submit(download_source, url): url for url in urls}
         for i, future in enumerate(as_completed(futures), 1):
             domains, exceptions, url = future.result()
             new_domains = domains - all_domains
@@ -105,68 +89,28 @@ def process_filters(urls):
             if i < total:
                 time.sleep(REQUEST_DELAY)
 
+    # إزالة المستثناة من قائمة الحظر
     final_domains = all_domains - all_exceptions
     return sorted(final_domains), sorted(all_exceptions)
 
-def split_and_save(domains, exceptions, output_dir="merged_filters"):
-    os.makedirs(output_dir, exist_ok=True)
-
-    # إنشاء القائمة الكاملة كسلسلة
-    lines = []
-    for d in domains:
-        lines.append(f"||{d}^")
-    for e in exceptions:
-        lines.append(f"@@||{e}^")
-
-    total_lines = len(lines)
-    if total_lines == 0:
-        print("⚠️ لا توجد قواعد للكتابة")
-        return
-
-    # تقدير حجم الملف لكل جزء
-    # نحاول تقسيم بناءً على حجم الملف المقدر (بافتراض 30 بايت لكل سطر)
-    avg_bytes_per_line = 30
-    max_lines_per_part = int((MAX_PART_SIZE_MB * 1024 * 1024) / avg_bytes_per_line)
-
-    if total_lines <= max_lines_per_part:
-        # ملف واحد فقط
-        main_file = os.path.join(output_dir, "adguard_app_filter.txt")
-        with open(main_file, 'w', encoding='utf-8') as f:
-            f.write("! Title: AdGuard App Filter (Clean)\n")
-            f.write(f"! Version: {time.strftime('%Y.%m.%d')}\n")
-            f.write(f"! Total rules: {total_lines}\n\n")
-            f.write("\n".join(lines))
-        size_mb = os.path.getsize(main_file) / (1024 * 1024)
-        print(f"\n✅ تم حفظ {total_lines} قاعدة في ملف واحد (حجم {size_mb:.2f} ميجابايت)")
-    else:
-        # تقسيم إلى أجزاء
-        num_parts = (total_lines + max_lines_per_part - 1) // max_lines_per_part
-        print(f"\n📦 تقسيم {total_lines} قاعدة إلى {num_parts} جزء (حد أقصى {MAX_PART_SIZE_MB} ميجابايت لكل جزء)")
-
-        for i in range(num_parts):
-            start = i * max_lines_per_part
-            end = min(start + max_lines_per_part, total_lines)
-            part_lines = lines[start:end]
-            part_file = os.path.join(output_dir, f"adguard_app_filter_part_{i+1}.txt")
-            with open(part_file, 'w', encoding='utf-8') as f:
-                f.write("! Title: AdGuard App Filter (Part {})\n".format(i+1))
-                f.write(f"! Version: {time.strftime('%Y.%m.%d')}\n")
-                f.write(f"! Total rules: {len(part_lines)}\n\n")
-                f.write("\n".join(part_lines))
-            size_mb = os.path.getsize(part_file) / (1024 * 1024)
-            print(f"   ✅ الجزء {i+1}: {len(part_lines)} قاعدة (حجم {size_mb:.2f} ميجابايت)")
-
-        # إنشاء ملف فهرس (اختياري)
-        with open(os.path.join(output_dir, "parts_index.txt"), 'w', encoding='utf-8') as f:
-            f.write("! قائمة الأجزاء (أضف كل رابط في تطبيق AdGuard)\n")
-            base_url = "https://raw.githubusercontent.com/elqiser00/1002/main/merged_filters/"
-            for i in range(num_parts):
-                f.write(f"{base_url}adguard_app_filter_part_{i+1}.txt\n")
-
-        print("\n🔗 روابط الأجزاء:")
-        base_url = "https://raw.githubusercontent.com/elqiser00/1002/main/merged_filters/"
-        for i in range(num_parts):
-            print(f"   {base_url}adguard_app_filter_part_{i+1}.txt")
+def save_single_file(domains, exceptions, out_dir="merged_filters"):
+    os.makedirs(out_dir, exist_ok=True)
+    file_path = os.path.join(out_dir, "adguard_app_filter.txt")
+    with open(file_path, 'w', encoding='utf-8') as f:
+        f.write("! Title: AdGuard App Filter (Strict DNS)\n")
+        f.write(f"! Version: {time.strftime('%Y.%m.%d')}\n")
+        f.write(f"! Blocked domains: {len(domains)}\n")
+        f.write(f"! Exceptions: {len(exceptions)}\n\n")
+        for d in domains:
+            f.write(f"||{d}^\n")
+        for e in exceptions:
+            f.write(f"@@||{e}^\n")
+    size_mb = os.path.getsize(file_path) / (1024 * 1024)
+    print(f"\n✅ تم حفظ {len(domains)} قاعدة حظر و {len(exceptions)} استثناء في {file_path}")
+    print(f"📦 حجم الملف: {size_mb:.2f} ميجابايت")
+    if size_mb > 95:
+        print("⚠️  تحذير: الملف كبير جداً (أكثر من 95 ميجابايت). قد يواجه GitHub صعوبة في الدفع.")
+    return file_path
 
 if __name__ == "__main__":
     try:
@@ -181,6 +125,6 @@ if __name__ == "__main__":
         exit(1)
 
     start = time.time()
-    domains, exceptions = process_filters(urls)
-    split_and_save(domains, exceptions)
-    print(f"\n⏱️ الوقت: {time.time() - start:.2f} ثانية")
+    blocked, allowed = merge_filters(urls)
+    save_single_file(blocked, allowed)
+    print(f"\n⏱️ الوقت الإجمالي: {time.time() - start:.2f} ثانية")
