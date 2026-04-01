@@ -10,87 +10,85 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 REQUEST_TIMEOUT = 60
 REQUEST_DELAY = 0.5
 MAX_WORKERS = 10
-USER_AGENT = "AdGuard-App-Filter-Merger/7.0"
+USER_AGENT = "AdGuard-App-Filter-Merger/8.0"
 
-def clean_rule(rule):
-    """تنظيف القاعدة: إزالة التعليقات، الشرطات الزائدة، وإرجاع القاعدة النظيفة"""
-    rule = rule.strip()
-    if not rule or rule.startswith('!') or rule.startswith('#'):
-        return None, None
+# الأنماط المدعومة من تطبيق AdGuard (بدون تحويل)
+VALID_PATTERNS = [
+    # استثناءات AdGuard
+    r'^@@\|\|[^\s]+\^$',
+    # قواعد AdGuard العادية
+    r'^\|\|[^\s]+\^$',
+    # استثناءات hosts
+    r'^@@(0\.0\.0\.0|127\.0\.0\.1)\s+[^\s]+$',
+    # قواعد hosts
+    r'^(0\.0\.0\.0|127\.0\.0\.1)\s+[^\s]+$',
+    # نطاقات عادية (مع أو بدون @@)
+    r'^(@@)?[a-z0-9.-]+\.[a-z]{2,}$',
+    # قواعد AdGuard بدون ^
+    r'^(@@)?\|\|[a-z0-9.-]+\.[a-z]{2,}$',
+    # صيغة /domain/ (نادرة)
+    r'^/[a-z0-9.-]+\.[a-z]{2,}/$',
+]
 
-    is_exception = rule.startswith('@@')
-    clean = rule[2:] if is_exception else rule
-
-    # محاولة استخراج نطاق (حتى لو بدأ برقم)
-    # نبحث عن أي جزء يحتوي على نقطة ويمثل نطاقًا محتملاً
-    domain_match = re.search(r'([a-z0-9\-]+\.[a-z0-9\-\.]+)', clean, re.IGNORECASE)
-    if domain_match:
-        domain = domain_match.group(1).lower()
-        # إزالة الشرطات الزائدة من البداية والنهاية
-        domain = domain.strip('-')
-        # إذا كان النطاق صالحًا (يحتوي على نقطة)، نحتفظ به
-        if '.' in domain:
-            return domain, is_exception
-
-    # إذا لم نجد نطاقًا، نعيد السطر الأصلي (ربما يكون قاعدة غير قياسية)
-    return clean, is_exception
+def is_valid_rule(line):
+    """التحقق من أن القاعدة تطابق أحد الأنماط المدعومة"""
+    line = line.strip()
+    if not line:
+        return False
+    if line.startswith('!') or line.startswith('#'):
+        return False
+    for pattern in VALID_PATTERNS:
+        if re.match(pattern, line, re.IGNORECASE):
+            return True
+    return False
 
 def download_filter(url):
+    """تحميل الفلتر والاحتفاظ بالقواعد الصالحة فقط"""
     try:
         headers = {'User-Agent': USER_AGENT}
         response = requests.get(url, timeout=REQUEST_TIMEOUT, headers=headers, verify=False)
         response.raise_for_status()
-        
-        domains = []
-        exceptions = []
+        rules = []
         for line in response.text.splitlines():
-            domain, is_exception = clean_rule(line)
-            if domain:
-                if is_exception:
-                    exceptions.append(domain)
-                else:
-                    domains.append(domain)
-        return list(set(domains)), list(set(exceptions)), url
+            if is_valid_rule(line):
+                rules.append(line.strip())
+        return rules, url
     except Exception as e:
         print(f"⚠️ {urlparse(url).netloc}: {str(e)}")
-        return [], [], url
+        return [], url
 
 def process_filters(urls):
-    all_domains = set()
-    all_exceptions = set()
+    """دمج الفلاتر وإزالة المكرر"""
+    seen = set()
     total_urls = len(urls)
+    all_rules = []
     print(f"🔍 معالجة {total_urls} مصدر...")
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
         future_to_url = {executor.submit(download_filter, url): url for url in urls}
         for i, future in enumerate(as_completed(future_to_url), 1):
-            domains, exceptions, url = future.result()
-            new_domains = [d for d in domains if d not in all_domains]
-            new_exceptions = [e for e in exceptions if e not in all_exceptions]
-            all_domains.update(domains)
-            all_exceptions.update(exceptions)
-            print(f"📊 [{i}/{total_urls}] {urlparse(url).netloc}: +{len(new_domains)} حظر, +{len(new_exceptions)} استثناء")
+            rules, url = future.result()
+            new_rules = []
+            for r in rules:
+                if r not in seen:
+                    seen.add(r)
+                    new_rules.append(r)
+            all_rules.extend(new_rules)
+            print(f"📊 [{i}/{total_urls}] {urlparse(url).netloc}: {len(rules)} قاعدة → {len(new_rules)} جديدة")
             if i < total_urls:
                 time.sleep(REQUEST_DELAY)
-    final_domains = all_domains - all_exceptions
-    print(f"\n📈 النتائج: {len(final_domains)} نطاق فريد, {len(all_exceptions)} استثناء")
-    return sorted(final_domains), sorted(all_exceptions)
+    return all_rules
 
-def save_filters(domains, exceptions, output_dir="merged_filters"):
+def save_filters(rules, output_dir="merged_filters"):
     os.makedirs(output_dir, exist_ok=True)
     main_file = os.path.join(output_dir, "adguard_app_filter.txt")
     with open(main_file, 'w', encoding='utf-8') as f:
-        # رأس بسيط
-        f.write(f"! Title: AdGuard App Filter\n")
+        f.write("! Title: AdGuard App Custom Filter\n")
         f.write(f"! Version: {time.strftime('%Y.%m.%d')}\n")
-        f.write(f"! Total rules: {len(domains) + len(exceptions)}\n\n")
-        for d in domains:
-            f.write(f"{d}\n")
-        for e in exceptions:
-            f.write(f"@@{e}\n")
-    print(f"\n✅ حفظ {len(domains)} قاعدة حظر و {len(exceptions)} استثناء في {main_file}")
+        f.write(f"! Total rules: {len(rules)}\n\n")
+        f.write("\n".join(rules))
+    print(f"\n✅ تم حفظ {len(rules)} قاعدة في {main_file}")
 
 if __name__ == "__main__":
-    # تحميل الروابط من list.txt
     try:
         with open("list.txt", "r", encoding="utf-8") as f:
             urls = [line.strip() for line in f if line.strip() and not line.startswith("#")]
@@ -103,6 +101,7 @@ if __name__ == "__main__":
         exit(1)
 
     start = time.time()
-    domains, exceptions = process_filters(urls)
-    save_filters(domains, exceptions)
+    rules = process_filters(urls)
+    save_filters(rules)
     print(f"⏱️ الوقت: {time.time() - start:.2f} ثانية")
+    print(f"📊 الإجمالي: {len(rules)} قاعدة فريدة")
