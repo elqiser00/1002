@@ -180,3 +180,5 @@
 ||wd.adcolony.com^$important
 ||weather-analytics-events.apple.com^$important
 ||webview.unityads.unity3d.com^$important
+||analyticsengine.s3.amazonaws.com^$important
+||adfstat.yandex.ru^$important
