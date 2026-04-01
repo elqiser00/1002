@@ -1,6 +1,5 @@
 https://raw.githubusercontent.com/mitchellkrogza/The-Big-List-of-Hacked-Malware-Web-Sites/master/hosts
 https://urlhaus.abuse.ch/downloads/text_online/
----------------------------------------------------------------------------------------------------------------------------------------------------------------
 https://raw.githubusercontent.com/mitchellkrogza/Phishing.Database/master/phishing-domains-ACTIVE.txt
 https://raw.githubusercontent.com/mitchellkrogza/The-Big-List-of-Hacked-Malware-Web-Sites/master/hacked-domains.list
 https://raw.githubusercontent.com/firehol/blocklist-ipsets/master/firehol_level1.netset
@@ -11,7 +10,6 @@ https://raw.githubusercontent.com/AmnestyTech/investigations/master/2021-07-18_n
 https://raw.githubusercontent.com/ShadowWhisperer/BlockLists/master/Lists/Ads
 https://raw.githubusercontent.com/ShadowWhisperer/BlockLists/master/Lists/Malware
 https://raw.githubusercontent.com/bongochong/CombinedPrivacyBlockLists/master/newhosts-final.hosts
----------------------------------------------------------------------------------------------------------------------------------------------------------------
 https://raw.githubusercontent.com/Spam404/lists/master/adblock-list.txt
 https://raw.githubusercontent.com/AdAway/adaway.github.io/master/hosts.txt
 https://raw.githubusercontent.com/FadeMind/hosts.extras/master/add.Spam/hosts
@@ -25,7 +23,6 @@ https://raw.githubusercontent.com/crazy-max/WindowsSpyBlocker/master/data/hosts/
 https://raw.githubusercontent.com/matomo-org/referrer-spam-blacklist/master/spammers.txt
 https://raw.githubusercontent.com/notracking/hosts-blocklists/master/hostnames.txt
 https://raw.githubusercontent.com/reek/anti-adblock-killer/master/anti-adblock-killer-filters.txt
----------------------------------------------------------------------------------------------------------------------------------------------------------------
 https://adguardteam.github.io/HostlistsRegistry/assets/filter_3.txt
 https://adguardteam.github.io/HostlistsRegistry/assets/filter_7.txt
 https://adguardteam.github.io/HostlistsRegistry/assets/filter_57.txt
@@ -222,7 +219,7 @@ https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/domains/native.huawei.t
 https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/domains/native.winoffice.txt
 https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/domains/native.tiktok.extended.txt
 https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/domains/native.lgwebos.txt
-https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/domains/native.vivo.txt
+https://codeberg.org/hagezi/mirror2/raw/branch/main/dns-blocklists/domains/native.vivo.txt
 https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/domains/native.oppo-realme.txt
 https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/domains/native.xiaomi.txt
 https://small.oisd.nl/rpz
