@@ -1,8 +1,0 @@
-! قائمة الأجزاء (أضف كل رابط في تطبيق AdGuard)
-https://raw.githubusercontent.com/elqiser00/1002/main/merged_filters/adguard_app_filter_part_1.txt
-https://raw.githubusercontent.com/elqiser00/1002/main/merged_filters/adguard_app_filter_part_2.txt
-https://raw.githubusercontent.com/elqiser00/1002/main/merged_filters/adguard_app_filter_part_3.txt
-https://raw.githubusercontent.com/elqiser00/1002/main/merged_filters/adguard_app_filter_part_4.txt
-https://raw.githubusercontent.com/elqiser00/1002/main/merged_filters/adguard_app_filter_part_5.txt
-https://raw.githubusercontent.com/elqiser00/1002/main/merged_filters/adguard_app_filter_part_6.txt
-https://raw.githubusercontent.com/elqiser00/1002/main/merged_filters/adguard_app_filter_part_7.txt
