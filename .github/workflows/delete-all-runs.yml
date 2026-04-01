@@ -4,52 +4,28 @@ on:
   workflow_dispatch:
     inputs:
       confirm:
-        description: 'اكتب "DELETE" لتأكيد الحذف'
+        description: 'Type "DELETE" to confirm'
         required: true
-        type: string
-      dry_run:
-        description: 'وضع التجربة (true = عرض فقط بدون حذف)'
-        required: false
-        type: boolean
-        default: false
+        default: ''
 
 jobs:
-  delete-runs:
+  delete:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
     permissions:
-      actions: write   # مطلوب لحذف الـ runs
-      contents: read   # لقراءة الملفات
-
+      actions: write
     steps:
       - name: Check confirmation
         if: github.event.inputs.confirm != 'DELETE'
         run: |
-          echo "❌ لم يتم تأكيد الحذف"
-          echo "يرجى إعادة تشغيل workflow وكتابة 'DELETE' في حقل التأكيد"
+          echo "❌ Confirmation failed. Please type DELETE."
           exit 1
 
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Delete all workflow runs
+        uses: Mattraks/delete-workflow-runs@v2
         with:
-          python-version: '3.11'
-
-      - name: Install dependencies
-        run: |
-          pip install requests
-
-      - name: Run deletion script
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-        run: |
-          if [[ "${{ github.event.inputs.dry_run }}" == "true" ]]; then
-            echo "🔍 وضع التجربة (dry-run) - سيتم العرض فقط"
-            python delete_workflow_runs.py --dry-run
-          else
-            echo "🗑️ بدء الحذف الفعلي..."
-            python delete_workflow_runs.py
-          fi
+          token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          retain_days: 0
+          keep_minimum_runs: 0
+          delete_workflow_by_state_pattern: ALL
+          delete_run_by_conclusion_pattern: ALL
