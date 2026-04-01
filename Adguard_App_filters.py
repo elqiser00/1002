@@ -10,10 +10,10 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 REQUEST_TIMEOUT = 60
 REQUEST_DELAY = 0.5
 MAX_WORKERS = 10
-USER_AGENT = "AdGuard-Cleaner/3.0"
+USER_AGENT = "AdGuard-Merger/15.0"
 
 def is_valid_domain(domain):
-    """التحقق من صحة النطاق (لا يبدأ برقم/شرطة، لا يحتوي --، به نقطة)"""
+    """التحقق من صحة النطاق"""
     domain = domain.lower().strip('-')
     if not domain or len(domain) < 4:
         return False
@@ -30,7 +30,7 @@ def is_valid_domain(domain):
     return True
 
 def extract_domain(line):
-    """استخراج النطاق من أي قاعدة وإرجاع (domain, is_exception)"""
+    """استخراج النطاق وإرجاع (domain, is_exception)"""
     line = line.strip()
     if not line or line.startswith(('!', '#')):
         return None, None
@@ -43,7 +43,7 @@ def extract_domain(line):
     content = content.split('/')[0]
     content = content.replace('*', '')
 
-    # البحث عن نطاق صالح: يجب أن يبدأ بحرف (a-z) ويحتوي على نقطة
+    # البحث عن نطاق صالح: يبدأ بحرف (a-z)
     match = re.search(r'([a-z][a-z0-9\-]*\.[a-z0-9\-]+\.[a-z]{2,}|[a-z][a-z0-9\-]*\.[a-z]{2,})', content, re.IGNORECASE)
     if not match:
         return None, None
@@ -76,7 +76,7 @@ def merge_filters(urls):
     all_domains = set()
     all_exceptions = set()
     total = len(urls)
-    print(f"🔍 معالجة {total} مصدر (استخراج النطاقات الصالحة)...")
+    print(f"🔍 معالجة {total} مصدر (استخراج النطاقات)...")
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
         futures = {executor.submit(download_source, url): url for url in urls}
         for i, future in enumerate(as_completed(futures), 1):
@@ -97,14 +97,14 @@ def save_single_file(domains, exceptions, out_dir="merged_filters"):
     os.makedirs(out_dir, exist_ok=True)
     file_path = os.path.join(out_dir, "adguard_app_filter.txt")
     with open(file_path, 'w', encoding='utf-8') as f:
-        f.write("! Title: AdGuard App Filter (Strict DNS)\n")
+        f.write("! Title: AdGuard App Filter (with $important)\n")
         f.write(f"! Version: {time.strftime('%Y.%m.%d')}\n")
         f.write(f"! Blocked domains: {len(domains)}\n")
         f.write(f"! Exceptions: {len(exceptions)}\n\n")
         for d in domains:
-            f.write(f"||{d}^\n")
+            f.write(f"||{d}^$important\n")
         for e in exceptions:
-            f.write(f"@@||{e}^\n")
+            f.write(f"@@||{e}^$important\n")
     size_mb = os.path.getsize(file_path) / (1024 * 1024)
     print(f"\n✅ تم حفظ {len(domains)} قاعدة حظر و {len(exceptions)} استثناء في {file_path}")
     print(f"📦 حجم الملف: {size_mb:.2f} ميجابايت")
