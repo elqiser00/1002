@@ -32,24 +32,18 @@ jobs:
         run: |
           python Adguard_App_filters.py
 
-      - name: List generated files
-        run: |
-          echo "📁 Files in merged_filters:"
-          ls -la merged_filters/
-          echo "📊 Sizes:"
-          du -sh merged_filters/*
-
       - name: Commit and push changes
         run: |
           git config user.name "GitHub Actions Bot"
           git config user.email "github-actions@github.com"
-          git add merged_filters/
+          git add merged_filters/adguard_app_filter.txt
           git add Adguard_App_filters.py
           if git diff --staged --quiet; then
             echo "✅ No changes to commit"
           else
             git commit -m "🔄 Auto-update AdGuard filters - $(date '+%Y-%m-%d %H:%M:%S')"
-            git push
+            git pull --rebase origin main || true
+            git push origin main
           fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
