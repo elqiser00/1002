@@ -1,17 +1,17 @@
 import requests
 import os
 import time
+import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from urllib.parse import urlparse
 import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # إعدادات التكوين
-MAX_LINE_LENGTH = 10000  # زيادة الحد الأقصى لطول السطر
 REQUEST_TIMEOUT = 60
 REQUEST_DELAY = 0.5
 MAX_WORKERS = 10
-USER_AGENT = "AdGuard-App-Filter-Merger/3.0"
+USER_AGENT = "AdGuard-App-Filter-Merger/4.0"
 
 def load_filter_urls():
     """تحميل روابط الفلاتر من ملف list.txt"""
@@ -23,111 +23,184 @@ def load_filter_urls():
         print("❌ ملف list.txt غير موجود")
         return []
 
-def clean_line(line):
-    """تنظيف السطر فقط من المسافات والتأكد من أنه ليس فارغاً"""
-    line = line.strip()
-    if not line:
-        return None
-    # تجاهل التعليقات فقط (السطور التي تبدأ بـ ! أو #)
-    if line.startswith('!') or line.startswith('#'):
-        return None
-    return line
+def extract_domain_from_rule(rule):
+    """استخراج النطاق من أي صيغة قاعدة وتحويلها إلى صيغة موحدة"""
+    rule = rule.strip()
+    
+    # تجاهل التعليقات
+    if rule.startswith('!') or rule.startswith('#'):
+        return None, None
+    
+    # التحقق إذا كانت القاعدة استثناء
+    is_exception = rule.startswith('@@')
+    
+    # إزالة علامة الاستثناء إذا وجدت للمعالجة
+    clean_rule = rule[2:] if is_exception else rule
+    
+    # قائمة بأنماط القواعد المدعومة
+    patterns = [
+        # صيغة AdGuard: ||example.com^
+        (r'^\|\|([a-z0-9-\.]+)\^$', r'\1'),
+        # صيغة AdGuard بدون ^: ||example.com
+        (r'^\|\|([a-z0-9-\.]+)$', r'\1'),
+        # صيغة hosts: 0.0.0.0 example.com أو 127.0.0.1 example.com
+        (r'^(?:0\.0\.0\.0|127\.0\.0\.1)\s+([a-z0-9-\.]+)$', r'\1'),
+        # صيغة نطاق عادي: example.com
+        (r'^([a-z0-9-\.]+\.[a-z]{2,})$', r'\1'),
+        # صيغة مع *: *.example.com
+        (r'^\*\.([a-z0-9-\.]+\.[a-z]{2,})$', r'\1'),
+        # صيغة مع /: /example.com/
+        (r'^/([a-z0-9-\.]+\.[a-z]{2,})/$', r'\1'),
+    ]
+    
+    for pattern, replacement in patterns:
+        match = re.match(pattern, clean_rule, re.IGNORECASE)
+        if match:
+            domain = match.group(1).lower()
+            # تنظيف النطاق من أي نقاط إضافية
+            domain = domain.strip('.')
+            return domain, is_exception
+    
+    return None, None
 
-def download_filter(url):
-    """تحميل الفلتر بدون أي تعديل (الحفاظ على كل القواعد)"""
+def download_and_extract_domains(url):
+    """تحميل الفلتر واستخراج النطاقات فقط"""
     try:
         headers = {'User-Agent': USER_AGENT}
         response = requests.get(url, timeout=REQUEST_TIMEOUT, headers=headers, verify=False)
         response.raise_for_status()
         
-        valid_lines = []
+        domains = []  # قائمة النطاقات العادية
+        exceptions = []  # قائمة النطاقات المستثناة
+        
         for line in response.text.splitlines():
-            cleaned = clean_line(line)
-            if cleaned:
-                valid_lines.append(cleaned)
-                
-        return valid_lines, url
+            domain, is_exception = extract_domain_from_rule(line)
+            if domain:
+                if is_exception:
+                    exceptions.append(domain)
+                else:
+                    domains.append(domain)
+        
+        # إزالة المكرر داخل المصدر نفسه
+        domains = list(set(domains))
+        exceptions = list(set(exceptions))
+        
+        # إزالة النطاقات المستثناة من قائمة الحظر
+        domains = [d for d in domains if d not in exceptions]
+        
+        return domains, exceptions, url
     except Exception as e:
         print(f"⚠️ خطأ في تحميل {urlparse(url).netloc}: {str(e)}")
-        return [], url
+        return [], [], url
 
 def process_filters(urls):
-    """جمع كل القواعد من جميع المصادر وإزالة المكرر فقط"""
-    seen_rules = set()
+    """معالجة جميع الفلاتر وتوحيد النطاقات"""
+    all_domains = set()  # كل النطاقات المحظورة
+    all_exceptions = set()  # كل النطاقات المستثناة
+    
     total_urls = len(urls)
-    total_before_dedup = 0
+    total_domains_before = 0
+    total_exceptions_before = 0
     
     print(f"🔍 بدء معالجة {total_urls} مصدر فلتر...")
-    print("📝 سيتم الاحتفاظ بجميع أنواع القواعد (hosts, AdGuard, etc.)")
-    print("🗑️ سيتم حذف المكرر فقط")
+    print("📝 سيتم استخراج النطاقات من جميع أنواع القواعد:")
+    print("   - ||example.com^ (AdGuard)")
+    print("   - 0.0.0.0 example.com (hosts)")
+    print("   - example.com (نطاق عادي)")
+    print("   - @@example.com (استثناءات)")
+    print("🎯 الهدف: كل نطاق يظهر مرة واحدة فقط\n")
     
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
-        future_to_url = {executor.submit(download_filter, url): url for url in urls}
+        future_to_url = {executor.submit(download_and_extract_domains, url): url for url in urls}
         
-        results = []
         for i, future in enumerate(as_completed(future_to_url), 1):
-            rules, url = future.result()
-            total_before_dedup += len(rules)
+            domains, exceptions, url = future.result()
             
-            new_rules = []
-            for r in rules:
-                if r not in seen_rules:
-                    seen_rules.add(r)
-                    new_rules.append(r)
+            total_domains_before += len(domains)
+            total_exceptions_before += len(exceptions)
             
-            print(f"📊 [{i}/{total_urls}] {urlparse(url).netloc}: {len(rules)} قاعدة → {len(new_rules)} قاعدة جديدة (تم إزالة {len(rules) - len(new_rules)} مكرر)")
-            results.extend(new_rules)
+            # إضافة النطاقات الجديدة
+            new_domains = [d for d in domains if d not in all_domains]
+            new_exceptions = [e for e in exceptions if e not in all_exceptions]
+            
+            all_domains.update(domains)
+            all_exceptions.update(exceptions)
+            
+            print(f"📊 [{i}/{total_urls}] {urlparse(url).netloc}:")
+            print(f"   📍 حظر: {len(domains)} نطاق → {len(new_domains)} جديد")
+            print(f"   📍 استثناء: {len(exceptions)} نطاق → {len(new_exceptions)} جديد")
             
             if i < total_urls:
                 time.sleep(REQUEST_DELAY)
     
-    print(f"\n📈 إجمالي القواعد قبل إزالة المكرر: {total_before_dedup}")
-    print(f"📈 إجمالي القواعد بعد إزالة المكرر: {len(results)}")
+    # إزالة النطاقات المستثناة من قائمة الحظر
+    final_domains = all_domains - all_exceptions
     
-    return results
+    print(f"\n📈 الإحصائيات النهائية:")
+    print(f"   إجمالي النطاقات المحظورة (قبل إزالة الاستثناءات): {len(all_domains)}")
+    print(f"   إجمالي النطاقات المستثناة: {len(all_exceptions)}")
+    print(f"   النطاقات النهائية المحظورة: {len(final_domains)}")
+    
+    return sorted(final_domains), sorted(all_exceptions)
 
-def save_filters(rules, output_dir="merged_filters"):
-    """حفظ جميع القواعد في ملف واحد (بدون أي تعديل)"""
+def save_filters(domains, exceptions, output_dir="merged_filters"):
+    """حفظ الفلاتر بصيغة متوافقة مع تطبيق AdGuard"""
     os.makedirs(output_dir, exist_ok=True)
     
     # إضافة رأس الملف
-    header = f"""! Title: AdGuard App Custom Filter (Merged)
-! Description: Merged filter from multiple sources - all rules preserved
+    header = f"""! Title: AdGuard App Unified Filter
+! Description: Merged and deduplicated domains from multiple sources
 ! Expires: 6 hours
 ! Version: {time.strftime("%Y.%m.%d")}
 ! Homepage: https://github.com/elqiser00/1002
-! Total Rules: {len(rules)}
-! Note: All original rules kept as-is, only duplicates removed
+! Total Blocked Domains: {len(domains)}
+! Total Exceptions: {len(exceptions)}
+!
+! All domains have been normalized to simple format (domain.com)
+! Exceptions are marked with @@ prefix
 !
 """
     
-    # الملف الرئيسي - كل القواعد كما هي
+    # الملف الرئيسي - كل النطاقات المحظورة بصيغة بسيطة
     main_file = os.path.join(output_dir, "adguard_app_filter.txt")
     with open(main_file, 'w', encoding='utf-8') as f:
         f.write(header)
-        f.write("\n".join(rules))
+        # إضافة النطاقات المحظورة
+        for domain in domains:
+            f.write(f"{domain}\n")
+        # إضافة النطاقات المستثناة
+        if exceptions:
+            f.write(f"\n! Exceptions\n")
+            for exception in exceptions:
+                f.write(f"@@{exception}\n")
     
-    print(f"\n✅ تم حفظ {len(rules)} قاعدة في ملف واحد: {main_file}")
+    print(f"\n✅ تم حفظ {len(domains)} نطاق محظور و {len(exceptions)} استثناء في {main_file}")
+    
+    # إنشاء ملف بصيغة hosts إضافية (اختياري)
+    hosts_file = os.path.join(output_dir, "hosts_format.txt")
+    with open(hosts_file, 'w', encoding='utf-8') as f:
+        f.write("# Hosts format for AdGuard App\n")
+        f.write(f"# Generated: {time.strftime('%Y-%m-%d %H:%M:%S')}\n")
+        f.write(f"# Total Blocked Domains: {len(domains)}\n\n")
+        for domain in domains:
+            f.write(f"0.0.0.0 {domain}\n")
+    
+    print(f"✅ تم إنشاء نسخة بصيغة hosts في {hosts_file}")
 
-def create_metadata():
+def create_metadata(domains, exceptions):
     """إنشاء ملف metadata.json"""
     import json
     
     metadata = {
-        "name": "AdGuard App Custom Filter",
-        "description": "Merged filter from multiple sources - all rules preserved, duplicates removed only",
+        "name": "AdGuard App Unified Filter",
+        "description": "Unified domains from multiple sources - all duplicates removed, normalized to simple format",
         "homepage": "https://github.com/elqiser00/1002",
         "version": time.strftime("%Y.%m.%d"),
         "updated": time.strftime("%Y-%m-%d %H:%M:%S"),
-        "rules_count": 0
+        "blocked_domains": len(domains),
+        "exceptions": len(exceptions),
+        "total_rules": len(domains) + len(exceptions)
     }
-    
-    try:
-        with open("merged_filters/adguard_app_filter.txt", "r", encoding="utf-8") as f:
-            lines = [l for l in f.readlines() if not l.startswith('!') and l.strip()]
-            metadata["rules_count"] = len(lines)
-    except:
-        pass
     
     with open("merged_filters/metadata.json", "w", encoding="utf-8") as f:
         json.dump(metadata, f, ensure_ascii=False, indent=2)
@@ -143,36 +216,33 @@ if __name__ == "__main__":
     
     start_time = time.time()
     try:
-        print("🚀 بدء عملية دمج الفلاتر...")
-        print("=" * 50)
+        print("🚀 بدء عملية توحيد النطاقات...")
+        print("=" * 60)
         
-        rules = process_filters(FILTER_URLS)
-        save_filters(rules)
-        create_metadata()
+        domains, exceptions = process_filters(FILTER_URLS)
+        save_filters(domains, exceptions)
+        create_metadata(domains, exceptions)
         
-        print("=" * 50)
+        print("=" * 60)
         print(f"\n⏱️ الوقت الإجمالي: {time.time() - start_time:.2f} ثانية")
-        print("✨ تم دمج الفلاتر بنجاح!")
-        print(f"📊 الإحصائيات النهائية: {len(rules)} قاعدة (جميع الأنواع محفوظة)")
+        print("✨ تم توحيد النطاقات بنجاح!")
+        print(f"📊 النتائج النهائية:")
+        print(f"   🚫 نطاقات محظورة: {len(domains)}")
+        print(f"   ⭐ نطاقات مستثناة: {len(exceptions)}")
+        print(f"   📝 إجمالي القواعد: {len(domains) + len(exceptions)}")
         
-        # عرض أمثلة على أنواع القواعد المحفوظة
-        if rules:
-            print("\n🔍 أمثلة على القواعد المحفوظة (بجميع أنواعها):")
-            example_types = []
-            for rule in rules[:10]:
-                if rule.startswith('@@'):
-                    example_types.append(f"استثناء: {rule}")
-                elif rule.startswith('||'):
-                    example_types.append(f"AdGuard: {rule}")
-                elif rule.startswith('0.0.0.0') or rule.startswith('127.0.0.1'):
-                    example_types.append(f"Hosts: {rule}")
-                elif '.' in rule and not rule.startswith('!'):
-                    example_types.append(f"نطاق: {rule}")
-            
-            for i, ex in enumerate(example_types[:5]):
-                print(f"   {i+1}. {ex}")
-            if len(rules) > 5:
-                print(f"   ... و{len(rules) - 5} قاعدة أخرى")
+        # عرض بعض الأمثلة
+        if domains:
+            print("\n🔍 أمثلة على النطاقات المحظورة:")
+            for i, domain in enumerate(domains[:5]):
+                print(f"   {i+1}. {domain}")
+            if len(domains) > 5:
+                print(f"   ... و{len(domains) - 5} نطاق آخر")
+        
+        if exceptions:
+            print("\n🔍 أمثلة على النطاقات المستثناة:")
+            for i, exception in enumerate(exceptions[:3]):
+                print(f"   {i+1}. @@{exception}")
                 
     except Exception as e:
         print(f"❌ خطأ: {str(e)}")
