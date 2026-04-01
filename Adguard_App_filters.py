@@ -12,98 +12,136 @@ REQUEST_DELAY = 0.5
 MAX_WORKERS = 10
 USER_AGENT = "AdGuard-Merger/15.0"
 
-def is_valid_domain(domain):
-    domain = domain.lower().strip('-')
-    if not domain or len(domain) < 4:
-        return False
-    if '--' in domain:
-        return False
-    if domain.startswith(('.', '-')) or domain.endswith('.'):
-        return False
-    if re.match(r'^[0-9]+-', domain):
-        return False
-    if re.search(r'[^a-z0-9\.\-]', domain):
-        return False
-    if '.' not in domain:
-        return False
-    return True
+# الحد الأقصى لحجم الملف الواحد بالميجابايت (إذا تجاوز، نقسم)
+MAX_SINGLE_FILE_MB = 90
 
-def extract_domain(line):
+def clean_domain(domain):
+    """تنظيف النطاق من الشرطات الزائدة والتحقق من الصلاحية"""
+    domain = domain.strip().lower()
+    domain = domain.strip('-')
+    if not domain or len(domain) < 4:
+        return None
+    if '--' in domain:
+        return None
+    if domain.startswith('.') or domain.endswith('.'):
+        return None
+    if re.match(r'^[0-9]+-', domain):
+        return None
+    if re.search(r'[^a-z0-9\.\-]', domain):
+        return None
+    if '.' not in domain:
+        return None
+    return domain
+
+def extract_rule(line):
+    """
+    استخراج القاعدة بالصيغة المطلوبة:
+    - حظر: ||domain^$important
+    - استثناء: @@||domain^$important
+    """
     line = line.strip()
     if not line or line.startswith(('!', '#')):
-        return None, None
+        return None
 
     is_exception = line.startswith('@@')
     content = line[2:] if is_exception else line
 
-    # إزالة الشروط والمسارات والنجوم
+    # إزالة الشروط المتقدمة التي تسبب مشاكل (نحتفظ فقط بالنطاق)
+    # لكننا سنضيف $important لاحقًا
     content = content.split('$')[0]
     content = content.split('/')[0]
     content = content.replace('*', '')
 
+    # استخراج النطاق: يجب أن يبدأ بحرف (a-z) ويحتوي على نقطة
     match = re.search(r'([a-z][a-z0-9\-]*\.[a-z0-9\-]+\.[a-z]{2,}|[a-z][a-z0-9\-]*\.[a-z]{2,})', content, re.IGNORECASE)
     if not match:
-        return None, None
+        return None
 
-    domain = match.group(1).lower().strip('-')
-    if is_valid_domain(domain):
-        return domain, is_exception
-    return None, None
+    domain = match.group(1).lower()
+    domain = clean_domain(domain)
+    if not domain:
+        return None
 
-def download_filter(url):
+    # بناء القاعدة بالصيغة المطلوبة
+    if is_exception:
+        return f"@@||{domain}^$important"
+    else:
+        return f"||{domain}^$important"
+
+def download_source(url):
     try:
         headers = {'User-Agent': USER_AGENT}
         r = requests.get(url, timeout=REQUEST_TIMEOUT, headers=headers, verify=False)
         r.raise_for_status()
-        domains = set()
-        exceptions = set()
+        rules = set()
         for line in r.text.splitlines():
-            domain, is_exception = extract_domain(line)
-            if domain:
-                if is_exception:
-                    exceptions.add(domain)
-                else:
-                    domains.add(domain)
-        return domains, exceptions, url
+            rule = extract_rule(line)
+            if rule:
+                rules.add(rule)
+        return rules, url
     except Exception as e:
         print(f"⚠️ {urlparse(url).netloc}: {str(e)}")
-        return set(), set(), url
+        return set(), url
 
-def process_filters(urls):
-    all_domains = set()
-    all_exceptions = set()
+def merge_sources(urls):
+    all_rules = set()
     total = len(urls)
-    print(f"🔍 معالجة {total} مصدر...")
+    print(f"🔍 معالجة {total} مصدر (استخراج القواعد بالصيغة المطلوبة)...")
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
-        futures = {executor.submit(download_filter, url): url for url in urls}
+        futures = {executor.submit(download_source, url): url for url in urls}
         for i, future in enumerate(as_completed(futures), 1):
-            domains, exceptions, url = future.result()
-            new_domains = domains - all_domains
-            new_exceptions = exceptions - all_exceptions
-            all_domains.update(domains)
-            all_exceptions.update(exceptions)
-            print(f"📊 [{i}/{total}] {urlparse(url).netloc}: +{len(new_domains)} حظر, +{len(new_exceptions)} استثناء")
+            rules, url = future.result()
+            new_rules = rules - all_rules
+            all_rules.update(rules)
+            print(f"📊 [{i}/{total}] {urlparse(url).netloc}: +{len(new_rules)} قاعدة")
             if i < total:
                 time.sleep(REQUEST_DELAY)
+    return sorted(all_rules)
 
-    final_domains = all_domains - all_exceptions
-    return sorted(final_domains), sorted(all_exceptions)
+def save_split(block_rules, allow_rules, out_dir="merged_filters"):
+    """
+    حفظ القواعد في ملفين:
+    - blocklist.txt : قواعد الحظر (تبدأ بـ ||)
+    - allowlist.txt : قواعد الاستثناء (تبدأ بـ @@)
+    """
+    os.makedirs(out_dir, exist_ok=True)
+    block_path = os.path.join(out_dir, "blocklist.txt")
+    allow_path = os.path.join(out_dir, "allowlist.txt")
 
-def save_filters(domains, exceptions, out_dir="merged_filters"):
+    with open(block_path, 'w', encoding='utf-8') as f:
+        f.write("! Title: AdGuard Blocklist (with $important)\n")
+        f.write(f"! Version: {time.strftime('%Y.%m.%d')}\n")
+        f.write(f"! Total rules: {len(block_rules)}\n\n")
+        f.write("\n".join(block_rules))
+
+    with open(allow_path, 'w', encoding='utf-8') as f:
+        f.write("! Title: AdGuard Allowlist (with $important)\n")
+        f.write(f"! Version: {time.strftime('%Y.%m.%d')}\n")
+        f.write(f"! Total rules: {len(allow_rules)}\n\n")
+        f.write("\n".join(allow_rules))
+
+    block_size = os.path.getsize(block_path) / (1024 * 1024)
+    allow_size = os.path.getsize(allow_path) / (1024 * 1024)
+    print(f"\n✅ تم حفظ {len(block_rules)} قاعدة حظر في {block_path} (حجم {block_size:.2f} ميجابايت)")
+    print(f"✅ تم حفظ {len(allow_rules)} قاعدة استثناء في {allow_path} (حجم {allow_size:.2f} ميجابايت)")
+    return block_path, allow_path
+
+def save_single_file(block_rules, allow_rules, out_dir="merged_filters"):
+    """
+    حفظ جميع القواعد في ملف واحد (حظر + استثناء)
+    """
     os.makedirs(out_dir, exist_ok=True)
     file_path = os.path.join(out_dir, "adguard_app_filter.txt")
     with open(file_path, 'w', encoding='utf-8') as f:
-        f.write("! Title: AdGuard App Filter (Important)\n")
+        f.write("! Title: AdGuard App Filter (with $important)\n")
         f.write(f"! Version: {time.strftime('%Y.%m.%d')}\n")
-        f.write(f"! Blocked domains: {len(domains)}\n")
-        f.write(f"! Exceptions: {len(exceptions)}\n\n")
-        for d in domains:
-            f.write(f"||{d}^$important\n")
-        for e in exceptions:
-            f.write(f"@@||{e}^$important\n")
+        f.write(f"! Total rules: {len(block_rules) + len(allow_rules)}\n\n")
+        f.write("\n".join(block_rules))
+        if allow_rules:
+            f.write("\n! Exceptions\n")
+            f.write("\n".join(allow_rules))
     size_mb = os.path.getsize(file_path) / (1024 * 1024)
-    print(f"\n✅ تم حفظ {len(domains)} قاعدة حظر و {len(exceptions)} استثناء في {file_path}")
-    print(f"📦 حجم الملف: {size_mb:.2f} ميجابايت")
+    print(f"\n✅ تم حفظ {len(block_rules)} قاعدة حظر و {len(allow_rules)} استثناء في {file_path} (حجم {size_mb:.2f} ميجابايت)")
     return file_path
 
 if __name__ == "__main__":
@@ -119,6 +157,19 @@ if __name__ == "__main__":
         exit(1)
 
     start = time.time()
-    blocked, allowed = process_filters(urls)
-    save_filters(blocked, allowed)
-    print(f"\n⏱️ الوقت: {time.time() - start:.2f} ثانية")
+    all_rules = merge_sources(urls)
+
+    # فصل قواعد الحظر عن الاستثناء
+    block = [r for r in all_rules if not r.startswith('@@')]
+    allow = [r for r in all_rules if r.startswith('@@')]
+
+    # تقدير حجم الملف الواحد (محاكاة)
+    estimated_size = (len(block) + len(allow)) * 40 / (1024 * 1024)  # 40 بايت لكل سطر تقريباً
+    if estimated_size > MAX_SINGLE_FILE_MB:
+        print(f"\n⚠️  الحجم المقدر {estimated_size:.1f} ميجابايت يتجاوز الحد {MAX_SINGLE_FILE_MB} ميجابايت.")
+        print("📦 سيتم التقسيم إلى blocklist.txt و allowlist.txt")
+        save_split(block, allow)
+    else:
+        save_single_file(block, allow)
+
+    print(f"\n⏱️ الوقت الإجمالي: {time.time() - start:.2f} ثانية")
