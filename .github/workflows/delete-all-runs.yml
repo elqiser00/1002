@@ -4,28 +4,29 @@ on:
   workflow_dispatch:
     inputs:
       confirm:
-        description: 'اكتب DELETE للتأكيد'
+        description: 'اكتب "DELETE" لتأكيد الحذف'
         required: true
         type: string
       dry_run:
-        description: 'وضع التجربة (true = عرض فقط)'
+        description: 'وضع التجربة (true = عرض فقط بدون حذف)'
         required: false
         type: boolean
         default: false
 
 jobs:
-  delete:
+  delete-runs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
-      actions: write
-      contents: read
+      actions: write   # مطلوب لحذف الـ runs
+      contents: read   # لقراءة الملفات
 
     steps:
       - name: Check confirmation
         if: github.event.inputs.confirm != 'DELETE'
         run: |
-          echo "❌ لم يتم التأكيد. اكتب DELETE في حقل confirm."
+          echo "❌ لم يتم تأكيد الحذف"
+          echo "يرجى إعادة تشغيل workflow وكتابة 'DELETE' في حقل التأكيد"
           exit 1
 
       - name: Checkout repository
@@ -37,30 +38,18 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: pip install requests
+        run: |
+          pip install requests
 
-      - name: Dry run (list only)
-        if: github.event.inputs.dry_run == true
+      - name: Run deletion script
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
-          python -c "
-import requests, os
-token = os.environ.get('GITHUB_TOKEN')
-repo = os.environ.get('GITHUB_REPOSITORY')
-headers = {'Authorization': f'Bearer {token}'}
-url = f'https://api.github.com/repos/{repo}/actions/runs?per_page=100'
-resp = requests.get(url, headers=headers)
-runs = resp.json().get('workflow_runs', [])
-print(f'📊 سوف يتم حذف {len(runs)} run:')
-for run in runs:
-    print(f'   #{run[\"id\"]}: {run[\"name\"]} ({run[\"conclusion\"]}) - {run[\"created_at\"][:10]}')
-"
-
-      - name: Delete all runs
-        if: github.event.inputs.dry_run != true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-        run: python delete_workflow_runs.py
+          if [[ "${{ github.event.inputs.dry_run }}" == "true" ]]; then
+            echo "🔍 وضع التجربة (dry-run) - سيتم العرض فقط"
+            python delete_workflow_runs.py --dry-run
+          else
+            echo "🗑️ بدء الحذف الفعلي..."
+            python delete_workflow_runs.py
+          fi
