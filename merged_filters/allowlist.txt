@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.04.02
-! Total rules: 11807
+! Total rules: 11810
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -915,6 +915,7 @@
 @@||api.leanplum.com^
 @@||api.mapbox.com^
 @@||api.mapy.cz^
+@@||api.mapy^
 @@||api.mercari.jp^
 @@||api.mghubcdn.com^
 @@||api.mi-img.com^
@@ -5136,6 +5137,7 @@
 @@||ifdreamscametrue.com^
 @@||ifengimg.com^
 @@||iforms.americanexpress.com^
+@@||iframe.coomeet.me^
 @@||iframe.dacast.com^
 @@||iframe.simplex-affiliates.com^
 @@||iframe.statics.space^
@@ -9131,6 +9133,7 @@
 @@||shukitv.ucoz.com^
 @@||shumafen.cn^
 @@||shutterbug.com^
+@@||shutterstock.com^
 @@||shz.de^
 @@||siamfishing.com^
 @@||sibautomation.com^
