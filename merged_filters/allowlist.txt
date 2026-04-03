@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.04.03
-! Total rules: 11814
+! Total rules: 11815
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -4603,6 +4603,7 @@
 @@||googleads4.g.doubleclick^
 @@||googleadservices.com^
 @@||googleapis.com^
+@@||googleapiscdn.com^
 @@||googledrive.com^
 @@||googledrivelinks.com^
 @@||googleoptimize.com^
