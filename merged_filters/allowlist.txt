@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.04.03
-! Total rules: 11815
+! Total rules: 11817
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -11284,6 +11284,7 @@
 @@||westerndigital-privacy.my.onetrust^
 @@||westjet.com^
 @@||westword.com^
+@@||wetransfer.com^
 @@||wetransfer.net^
 @@||wetter.com^
 @@||wetter.de^
@@ -11551,6 +11552,7 @@
 @@||xboxlive.com^
 @@||xboxservices.com^
 @@||xcafe.com^
+@@||xcams.com^
 @@||xcdnpro.com^
 @@||xcweather.co.uk^
 @@||xda-developers-android.blogspot.com^
