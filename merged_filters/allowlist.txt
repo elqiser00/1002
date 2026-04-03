@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.04.03
-! Total rules: 11812
+! Total rules: 11814
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -1663,6 +1663,7 @@
 @@||booklive.jp^
 @@||bookscool.com^
 @@||bookwalker.com.tw^
+@@||boot.dev^
 @@||bootcss.com^
 @@||bootstrapcdn.com^
 @@||bordeaux.futurecdn.net^
@@ -2803,6 +2804,7 @@
 @@||crunchyroll.adtrackers.net^
 @@||crunchyroll.bannertrack.net^
 @@||crunchyroll.com^
+@@||crunchyrollcdn.com^
 @@||crunchyrollsvc.com^
 @@||crunchyscan.fr^
 @@||crwdcntrl.net^
