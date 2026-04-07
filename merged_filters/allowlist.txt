@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.04.07
-! Total rules: 11818
+! Total rules: 11821
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -1696,6 +1696,7 @@
 @@||bravotube.net^
 @@||braze.com^
 @@||brfiles.com^
+@@||bric-a-brac-bulwark.site^
 @@||brid.tv^
 @@||bridalgown.work^
 @@||brightcove.com^
@@ -3850,6 +3851,7 @@
 @@||fashionpost.jp^
 @@||fast-down.com^
 @@||fast.fonts.net^
+@@||fast.vidplus.dev^
 @@||fastag.kotak.com^
 @@||fastcoin.ga^
 @@||fastlane.rubiconproject.com^
@@ -11757,6 +11759,7 @@
 @@||zegtrends.com^
 @@||zeit.de^
 @@||zekozimo.blogspot.com^
+@@||zenithianzephyr.space^
 @@||zeperfs.com^
 @@||zeplin.io^
 @@||zergnet.com^
