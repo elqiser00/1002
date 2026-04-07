@@ -6706,7 +6706,6 @@
 @@||mid.ru^
 @@||middleware.marktjagd.de^
 @@||middleware.p7s1.io^
-@@||midiextreme.blogspot.com^
 @@||midnightchannel.net^
 @@||mifirmware.com^
 @@||migdalor-news.co.il^
@@ -7278,6 +7277,7 @@
 @@||notebookcheck-ru.com^
 @@||notebookcheck.com^
 @@||notebookcheck.net^
+@@||notebooklm.google.com^
 @@||notepad.pw^
 @@||notice.sp-prod.net^
 @@||notion.so^
