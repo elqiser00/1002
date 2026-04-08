@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.04.08
-! Total rules: 11821
+! Total rules: 11826
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -1451,6 +1451,7 @@
 @@||belajarbro.id^
 @@||belapb.by^
 @@||belezaedieta.net^
+@@||belgium.wolterskluwer.com^
 @@||belkagomel.by^
 @@||bellinghamherald.com^
 @@||bellmts.ca^
@@ -2452,6 +2453,7 @@
 @@||cloud.roistat.com^
 @@||cloud.typography.com^
 @@||cloudapp.chinacloudapi.cn^
+@@||cloudfam.io^
 @@||cloudflare.com^
 @@||cloudflare.net^
 @@||cloudflareinsights.com^
@@ -4870,6 +4872,7 @@
 @@||hentaicdn.com^
 @@||hentaihaven.com^
 @@||hentaihd.xyz^
+@@||hentaitoon.tv^
 @@||hentaivideo.tv^
 @@||hepfinans.com^
 @@||heraldo.es^
@@ -7159,6 +7162,7 @@
 @@||netmera-web.com^
 @@||netmile.co.jp^
 @@||netportal.hdfcbank.com^
+@@||netrocdn.site^
 @@||netshoes.com.br^
 @@||nettavisen.no^
 @@||nettiauto.com^
@@ -10231,6 +10235,7 @@
 @@||thgss.com^
 @@||thinktibits.blogspot.com^
 @@||thirai.com^
+@@||thirdparty.aliexpress.com^
 @@||thisav.com^
 @@||thisismoney.co.uk^
 @@||thisiswaldo.com^
