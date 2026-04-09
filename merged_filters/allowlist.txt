@@ -3559,7 +3559,6 @@
 @@||eksenload.site^
 @@||ekstrabladet.dk^
 @@||elabs12.com^
-@@||elahmad.com^
 @@||elbotola.com^
 @@||elcomercio.es^
 @@||elconfidencial.com^
@@ -10390,6 +10389,7 @@
 @@||torrentz.adtrackers.net^
 @@||torrentz.bannertrack.net^
 @@||tortuga.wtf^
+@@||torupload.com^
 @@||tosdr.org^
 @@||toss.onelink.me^
 @@||total-sportek.to^
