@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.04.12
-! Total rules: 11821
+! Total rules: 11824
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -1770,6 +1770,7 @@
 @@||burnbutt.com^
 @@||burzowo.info^
 @@||business-credits.cc^
+@@||business-mortgage.info^
 @@||business-mortgage.pw^
 @@||business-standard.com^
 @@||business.financialpost.com^
@@ -7506,6 +7507,7 @@
 @@||onlinemarketing.de^
 @@||onlinemschool.com^
 @@||onlinetermine-agentur.allianz.de^
+@@||onlinetutorium.com^
 @@||onlinetv.ru^
 @@||onlinetyping.org^
 @@||onlinevideoconverter.com^
@@ -10209,6 +10211,7 @@
 @@||theolivepress.es^
 @@||theorie-musik.de^
 @@||thepiratebay.org^
+@@||thepoorcoder.com^
 @@||theregister.co.uk^
 @@||therichest.com^
 @@||thesaltysoldier.com^
