@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.04.12
-! Total rules: 11826
+! Total rules: 11821
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -2458,7 +2458,6 @@
 @@||cloudflareinsights.com^
 @@||cloudfront.net^
 @@||cloudssh.us^
-@@||cloudstorageoptions.com^
 @@||cloudtime.to^
 @@||cloudvideo.tv^
 @@||club.tgfcer.com^
@@ -3464,7 +3463,6 @@
 @@||easy-ads.com^
 @@||easy-firmware.com^
 @@||easy.worldthunder.net^
-@@||easyexploits.com^
 @@||easylife.tw^
 @@||easypari.fr^
 @@||easyreaders.site^
@@ -3976,7 +3974,6 @@
 @@||films-torrent.ru^
 @@||filmweb.pl^
 @@||filmyfundaz.googlecode.com^
-@@||filmytoday.com^
 @@||filmyzilla.skin^
 @@||fiload.net^
 @@||finalboss.io^
@@ -4440,7 +4437,6 @@
 @@||getcopy.link^
 @@||getexploits.com^
 @@||getfree.co.in^
-@@||getfreebit.xyz^
 @@||getfreesmsnumber.com^
 @@||getgoods.de^
 @@||getintopc.com^
@@ -10984,7 +10980,6 @@
 @@||vidtube.pro^
 @@||vidverto.io^
 @@||vieon.vn^
-@@||vietgamemod.net^
 @@||vietget.net^
 @@||viglink.com^
 @@||viherpeukalot.fi^
