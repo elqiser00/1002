@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.04.13
-! Total rules: 11825
+! Total rules: 11827
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -7238,6 +7238,7 @@
 @@||nikken.ru^
 @@||niksalehi.com^
 @@||nineto5mac-d.openx.net^
+@@||nineyu.com^
 @@||ninja.io^
 @@||ninja.onap.io^
 @@||nintendo.co.jp^
@@ -10849,6 +10850,7 @@
 @@||vattenfall.nl^
 @@||vaughnlive.tv^
 @@||vaughnsoft.net^
+@@||vault-08.uwucdn.top^
 @@||vb.icdrama.se^
 @@||vcd.com^
 @@||vcdn.adnxs.com^
