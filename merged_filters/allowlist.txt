@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.04.14
-! Total rules: 11828
+! Total rules: 11826
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -5177,7 +5177,6 @@
 @@||illink.net^
 @@||ilovecreatives.com^
 @@||ilpuntotecnico.com^
-@@||ilpuntotecnicoeadsl.com^
 @@||ilrestodelcarlino.it^
 @@||im.chip.de^
 @@||im.haberturk.com^
@@ -6671,7 +6670,6 @@
 @@||mettelindberg.dk^
 @@||meutimao.com.br^
 @@||mexa.sh^
-@@||mexashare.com^
 @@||mf.advantage.as^
 @@||mfah.org^
 @@||mfbcdn.net^
