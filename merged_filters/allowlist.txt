@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
-! Version: 2026.04.13
-! Total rules: 11828
+! Version: 2026.04.14
+! Total rules: 11827
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -8809,7 +8809,6 @@
 @@||samsclub.com^
 @@||samsung.com^
 @@||samsunhaber.com^
-@@||samuraiscan.com^
 @@||sandbox.cryptpad.info^
 @@||sanjayaops.com^
 @@||sankakucomplex.com^
