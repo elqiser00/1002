@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.04.14
-! Total rules: 11827
+! Total rules: 11828
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -1902,6 +1902,7 @@
 @@||cargodisplayads.com^
 @@||carrefourpl.snrpage.com^
 @@||carsales.com.au^
+@@||cart.books.com^
 @@||cart.hostinger.com^
 @@||cartoon.porn^
 @@||cartoonth12.com^
