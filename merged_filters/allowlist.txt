@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.04.14
-! Total rules: 11826
+! Total rules: 11829
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -847,6 +847,7 @@
 @@||api-js.datadome.co^
 @@||api-maps.yandex.ru^
 @@||api-maps.yandex^
+@@||api-protected.protoawegw.com^
 @@||api-public.stoerungsauskunft.de^
 @@||api-rewarded-video.fyber.com^
 @@||api-secure.solvemedia.com^
@@ -2840,6 +2841,7 @@
 @@||cstatic.weborama.fr^
 @@||cstnet.cn^
 @@||csub.edu^
+@@||ctcdwm.com^
 @@||ctrip.com^
 @@||cts.snmmd.nl^
 @@||ctv.ca^
@@ -7944,6 +7946,7 @@
 @@||playiri.com^
 @@||playit.ch^
 @@||playlists.rocks^
+@@||playmogo.com^
 @@||playmyopinion.com^
 @@||playnewserie.xyz^
 @@||playshakespeare.com^
