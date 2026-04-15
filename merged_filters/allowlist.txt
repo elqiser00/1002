@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
-! Version: 2026.04.14
-! Total rules: 11829
+! Version: 2026.04.15
+! Total rules: 11824
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -5418,7 +5418,6 @@
 @@||integrations.fitanalytics.com^
 @@||intelcorporationproductione.org.coveo^
 @@||intelyvale.com.mx^
-@@||intercelestial.com^
 @@||interfans.org^
 @@||interia.hit.gemius^
 @@||interia.pl^
@@ -7106,14 +7105,12 @@
 @@||nativerent.ru^
 @@||natlawreview.com^
 @@||natro.com^
-@@||naturalbd.com^
 @@||natureetdecouvertes.com^
 @@||nav.files.bbci^
 @@||naver.com^
 @@||navi.gg^
 @@||navratdoreality.cz^
 @@||nazolog.com^
-@@||nb-music.net^
 @@||nba.com^
 @@||nbaapi.neulion.com^
 @@||nbcolympics.com^
@@ -10589,7 +10586,6 @@
 @@||tutsnode.net^
 @@||tuttosport.com^
 @@||tv-media.at^
-@@||tv-onlinehd.com^
 @@||tv.ads.spotx^
 @@||tv.co.il^
 @@||tv.kakao.com^
@@ -11142,7 +11138,6 @@
 @@||wallpapershacker.com^
 @@||wallpapershome.com^
 @@||wallpapershome.ru^
-@@||wallpapersite.com^
 @@||wallpaperwaifu.com^
 @@||wallstreet-online.de^
 @@||walmart.com^
