@@ -4175,7 +4175,6 @@
 @@||freepsdvn.com^
 @@||freereceivesms.com^
 @@||freeride.se^
-@@||freeserial-keys.blogspot.com^
 @@||freeshib.biz^
 @@||freesoftpdfdownload.blogspot.com^
 @@||freesteamkeys.com^
@@ -7834,6 +7833,7 @@
 @@||piwik.windit.de^
 @@||pix04.revsci.net^
 @@||pix2.services.tvn^
+@@||pixabay.com^
 @@||pixcloud.ru^
 @@||pixel.adsafeprotected.com^
 @@||pixel.adtelligent.com^
