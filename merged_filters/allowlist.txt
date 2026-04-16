@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.04.16
-! Total rules: 11825
+! Total rules: 11826
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -9699,6 +9699,7 @@
 @@||staticmv.mediavitrina.ru^
 @@||staticpics2.allegrostatic.pl^
 @@||statics.atresmedia.com^
+@@||staticsns.cdn.bcebos^
 @@||staticxx.facebook.com^
 @@||statika.mpsuadv.ru^
 @@||stats.e-go.gr^
