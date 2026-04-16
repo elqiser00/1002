@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.04.16
-! Total rules: 11824
+! Total rules: 11825
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -8915,6 +8915,7 @@
 @@||search.spotxchange.com^
 @@||searchtap.net^
 @@||searchwithme.net^
+@@||searoute.info^
 @@||sears.com^
 @@||seattletimes.com^
 @@||sec.levexis.com^
