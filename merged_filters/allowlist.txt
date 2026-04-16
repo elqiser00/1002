@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
-! Version: 2026.04.15
-! Total rules: 11825
+! Version: 2026.04.16
+! Total rules: 11824
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -1360,7 +1360,6 @@
 @@||bam.nr-data.net^
 @@||bamgrid.com^
 @@||bams.my.id^
-@@||banaraswap.in^
 @@||bancobrasil.com.br^
 @@||bancodesio.it^
 @@||band-aid.jp^
