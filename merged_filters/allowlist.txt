@@ -7429,6 +7429,7 @@
 @@||okdiario.com^
 @@||okfirenze.com^
 @@||oklivetv.com^
+@@||okokserver.com^
 @@||oktatas.hu^
 @@||okteve.com^
 @@||olacast.live^
@@ -7539,7 +7540,6 @@
 @@||opole.pl^
 @@||ops.prismamediadigital.com^
 @@||opt.semasio.net^
-@@||optad360.io^
 @@||optim.pro^
 @@||optimatic.com^
 @@||optimize.webtrends.com^
