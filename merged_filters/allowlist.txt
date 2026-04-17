@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.04.17
-! Total rules: 11828
+! Total rules: 11830
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -2692,6 +2692,7 @@
 @@||convallariaslibrary.com^
 @@||convergeict.com^
 @@||conversion.im^
+@@||conversions.appsflyersdk.com^
 @@||convertexperiments.com^
 @@||converti.se^
 @@||convertpad.com^
@@ -9359,6 +9360,7 @@
 @@||sourceiran.com^
 @@||sourcepoint.mgr.consensu^
 @@||sourcepointcmp.bloomberg^
+@@||sovcombank.ru^
 @@||sovrn.com^
 @@||sozcu.com.tr^
 @@||sozcucdn.com^
