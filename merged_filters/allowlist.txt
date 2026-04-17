@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.04.17
-! Total rules: 11826
+! Total rules: 11828
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -1911,6 +1911,7 @@
 @@||cash4files.com^
 @@||cash4links.co^
 @@||cashback.ru^
+@@||cashyo.co.il^
 @@||casos-aislados.com^
 @@||catalog.mann-filter.com^
 @@||catchapp.net^
@@ -4793,6 +4794,7 @@
 @@||hawk.ru^
 @@||haxoff.net^
 @@||hayan.tv^
+@@||hayeruka-ks.co.il^
 @@||hayrirsds24.cfd^
 @@||hb.20m.es^
 @@||hb.afl.rakuten^
