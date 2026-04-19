@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
-! Version: 2026.04.18
-! Total rules: 11832
+! Version: 2026.04.19
+! Total rules: 11833
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -5811,6 +5811,7 @@
 @@||knack.be^
 @@||knigilub.ru^
 @@||ko-fi.com^
+@@||kobieta.wp.pl^
 @@||kocaelibarisgazetesi.com^
 @@||kochbar.de^
 @@||koddostu.com^
