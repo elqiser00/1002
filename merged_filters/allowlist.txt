@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.04.20
-! Total rules: 11834
+! Total rules: 11835
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -3950,6 +3950,7 @@
 @@||filecr.com^
 @@||filecrypt.cc^
 @@||filecrypt.co^
+@@||fileditchfiles.me^
 @@||filehorse.com^
 @@||filejoker.net^
 @@||filemoon.sx^
