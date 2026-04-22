@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
-! Version: 2026.04.21
-! Total rules: 11836
+! Version: 2026.04.22
+! Total rules: 11827
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -2619,7 +2619,6 @@
 @@||config.eu.usercentrics^
 @@||config.gorgias.chat^
 @@||config.inmobi.com^
-@@||config.playwire.com^
 @@||config.uca.cloud^
 @@||config2.mparticle.com^
 @@||connatix.com^
@@ -3780,7 +3779,6 @@
 @@||experienceleague.adobe.com^
 @@||explainxkcd.com^
 @@||explosivemenu.com^
-@@||explosm.net^
 @@||expo.advance.net^
 @@||exponea.com^
 @@||exponential.com^
@@ -4882,7 +4880,6 @@
 @@||heraldo.es^
 @@||heraldsun.com^
 @@||herexxx.com^
-@@||hermes-europe.co.uk^
 @@||herotakayama.com^
 @@||hersfelder-zeitung.de^
 @@||hes-goal.net^
@@ -5620,7 +5617,6 @@
 @@||jokerly.com^
 @@||jolie.de^
 @@||journaldemontreal.com^
-@@||journaldev.com^
 @@||journalistenwatch.com^
 @@||journalstar.com^
 @@||joyk.com^
@@ -5723,7 +5719,6 @@
 @@||kaspersky.ru^
 @@||kassa.karofilm.ru^
 @@||kassa.rl0.ru^
-@@||kastatic.com^
 @@||katfile.com^
 @@||katmirror.info^
 @@||kaufdex.com^
@@ -7024,7 +7019,6 @@
 @@||mybuys.com^
 @@||mycdn.me^
 @@||mycliplister.com^
-@@||mycokerewards.com^
 @@||mycommunitynow.com^
 @@||mydramalist.com^
 @@||myfamilycominc.tt.omtrdc^
@@ -9086,7 +9080,6 @@
 @@||sharezones.biz^
 @@||shariki-games.ru^
 @@||sharing.wtf^
-@@||shasso.com^
 @@||shedevrum.ai^
 @@||sheee.co.il^
 @@||sheinsz.ltwebstatic.com^
@@ -9728,7 +9721,6 @@
 @@||std.wpcdn.pl^
 @@||stdpay.inicis.com^
 @@||steamcn.com^
-@@||steamgamesales.com^
 @@||steamid.uk^
 @@||steampiay.cc^
 @@||steelseries.zendesk.com^
@@ -11412,7 +11404,6 @@
 @@||wl.jd.com^
 @@||wlz-online.de^
 @@||wm-panel.com^
-@@||wmdportal.com^
 @@||wn-gruesse.de^
 @@||wn.de^
 @@||wnflb2023.com^
