@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
-! Version: 2026.04.22
-! Total rules: 11828
+! Version: 2026.04.23
+! Total rules: 11823
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -2791,7 +2791,6 @@
 @@||creativecloud-deliver.bytedance.com^
 @@||creatives.sascdn.com^
 @@||creatur.io^
-@@||creditcarred.com^
 @@||credits-loan.pw^
 @@||creedmoor.com^
 @@||crictracker.com^
@@ -3984,14 +3983,12 @@
 @@||filmyzilla.skin^
 @@||fiload.net^
 @@||finalboss.io^
-@@||financeyogi.net^
 @@||financialexpress.com^
 @@||finanzen.at^
 @@||finanzen.ch^
 @@||finanzen.net^
 @@||finanznachrichten.de^
 @@||finanztreff.de^
-@@||finclub.in^
 @@||find-my-search.com^
 @@||find-words.com^
 @@||findernet.com^
@@ -4555,7 +4552,6 @@
 @@||go.padstm.com^
 @@||go.redirectingat.com^
 @@||go.scorptec.com^
-@@||go.tnshort.net^
 @@||go.trvdp.com^
 @@||go.wolfram-client.tk^
 @@||go.xliirdr.com^
@@ -4837,7 +4833,6 @@
 @@||hdturk.club^
 @@||hdtvpolska.com^
 @@||hdwallpapers4you.com^
-@@||hdwatched.me^
 @@||hdzog.com^
 @@||headfonia.com^
 @@||healbot.dpm15.net^
@@ -10360,7 +10355,6 @@
 @@||tools.vpscash.nl^
 @@||toolsforworkingwood.com^
 @@||toolson.net^
-@@||toolss.net^
 @@||top-fwz1.mail.ru^
 @@||top-shop.ru^
 @@||top-windows-tutorials.com^
@@ -10437,6 +10431,7 @@
 @@||trackad.cz^
 @@||trackapp.com^
 @@||trackcmp.net^
+@@||trackdesk.com^
 @@||tracker.eu.org^
 @@||tracker.mattel.com^
 @@||trackertest.org^
