@@ -2278,6 +2278,7 @@
 @@||cgpub.zbjimg.com^
 @@||cgtips.org^
 @@||chaintv.xyz^
+@@||chajianmi.com^
 @@||challenges.cloudflare.com^
 @@||chamsko.pl^
 @@||chan.org^
@@ -8579,7 +8580,6 @@
 @@||richrelevance.com^
 @@||riddle.com^
 @@||ridediriddim.com^
-@@||rifey.ru^
 @@||right.com.cn^
 @@||rightnowtech.com^
 @@||ringside24.com^
