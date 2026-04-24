@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
-! Version: 2026.04.23
-! Total rules: 11823
+! Version: 2026.04.24
+! Total rules: 11822
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -7736,7 +7736,6 @@
 @@||pdn.adingo.jp^
 @@||pe.com^
 @@||peacocktv.com^
-@@||pedersenracing.dk^
 @@||peers.tv^
 @@||pekarstas.com^
 @@||pengantartidurkuh.blogspot.com^
