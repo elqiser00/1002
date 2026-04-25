@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
-! Version: 2026.04.24
-! Total rules: 11822
+! Version: 2026.04.25
+! Total rules: 11823
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -8784,6 +8784,7 @@
 @@||safeframe.googlesyndication.com^
 @@||safeku.com^
 @@||safelink-jozz.blogspot.com^
+@@||safelinku.com^
 @@||safelinku.net^
 @@||safetxt.net^
 @@||safeway.com^
