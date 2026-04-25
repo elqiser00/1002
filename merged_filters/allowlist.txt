@@ -8872,6 +8872,7 @@
 @@||scontent.xx.fbcdn^
 @@||scorecard.api.mywot^
 @@||scorecardresearch.com^
+@@||scotusblog.com^
 @@||scrapbox.io^
 @@||screenpost.ru^
 @@||scrippsdigital.com^
@@ -11409,7 +11410,6 @@
 @@||woman.at^
 @@||womenshealth.de^
 @@||womensrunning.com^
-@@||woobox.com^
 @@||word-count-tool.com^
 @@||wordgames.com^
 @@||wordlegame.org^
