@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.04.27
-! Total rules: 11823
+! Total rules: 11825
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -7867,6 +7867,7 @@
 @@||play.anghami.com^
 @@||play.com.au^
 @@||play.fr^
+@@||play.fyi.tv^
 @@||play.geforcenow.com^
 @@||play.google.com^
 @@||play.history.com^
@@ -8496,6 +8497,7 @@
 @@||reidoplacar.com^
 @@||reifenrechner.at^
 @@||reimg.org^
+@@||reishunger.de^
 @@||rek.www.wp^
 @@||reklama.gazeta.pl^
 @@||reklama.grajewo.net^
