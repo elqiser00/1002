@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.04.27
-! Total rules: 11825
+! Total rules: 11826
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -2973,6 +2973,7 @@
 @@||data-.herz-fuer-tiere.de^
 @@||data-.rtl.de^
 @@||data-stream.top^
+@@||data.adpresenter.de^
 @@||data.alicloudccp.com^
 @@||data.digital.costco^
 @@||data.flurry.com^
