@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.04.27
-! Total rules: 11826
+! Total rules: 11827
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -2385,6 +2385,7 @@
 @@||citytv.com^
 @@||civilservicejobs.service.gov^
 @@||cizgifilmlerizle.com^
+@@||cizgipass100.online^
 @@||cj.dotomi.com^
 @@||cl-.k5a.io^
 @@||cl-eu4.k5a.io^
