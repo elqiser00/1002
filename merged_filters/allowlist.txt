@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.04.29
-! Total rules: 11828
+! Total rules: 11827
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -1216,7 +1216,6 @@
 @@||attservicesinc.tt.omtrdc^
 @@||auburnpub.com^
 @@||auchan.ru^
-@@||aud.springserve.com^
 @@||audi.com.tr^
 @@||audible.com^
 @@||audience.io^
@@ -10917,7 +10916,6 @@
 @@||video.520call.me^
 @@||video.520cc.cc^
 @@||video.adsninja.ca^
-@@||video.bestjavporn.com^
 @@||video.cdn.yektanet^
 @@||video.externulls.com^
 @@||video.fyber.com^
@@ -11208,6 +11206,7 @@
 @@||web-ads.pulse.weatherbug^
 @@||web-capture.net^
 @@||web-cloud-new.foreks.com^
+@@||web-sdk.segmentify.com^
 @@||web.any.do^
 @@||web.archive.org^
 @@||web.basemark.com^
