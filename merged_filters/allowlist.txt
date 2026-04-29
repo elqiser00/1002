@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.04.29
-! Total rules: 11828
+! Total rules: 11829
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -9781,6 +9781,7 @@
 @@||stream4free.tv^
 @@||streambox.xyz^
 @@||streambucket.xyz^
+@@||streamdata.vaplayer.ru^
 @@||streaming-foot.me^
 @@||streamlive.to^
 @@||streamlord.com^
