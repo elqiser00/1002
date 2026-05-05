@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.05.05
-! Total rules: 11836
+! Total rules: 11839
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -4087,6 +4087,7 @@
 @@||forms.anthology.com^
 @@||forms.esputnik.com^
 @@||forms.ministryforms.net^
+@@||forms.tildaapi.com^
 @@||formula.ifz.ru^
 @@||formulatv.com^
 @@||forneo.net^
@@ -7219,6 +7220,7 @@
 @@||nextms.tagger.opecloud^
 @@||nextstream.org^
 @@||nextwavepathfinders.xyz^
+@@||nexustc18.com^
 @@||nfhost.me^
 @@||nfl.com^
 @@||nflcdn.com^
@@ -7876,6 +7878,7 @@
 @@||play.com.au^
 @@||play.fr^
 @@||play.fyi.tv^
+@@||play.gamepix.com^
 @@||play.geforcenow.com^
 @@||play.google.com^
 @@||play.history.com^
