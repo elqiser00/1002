@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.05.05
-! Total rules: 11839
+! Total rules: 11842
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -3849,6 +3849,7 @@
 @@||fansites.de^
 @@||fansonlinehub.com^
 @@||fapality.com^
+@@||fapi-top.prisasd.com^
 @@||fapoff.com^
 @@||faq.subaru.jp^
 @@||faq.viewcard.co^
@@ -4345,6 +4346,7 @@
 @@||ganji.com^
 @@||ganma.jp^
 @@||gannettdigital.com^
+@@||gapi.prisasd.com^
 @@||gapis.win^
 @@||gapl.hit.gemius^
 @@||gapt.hit.gemius^
@@ -9117,6 +9119,7 @@
 @@||shop.app^
 @@||shop.blu-blumen.de^
 @@||shop.dangerfield.com^
+@@||shop.getthefuturist.com^
 @@||shop.koelln.de^
 @@||shop.kz^
 @@||shop.lametayel.co^
