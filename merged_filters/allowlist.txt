@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.05.06
-! Total rules: 11842
+! Total rules: 11847
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -1906,6 +1906,7 @@
 @@||carsales.com.au^
 @@||cart.books.com^
 @@||cart.hostinger.com^
+@@||cartaocontinente.pt^
 @@||cartoon.porn^
 @@||cartoonth12.com^
 @@||cas.criteo.com^
@@ -2537,6 +2538,7 @@
 @@||code.jivo.ru^
 @@||code.jquery.com^
 @@||code.skript.pl^
+@@||codeberg.org^
 @@||codec.kyiv.ua^
 @@||codehelppro.com^
 @@||codepen.io^
@@ -4581,6 +4583,7 @@
 @@||gogodl.com^
 @@||gohofstra.com^
 @@||golangnote.com^
+@@||goldenergy.pt^
 @@||goldmansachs.com^
 @@||golem.de^
 @@||gomaainfo.com^
@@ -5166,6 +5169,7 @@
 @@||ign.com^
 @@||igromania.ru^
 @@||iguides.ru^
+@@||iherb.com^
 @@||ihlv1.xyz^
 @@||ihow.info^
 @@||iili.io^
@@ -7328,6 +7332,7 @@
 @@||nrl.com^
 @@||nrz.de^
 @@||nsfw.xxx^
+@@||nsl.pincrux.com^
 @@||nsongs.com^
 @@||nstarikov.ru^
 @@||ntcdntempv.com^
