@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.05.07
-! Total rules: 11847
+! Total rules: 11844
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -1635,7 +1635,6 @@
 @@||bnet.163.com^
 @@||bnonews.com^
 @@||bntech.io^
-@@||boanki.net^
 @@||board.canna.tf^
 @@||board4all.biz^
 @@||boardgamegeek.com^
@@ -4235,7 +4234,6 @@
 @@||funnel.bgfretail.com^
 @@||funnymadworld.blogspot.com^
 @@||funshion.com^
-@@||funtastic-vids.com^
 @@||furher.in^
 @@||fuseplatform.net^
 @@||fussball.de^
@@ -5666,7 +5664,6 @@
 @@||js.skyscnr.com^
 @@||js.smac-ad.com^
 @@||js.spotx.tv^
-@@||js.srvtrck.com^
 @@||js.stripe.com^
 @@||js.txxx.tube^
 @@||js.vpro.nl^
@@ -7477,7 +7474,6 @@
 @@||omtrdc.net^
 @@||omutulove.blog.fc^
 @@||omutulove.seesaa.net^
-@@||omuzaani.me^
 @@||on-web-cdn.gviet.vn^
 @@||onbatch.my.id^
 @@||onceagain.mooo.com^
@@ -10756,6 +10752,7 @@
 @@||unpkg.com^
 @@||unreshiramor.com^
 @@||unshowmasonline.com^
+@@||unsubscribe.lhinsights.com^
 @@||uobsoe.com^
 @@||uol.com.br^
 @@||up-load.io^
