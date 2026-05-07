@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.05.07
-! Total rules: 11844
+! Total rules: 11846
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -5148,6 +5148,7 @@
 @@||idsly.com^
 @@||idtech.com^
 @@||idyllic.app^
+@@||ieee.org^
 @@||iejima.org^
 @@||ienohikari.net^
 @@||ievaphone.com^
@@ -9096,6 +9097,7 @@
 @@||sharing.wtf^
 @@||shedevrum.ai^
 @@||sheee.co.il^
+@@||shein.com^
 @@||sheinsz.ltwebstatic.com^
 @@||shemale6.com^
 @@||shenlongruanjian.com^
