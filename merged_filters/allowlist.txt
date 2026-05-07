@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.05.07
-! Total rules: 11846
+! Total rules: 11847
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -10173,6 +10173,7 @@
 @@||tf1.fr^
 @@||tf1info.fr^
 @@||tff.tf^
+@@||tg1.aniview.com^
 @@||tgc1.ru^
 @@||tgcom24.mediaset.it^
 @@||tgfcer.com^
