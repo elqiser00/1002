@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.05.08
-! Total rules: 11847
+! Total rules: 11849
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -3021,6 +3021,7 @@
 @@||dcinside.com^
 @@||dco.smartclip.net^
 @@||dcode.fr^
+@@||dd.subito.it^
 @@||dd6zx4ibq538k.cloudfront.net^
 @@||ddmix.net^
 @@||ddnk.advertur.ru^
@@ -10016,6 +10017,7 @@
 @@||tap.az^
 @@||tapestry.work^
 @@||tapewithadblock.org^
+@@||tapi.telstra.com^
 @@||target.my.com^
 @@||targetfaq.jra-van.jp^
 @@||tarnkappe.info^
