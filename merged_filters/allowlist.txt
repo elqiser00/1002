@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.05.09
-! Total rules: 11850
+! Total rules: 11852
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -6603,6 +6603,7 @@
 @@||medium.com^
 @@||medonet.pl^
 @@||meduza.io^
+@@||meet.dramirtavari.com^
 @@||meet.google.com^
 @@||meet.jit.si^
 @@||mega-debrid.eu^
@@ -9012,6 +9013,7 @@
 @@||series-streaminghd.com^
 @@||seriesdonghua.com^
 @@||seriesretro.com^
+@@||seriezloaded.com.ng^
 @@||seriousdeals.net^
 @@||serpens.nl^
 @@||serrurier-menuisier-31-ad2.site-privilege.pagesjaunes^
