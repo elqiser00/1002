@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.05.09
-! Total rules: 11849
+! Total rules: 11850
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -8618,6 +8618,7 @@
 @@||rmp.rakuten.co^
 @@||roadbike.de^
 @@||roanoke.com^
+@@||robertsspaceindustries.com^
 @@||robloxaltgen.com^
 @@||robot-forum.com^
 @@||rocket-league.com^
