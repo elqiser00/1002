@@ -71,6 +71,7 @@
 @@||abovetopsecret.com^
 @@||abp-profile-service.adobe.io^
 @@||abqjournal.com^
+@@||absciss.algonoew.online^
 @@||abstream.to^
 @@||abt.nike.com^
 @@||abt.s3.yandex^
@@ -3300,7 +3301,6 @@
 @@||doortodoor.co.kr^
 @@||doraflix.fluxcedene.net^
 @@||doramasmp4.com^
-@@||doridro.com^
 @@||doroni.me^
 @@||dorzeczy.pl^
 @@||dosgamezone.com^
