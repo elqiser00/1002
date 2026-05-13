@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.05.13
-! Total rules: 11847
+! Total rules: 11849
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -3851,6 +3851,7 @@
 @@||fapality.com^
 @@||fapi-top.prisasd.com^
 @@||fapoff.com^
+@@||faq-widget.nakanohito.jp^
 @@||faq.subaru.jp^
 @@||faq.viewcard.co^
 @@||farmer.pl^
@@ -10812,6 +10813,7 @@
 @@||usdentaldepot.com^
 @@||useast-.ordercloud.io^
 @@||usefuldiy.com^
+@@||user-profile.pr.sbsod^
 @@||user.pnetlab.com^
 @@||user.weiyun.com^
 @@||usercdn.com^
