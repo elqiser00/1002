@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.05.13
-! Total rules: 11855
+! Total rules: 11847
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -1049,7 +1049,6 @@
 @@||app.usercentrics.eu^
 @@||app.veggly.net^
 @@||app.weathercloud.net^
-@@||app.zyncfreesurveys.com^
 @@||app2.putgate.org^
 @@||appapi.inspsearchapi.com^
 @@||appdn.net^
@@ -1664,7 +1663,6 @@
 @@||book.com.tw^
 @@||booking.vietjetair.com^
 @@||booklive.jp^
-@@||bookscool.com^
 @@||bookwalker.com.tw^
 @@||boot.dev^
 @@||bootcss.com^
@@ -5350,7 +5348,6 @@
 @@||indianrailways.info^
 @@||indiansgetfucked.com^
 @@||indiatimes.com^
-@@||indiatoday.in^
 @@||indiatoday.intoday.in^
 @@||indiegogo.com^
 @@||indokontraktor.com^
@@ -5437,7 +5434,6 @@
 @@||interia.pl^
 @@||intersport.peerius.com^
 @@||intocam.com^
-@@||intoday.in^
 @@||inven.co.kr^
 @@||inven.com^
 @@||investing.com^
@@ -6579,7 +6575,6 @@
 @@||media.wazimo.com^
 @@||media.wired.it^
 @@||media1.admicro.vn^
-@@||media2.intoday.in^
 @@||media2.ledevoir.com^
 @@||mediaalpha.com^
 @@||mediacdn.disqus.com^
@@ -9280,7 +9275,6 @@
 @@||smashingmagazine.com^
 @@||smashresume.com^
 @@||sme.sk^
-@@||smedia2.intoday.in^
 @@||smetrics.aa.com^
 @@||smetrics.blackberry.com^
 @@||smetrics.nintendo.com^
@@ -9870,7 +9864,6 @@
 @@||superpsx.com^
 @@||supersoluce.com^
 @@||supersonicads.com^
-@@||superwall.us^
 @@||superyachtfan.com^
 @@||support-beacon.nakanohito.jp^
 @@||support-widget.nakanohito.jp^
@@ -11099,7 +11092,6 @@
 @@||voelkner.de^
 @@||voenhronika.ru^
 @@||voipsipclient.blogspot.nl^
-@@||voiranime.com^
 @@||volces.com^
 @@||voldffgkdsllkjthlkjt.b-cdn.net^
 @@||volksfreund.de^
