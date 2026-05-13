@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
-! Version: 2026.05.12
-! Total rules: 11854
+! Version: 2026.05.13
+! Total rules: 11855
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -7272,6 +7272,7 @@
 @@||noahedu.com^
 @@||nobugin.com^
 @@||nocorspolicy.com^
+@@||nodestatic.fbstatic.cn^
 @@||nodkey.xyz^
 @@||nodo313.net^
 @@||nohat.cc^
