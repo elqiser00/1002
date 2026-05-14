@@ -229,3 +229,8 @@ https://raw.githubusercontent.com/hagezi/dns-blocklists/main/wildcard/gambling-o
 https://raw.githubusercontent.com/hagezi/dns-blocklists/main/wildcard/gambling.txt
 https://urlhaus.abuse.ch/downloads/hostfile
 https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/rpz/tif.mini.txt
+https://raw.githubusercontent.com/xxcriticxx/.pl-host-file/master/hosts.txt
+https://raw.githubusercontent.com/Goooler/1024_hosts/master/hosts
+https://1275.ru/DGA/bamital.txt
+https://1275.ru/DGA/corebot.txt
+https://1275.ru/DGA/cryptolocker.txt
