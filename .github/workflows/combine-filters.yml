@@ -2,8 +2,8 @@ name: Combine AdGuard Filters
 
 on:
   schedule:
-    - cron: '0 */6 * * *'     # كل 6 ساعات
-  workflow_dispatch:           # تشغيل يدوي
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
 
 jobs:
   combine_filters:
@@ -11,11 +11,11 @@ jobs:
     timeout-minutes: 30
 
     steps:
-    - name: Checkout repository (latest commit only)
+    - name: Checkout repository
       uses: actions/checkout@v4
       with:
         token: ${{ secrets.GH_TOKEN }}
-        fetch-depth: 1          # سحب آخر commit فقط لتقليل البيانات
+        fetch-depth: 0   # سحب كل التاريخ للتعامل مع rebase
 
     - name: Set up Python
       uses: actions/setup-python@v5
@@ -30,36 +30,22 @@ jobs:
     - name: Run combine script
       run: python combine_filters.py
 
-    - name: Check file sizes (avoid GitHub limits)
-      run: |
-        echo "📦 Generated files in merged_filters/:"
-        if [ -d "merged_filters" ]; then
-          ls -lh merged_filters/
-          echo "---------------------------------"
-          for file in merged_filters/*.txt; do
-            if [ -f "$file" ]; then
-              size=$(stat -c%s "$file")
-              size_mb=$((size / 1048576))
-              echo "🔍 $file: $size_mb MB"
-              if [ $size_mb -gt 95 ]; then
-                echo "⚠️ Warning: $file exceeds 95 MB, push may fail!"
-              fi
-            fi
-          done
-        else
-          echo "merged_filters/ directory not found"
-        fi
-
     - name: Commit and push changes
       run: |
         git config user.name "GitHub Actions"
         git config user.email "github-actions@github.com"
         git add -A
-        # Only commit if there are changes
+        
+        # إذا لم تكن هناك تغييرات، لا نحتاج إلى commit أو push
         if git diff --cached --quiet; then
           echo "No changes to commit"
-        else
-          git commit -m "🔄 Auto-update combined filters"
-          # Push directly (no pull needed because we use fetch-depth=1 and no concurrent pushes expected)
-          git push https://${{ secrets.GH_TOKEN }}@github.com/elqiser00/1002.git HEAD:main
+          exit 0
         fi
+        
+        git commit -m "🔄 Auto-update combined filters"
+        
+        # جلب أحدث التغييرات من remote ودمجها باستخدام rebase لتجنب تعارضات
+        git pull --rebase https://${{ secrets.GH_TOKEN }}@github.com/elqiser00/1002.git main
+        
+        # دفع التغييرات
+        git push https://${{ secrets.GH_TOKEN }}@github.com/elqiser00/1002.git HEAD:main
