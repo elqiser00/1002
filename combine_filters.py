@@ -8,7 +8,7 @@ import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # ================== الإعدادات ==================
-MAX_FILE_SIZE_MB = 60               # الحد الأقصى لكل ملف (60 ميجابايت)
+MAX_FILE_SIZE_MB = 50               # الحد الأقصى لكل ملف (60 ميجابايت)
 MAX_LINE_LENGTH = 5000
 REQUEST_TIMEOUT = 60
 REQUEST_DELAY = 0.5
