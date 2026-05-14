@@ -2,7 +2,8 @@ name: Delete All Workflow Runs
 
 on:
   schedule:
-    - cron: '0 */12 * * *'
+    - cron: '0 */12 * * *'   # كل 12 ساعة تلقائي
+  workflow_dispatch:          # زرار تشغيل يدوي بدون تأكيد
 
 jobs:
   delete:
