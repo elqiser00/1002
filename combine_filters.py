@@ -8,17 +8,18 @@ import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # ================== الإعدادات ==================
+MAX_FILE_SIZE_MB = 95               # أقصى حجم لكل ملف بالميجابايت (آمن لـ GitHub)
 MAX_LINE_LENGTH = 5000
 REQUEST_TIMEOUT = 60
 REQUEST_DELAY = 0.5
 MAX_WORKERS = 10
 USER_AGENT = "AdGuard-Merger/2.0"
 
-# 🔧 اسم ملف المخرجات الوحيد
-OUTPUT_BASE_NAME = "final_filters.txt"
+# اسم الملف الأساسي (سيتم إضافة _part1, _part2, ...)
+OUTPUT_BASE_NAME = "final_filters"
+OUTPUT_DIR = "merged_filters"
 
 def load_filter_urls():
-    """تحميل روابط الفلاتر من ملف list.txt"""
     try:
         with open("list.txt", "r", encoding="utf-8") as f:
             urls = [line.strip() for line in f if line.strip() and not line.startswith("#")]
@@ -28,7 +29,6 @@ def load_filter_urls():
         return []
 
 def convert_hosts_rule(line):
-    """تحويل قاعدة hosts (0.0.0.0 domain) إلى ||domain^"""
     match = re.match(r'^(0\.0\.0\.0|127\.0\.0\.1)\s+([a-zA-Z0-9.-]+)$', line.strip())
     if match:
         return f"||{match.group(2)}^"
@@ -38,12 +38,10 @@ def convert_hosts_rule(line):
     return None
 
 def is_comment_or_empty(line):
-    """تجاهل التعليقات والأسطر الفارغة"""
     stripped = line.strip()
     return not stripped or stripped.startswith(('#', '!'))
 
 def clean_rule(line):
-    """تنظيف السطر: إزالة التعليقات، تحويل hosts، وتصفية الطول"""
     line = line.strip()
     if is_comment_or_empty(line) or len(line) > MAX_LINE_LENGTH:
         return None
@@ -51,7 +49,6 @@ def clean_rule(line):
     return converted if converted else line
 
 def download_filter(url):
-    """تحميل فلتر من رابط مع تنظيف أولي"""
     try:
         headers = {'User-Agent': USER_AGENT}
         resp = requests.get(url, timeout=REQUEST_TIMEOUT, headers=headers, verify=False)
@@ -67,7 +64,6 @@ def download_filter(url):
         return [], url
 
 def process_filters(urls):
-    """معالجة جميع الفلاتر وإزالة التكرار الحرفي"""
     seen = set()
     total = len(urls)
     print(f"🔍 بدء معالجة {total} مصدر فلتر ...")
@@ -82,34 +78,60 @@ def process_filters(urls):
             all_rules.extend(new_rules)
             if i < total:
                 time.sleep(REQUEST_DELAY)
-    # ترتيب: الاستثناءات أولاً ثم الباقي
+    # ترتيب: الاستثناءات أولاً
     all_rules.sort(key=lambda x: (not x.startswith('@@'), x))
     return all_rules
 
-def save_single_file(rules, out_dir="merged_filters"):
-    """حفظ كل القواعد في ملف واحد فقط (بدون تقسيم)"""
-    os.makedirs(out_dir, exist_ok=True)
-    output_path = os.path.join(out_dir, OUTPUT_BASE_NAME)
+def save_filters_by_size(rules):
+    """حفظ القواعد في ملفات متعددة كل منها لا يتجاوز MAX_FILE_SIZE_MB ميجابايت"""
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
+    if not rules:
+        print("⚠️ لا توجد قواعد للحفظ.")
+        return
+
+    max_size_bytes = MAX_FILE_SIZE_MB * 1024 * 1024
+    current_part = 1
+    current_size = 0
+    current_rules = []
     
-    print(f"\n💾 حفظ {len(rules)} قاعدة في ملف واحد: {output_path}")
-    with open(output_path, 'w', encoding='utf-8') as f:
-        f.write("\n".join(rules))
+    # تقدير حجم كل قاعدة: طول السطر + 1 (لـ newline)
+    for rule in rules:
+        rule_size = len(rule.encode('utf-8')) + 1  # +1 for newline
+        # إذا كانت القاعدة وحدها أكبر من الحد الأقصى (نادراً) يتم تخطيها أو تحذير
+        if rule_size > max_size_bytes:
+            print(f"⚠️ قاعدة طويلة جداً ({rule_size} بايت) سيتم تخطيها: {rule[:50]}...")
+            continue
+            
+        # إذا إضافة هذه القاعدة ستتجاوز الحجم، نكتب الملف الحالي ونبدأ جديداً
+        if current_size + rule_size > max_size_bytes and current_rules:
+            # كتابة الملف الحالي
+            filename = f"{OUTPUT_BASE_NAME}_part{current_part}.txt"
+            filepath = os.path.join(OUTPUT_DIR, filename)
+            with open(filepath, 'w', encoding='utf-8') as f:
+                f.write("\n".join(current_rules))
+            actual_size_mb = os.path.getsize(filepath) / (1024*1024)
+            print(f"✅ {filename}: {len(current_rules)} قاعدة, {actual_size_mb:.2f} MB")
+            # بدء جزء جديد
+            current_part += 1
+            current_rules = []
+            current_size = 0
+        
+        # إضافة القاعدة إلى الجزء الحالي
+        current_rules.append(rule)
+        current_size += rule_size
     
-    # الحصول على حجم الملف بالميجابايت
-    size_bytes = os.path.getsize(output_path)
-    size_mb = size_bytes / (1024 * 1024)
+    # كتابة آخر جزء إذا كان فيه قواعد
+    if current_rules:
+        filename = f"{OUTPUT_BASE_NAME}_part{current_part}.txt"
+        filepath = os.path.join(OUTPUT_DIR, filename)
+        with open(filepath, 'w', encoding='utf-8') as f:
+            f.write("\n".join(current_rules))
+        actual_size_mb = os.path.getsize(filepath) / (1024*1024)
+        print(f"✅ {filename}: {len(current_rules)} قاعدة, {actual_size_mb:.2f} MB")
     
-    print(f"✅ تم الحفظ بنجاح. حجم الملف: {size_mb:.2f} MB")
-    
-    # تحذير إذا تجاوز 95 ميجابايت (قريب من حد GitHub 100 ميجابايت)
-    if size_mb > 95:
-        print(f"\n⚠️ تحذير: حجم الملف ({size_mb:.2f} MB) يقترب من الحد الأقصى لـ GitHub (100 MB).")
-        print("⚠️ قد يفشل رفع الملف إلى المستودع. يُنصح بتقليل عدد الفلاتر أو استخدام تقسيم إلى أجزاء.")
-    elif size_mb > 100:
-        print(f"\n❌ خطأ: حجم الملف ({size_mb:.2f} MB) يتجاوز الحد الأقصى لـ GitHub (100 MB).")
-        print("❌ لن يتم قبول الدفع. يجب تقليل عدد القواعد أو استخدام التقسيم.")
-    else:
-        print(f"✅ حجم الملف مناسب (أقل من 100 MB). يمكن رفعه إلى GitHub.")
+    # إجمالي الإحصاءات
+    total_files = current_part
+    print(f"\n📦 تم إنشاء {total_files} ملف (كل ملف ≤ {MAX_FILE_SIZE_MB} MB)")
 
 if __name__ == "__main__":
     urls = load_filter_urls()
@@ -118,12 +140,11 @@ if __name__ == "__main__":
         exit(1)
 
     start = time.time()
-    print("🚀 بدء دمج وتنظيف الفلاتر (ملف واحد نهائي)...")
-    print("⚠️ تذكر: إذا تجاوز الحجم 100 MB، سيفشل رفع الملف إلى GitHub.")
+    print(f"🚀 بدء الدمج... الحد الأقصى لكل ملف: {MAX_FILE_SIZE_MB} MB")
     try:
         final_rules = process_filters(urls)
-        save_single_file(final_rules)
+        save_filters_by_size(final_rules)
         print(f"\n⏱️ الوقت المستغرق: {time.time() - start:.2f} ثانية")
-        print(f"✨ الإحصائيات النهائية: {len(final_rules)} قاعدة فريدة (في ملف واحد)")
+        print(f"✨ إجمالي القواعد الفريدة: {len(final_rules)}")
     except Exception as e:
         print(f"❌ خطأ: {e}")
