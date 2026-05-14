@@ -8,14 +8,13 @@ import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # ================== الإعدادات ==================
-MAX_LINES_PER_PART = 500_000          # 500 ألف سطر لكل جزء (حجم أقل من 50 ميجابايت)
 MAX_LINE_LENGTH = 5000
 REQUEST_TIMEOUT = 60
 REQUEST_DELAY = 0.5
 MAX_WORKERS = 10
 USER_AGENT = "AdGuard-Merger/2.0"
 
-# 🔧 اسم ملف المخرجات الأساسي (عدله كما تشاء)
+# 🔧 اسم ملف المخرجات الوحيد
 OUTPUT_BASE_NAME = "final_filters.txt"
 
 def load_filter_urls():
@@ -87,38 +86,30 @@ def process_filters(urls):
     all_rules.sort(key=lambda x: (not x.startswith('@@'), x))
     return all_rules
 
-def save_filters(rules, out_dir="merged_filters"):
-    """حفظ القواعد في أجزاء صغيرة (تجنب الملفات الضخمة)"""
+def save_single_file(rules, out_dir="merged_filters"):
+    """حفظ كل القواعد في ملف واحد فقط (بدون تقسيم)"""
     os.makedirs(out_dir, exist_ok=True)
-    base_name = OUTPUT_BASE_NAME
-    name, ext = os.path.splitext(base_name)
+    output_path = os.path.join(out_dir, OUTPUT_BASE_NAME)
     
-    total_rules = len(rules)
-    print(f"\n💾 حفظ {total_rules} قاعدة فريدة...")
+    print(f"\n💾 حفظ {len(rules)} قاعدة في ملف واحد: {output_path}")
+    with open(output_path, 'w', encoding='utf-8') as f:
+        f.write("\n".join(rules))
     
-    # إذا كان العدد أقل من حد التقسيم، احفظ ملفاً واحداً
-    if total_rules <= MAX_LINES_PER_PART:
-        main_path = os.path.join(out_dir, base_name)
-        with open(main_path, 'w', encoding='utf-8') as f:
-            f.write("\n".join(rules))
-        size_mb = os.path.getsize(main_path) / (1024*1024)
-        print(f"✅ تم حفظ {total_rules} قاعدة في ملف واحد: {main_path} ({size_mb:.2f} MB)")
+    # الحصول على حجم الملف بالميجابايت
+    size_bytes = os.path.getsize(output_path)
+    size_mb = size_bytes / (1024 * 1024)
+    
+    print(f"✅ تم الحفظ بنجاح. حجم الملف: {size_mb:.2f} MB")
+    
+    # تحذير إذا تجاوز 95 ميجابايت (قريب من حد GitHub 100 ميجابايت)
+    if size_mb > 95:
+        print(f"\n⚠️ تحذير: حجم الملف ({size_mb:.2f} MB) يقترب من الحد الأقصى لـ GitHub (100 MB).")
+        print("⚠️ قد يفشل رفع الملف إلى المستودع. يُنصح بتقليل عدد الفلاتر أو استخدام تقسيم إلى أجزاء.")
+    elif size_mb > 100:
+        print(f"\n❌ خطأ: حجم الملف ({size_mb:.2f} MB) يتجاوز الحد الأقصى لـ GitHub (100 MB).")
+        print("❌ لن يتم قبول الدفع. يجب تقليل عدد القواعد أو استخدام التقسيم.")
     else:
-        # تقسيم إلى أجزاء
-        part_size = MAX_LINES_PER_PART
-        total_parts = (total_rules + part_size - 1) // part_size
-        print(f"📦 تقسيم إلى {total_parts} جزء (كل جزء حتى {part_size} سطر) ...")
-        
-        for i in range(total_parts):
-            part_file = os.path.join(out_dir, f"{name}_part_{i+1}{ext}")
-            start = i * part_size
-            end = min(start + part_size, total_rules)
-            with open(part_file, 'w', encoding='utf-8') as f:
-                f.write("\n".join(rules[start:end]))
-            size_mb = os.path.getsize(part_file) / (1024*1024)
-            print(f"   ✅ الجزء {i+1}: {len(rules[start:end])} قاعدة ({size_mb:.2f} MB)")
-        
-        print(f"\n⚠️ الملف الرئيسي لم يتم إنشاؤه لأنه كبير جداً. استخدم الأجزاء بدلاً من ذلك.")
+        print(f"✅ حجم الملف مناسب (أقل من 100 MB). يمكن رفعه إلى GitHub.")
 
 if __name__ == "__main__":
     urls = load_filter_urls()
@@ -127,11 +118,12 @@ if __name__ == "__main__":
         exit(1)
 
     start = time.time()
-    print("🚀 بدء دمج وتنظيف الفلاتر (سيتم تجنب الملفات الضخمة)...")
+    print("🚀 بدء دمج وتنظيف الفلاتر (ملف واحد نهائي)...")
+    print("⚠️ تذكر: إذا تجاوز الحجم 100 MB، سيفشل رفع الملف إلى GitHub.")
     try:
         final_rules = process_filters(urls)
-        save_filters(final_rules)
+        save_single_file(final_rules)
         print(f"\n⏱️ الوقت المستغرق: {time.time() - start:.2f} ثانية")
-        print(f"✨ الإحصائيات النهائية: {len(final_rules)} قاعدة فريدة")
+        print(f"✨ الإحصائيات النهائية: {len(final_rules)} قاعدة فريدة (في ملف واحد)")
     except Exception as e:
         print(f"❌ خطأ: {e}")
