@@ -11,17 +11,19 @@ jobs:
     timeout-minutes: 30
 
     steps:
-    - name: Checkout repository (shallow + sparse)
+    - name: Checkout repository (full, no sparse)
       uses: actions/checkout@v4
       with:
         token: ${{ secrets.GH_TOKEN }}
-        fetch-depth: 1               # سحب آخر commit فقط
-        sparse-checkout: |
-          !merged_filters            # استبعاد مجلد المخرجات القديم (إن وجد)
-          .github/workflows/*.yml
-          combine_filters.py
-          list.txt
-        sparse-checkout-cone-mode: false
+        fetch-depth: 1
+        # لا نحدد sparse-checkout لكي نحصل على كل الملفات
+
+    - name: Disable sparse-checkout (if active)
+      run: |
+        git sparse-checkout disable || echo "Sparse checkout not active"
+
+    - name: Remove old output folder to avoid conflicts
+      run: rm -rf merged_filters
 
     - name: Set up Python
       uses: actions/setup-python@v5
@@ -40,11 +42,17 @@ jobs:
       run: |
         git config user.name "GitHub Actions"
         git config user.email "github-actions@github.com"
+        
+        # تأكيد تعطيل sparse-checkout مرة أخرى
+        git sparse-checkout disable 2>/dev/null || true
+        
         git add -A
         if git diff --cached --quiet; then
           echo "No changes to commit"
           exit 0
         fi
         git commit -m "🔄 Auto-update combined filters"
-        git pull --rebase https://${{ secrets.GH_TOKEN }}@github.com/elqiser00/1002.git main
-        git push https://${{ secrets.GH_TOKEN }}@github.com/elqiser00/1002.git HEAD:main
+        git pull --rebase origin main --strategy-option=ours
+        git push origin HEAD:main
+      env:
+        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
