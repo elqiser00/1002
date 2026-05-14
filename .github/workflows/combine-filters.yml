@@ -15,6 +15,7 @@ jobs:
       uses: actions/checkout@v4
       with:
         token: ${{ secrets.GH_TOKEN }}
+        fetch-depth: 0  # يجلب كل التاريخ لتجنب مشاكل rebase
 
     - name: Set up Python
       uses: actions/setup-python@v5
@@ -27,12 +28,16 @@ jobs:
         pip install requests
 
     - name: Run combine script
-      run: python combine_filters.py   # <- الاسم الجديد للسكريبت
+      run: python combine_filters.py
 
     - name: Commit and push changes
       run: |
         git config user.name "GitHub Actions"
         git config user.email "github-actions@github.com"
         git add -A
-        git commit -m "🔄 Auto-update combined filters" || echo "Nothing to commit"
+        # فقط commit إذا كان هناك تغييرات
+        git diff --cached --quiet || git commit -m "🔄 Auto-update combined filters"
+        # جلب التغييرات من remote ودمجها (rebase لتجنب تعارضات)
+        git pull --rebase https://${{ secrets.GH_TOKEN }}@github.com/elqiser00/1002.git main
+        # دفع التغييرات
         git push https://${{ secrets.GH_TOKEN }}@github.com/elqiser00/1002.git HEAD:main
