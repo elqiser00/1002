@@ -1,12 +1,8 @@
 name: Delete All Workflow Runs
 
 on:
-  workflow_dispatch:
-    inputs:
-      confirm:
-        description: 'Type "DELETE" to confirm'
-        required: true
-        default: ''
+  schedule:
+    - cron: '0 */12 * * *'
 
 jobs:
   delete:
@@ -14,12 +10,6 @@ jobs:
     permissions:
       actions: write
     steps:
-      - name: Check confirmation
-        if: github.event.inputs.confirm != 'DELETE'
-        run: |
-          echo "❌ Confirmation failed. Please type DELETE."
-          exit 1
-
       - name: Delete all workflow runs
         uses: Mattraks/delete-workflow-runs@v2
         with:
