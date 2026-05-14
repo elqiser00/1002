@@ -14,7 +14,7 @@ https://raw.githubusercontent.com/elqiser00/1002/refs/heads/main/merged_filters/
 
 All filters
 
-[https://adguardteam.github.io/HostlistsRegistry/assets/filter_3.txt
+https://adguardteam.github.io/HostlistsRegistry/assets/filter_3.txt
 https://adguardteam.github.io/HostlistsRegistry/assets/filter_7.txt
 https://adguardteam.github.io/HostlistsRegistry/assets/filter_57.txt
 https://adguardteam.github.io/HostlistsRegistry/assets/filter_62.txt
@@ -433,4 +433,4 @@ https://v.firebog.net/hosts/AdguardDNS.txt
 https://raw.githubusercontent.com/hagezi/dns-blocklists/main/wildcard/gambling-onlydomains.txt
 https://raw.githubusercontent.com/hagezi/dns-blocklists/main/wildcard/gambling.txt
 https://urlhaus.abuse.ch/downloads/hostfile
-https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/rpz/tif.mini.txt)
+https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/rpz/tif.mini.txt
