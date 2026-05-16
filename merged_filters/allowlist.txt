@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.05.16
-! Total rules: 11852
+! Total rules: 11853
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -7479,6 +7479,7 @@
 @@||omutulove.blog.fc^
 @@||omutulove.seesaa.net^
 @@||on-web-cdn.gviet.vn^
+@@||on.orf.at^
 @@||onbatch.my.id^
 @@||onceagain.mooo.com^
 @@||onecdn.io^
