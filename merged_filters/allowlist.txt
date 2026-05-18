@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.05.18
-! Total rules: 11852
+! Total rules: 11854
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -2373,6 +2373,7 @@
 @@||cinemaxx.de^
 @@||cinemaxxl.de^
 @@||cinemaz.club^
+@@||cinewave2.site^
 @@||cintateknologi.com^
 @@||cio.com^
 @@||circuiteasy.com^
@@ -6251,6 +6252,7 @@
 @@||lordz.io^
 @@||loskatchorros.com.br^
 @@||lostpod.space^
+@@||lostproject.club^
 @@||lotzon.co^
 @@||lotzon.com^
 @@||loucasporcabelos.com.br^
