@@ -1,108 +1,181 @@
-
-workflow_content = '''name: Auto-update AdGuard Android Filters
+name: Auto-update AdGuard Android Filters
 
 on:
   schedule:
     - cron: '0 */6 * * *'  # كل 6 ساعات
   workflow_dispatch:       # تشغيل يدوي
   push:
-    branches: [main]
+    branches: [main, master]
     paths:
       - 'list.txt'
       - 'Filters.AdGuard.Android.py'
 
+# منع تشغيل متوازي
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   PYTHON_VERSION: '3.11'
+  OUTPUT_DIR: 'merged_filters'
+
+permissions:
+  contents: write
 
 jobs:
   merge-and-deploy:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
-    permissions:
-      contents: write
+    timeout-minutes: 30
 
     steps:
-      # ─── Checkout ─────────────────────────────────────────────────────────
+      # ─── 1. Checkout ────────────────────────────────────────────────────
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GH_TOKEN }}
           fetch-depth: 0
+          persist-credentials: true
 
-      # ─── Setup Python ────────────────────────────────────────────────────
-      - name: Setup Python
+      # ─── 2. Setup Python ────────────────────────────────────────────────
+      - name: Setup Python ${{ env.PYTHON_VERSION }}
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-          cache: 'pip'
 
-      # ─── Cache dependencies ────────────────────────────────────────────
+      # ─── 3. Cache pip ───────────────────────────────────────────────────
       - name: Cache pip packages
         uses: actions/cache@v4
+        id: pip-cache
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt', '**/pyproject.toml') }}
           restore-keys: |
             ${{ runner.os }}-pip-
 
-      # ─── Install dependencies ────────────────────────────────────────────
-      - name: Install dependencies
+      # ─── 4. Install dependencies ────────────────────────────────────────
+      - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
           pip install requests urllib3
 
-      # ─── Run Filter Merger ──────────────────────────────────────────────
+      # ─── 5. Verify list.txt exists ──────────────────────────────────────
+      - name: Verify list.txt exists
+        run: |
+          if [ ! -f "list.txt" ]; then
+            echo "❌ ملف list.txt غير موجود!"
+            exit 1
+          fi
+          echo "✅ list.txt موجود"
+          echo "📋 عدد الروابط: $(grep -c '^http' list.txt || echo 0)"
+
+      # ─── 6. Run Filter Merger ───────────────────────────────────────────
       - name: Run Filters.AdGuard.Android
+        id: merger
         run: |
           echo "🚀 بدء عملية دمج الفلاتر..."
           python Filters.AdGuard.Android.py
+          echo "exit_code=$?" >> $GITHUB_OUTPUT
         env:
           PYTHONUNBUFFERED: "1"
+          PYTHONDONTWRITEBYTECODE: "1"
 
-      # ─── Verify output ───────────────────────────────────────────────────
+      # ─── 7. Verify output ───────────────────────────────────────────────
       - name: Verify output files
+        id: verify
         run: |
-          echo "📁 التحقق من الملفات المُنتجة..."
-          ls -lah merged_filters/
-          echo ""
-          echo "📊 حجم الملفات:"
-          du -sh merged_filters/*
-          echo ""
-          echo "🔍 عدد الأسطر في الملف الرئيسي:"
-          wc -l merged_filters/adguard_android_filter.txt
+          if [ ! -d "${{ env.OUTPUT_DIR }}" ]; then
+            echo "❌ مجلد ${{ env.OUTPUT_DIR }} غير موجود!"
+            exit 1
+          fi
 
-      # ─── Commit & Push ───────────────────────────────────────────────────
-      - name: Commit and push changes
+          MAIN_FILE="${{ env.OUTPUT_DIR }}/adguard_android_filter.txt"
+          if [ ! -f "$MAIN_FILE" ]; then
+            echo "❌ الملف الرئيسي غير موجود!"
+            exit 1
+          fi
+
+          FILE_SIZE=$(stat -c%s "$MAIN_FILE" 2>/dev/null || stat -f%z "$MAIN_FILE")
+          LINE_COUNT=$(wc -l < "$MAIN_FILE")
+
+          echo "✅ الملف الرئيسي موجود"
+          echo "📊 الحجم: $(numfmt --to=iec $FILE_SIZE)"
+          echo "📊 الأسطر: $LINE_COUNT"
+
+          echo "file_size=$FILE_SIZE" >> $GITHUB_OUTPUT
+          echo "line_count=$LINE_COUNT" >> $GITHUB_OUTPUT
+
+          # عرض أول 5 أسطر
+          echo ""
+          echo "🔍 عينة من القواعد:"
+          head -n 15 "$MAIN_FILE" | grep -v "^!" | head -n 5
+
+      # ─── 8. Read stats ──────────────────────────────────────────────────
+      - name: Read statistics
+        id: stats
         run: |
-          git config user.name "GitHub Actions Bot"
+          STATS_FILE="${{ env.OUTPUT_DIR }}/stats.json"
+          if [ -f "$STATS_FILE" ]; then
+            TOTAL=$(python3 -c "import json; print(json.load(open('$STATS_FILE')).get('total_rules', 'unknown'))" 2>/dev/null || echo "unknown")
+            BLOCK=$(python3 -c "import json; print(json.load(open('$STATS_FILE')).get('block_rules', 'unknown'))" 2>/dev/null || echo "unknown")
+            ALLOW=$(python3 -c "import json; print(json.load(open('$STATS_FILE')).get('allow_rules', 'unknown'))" 2>/dev/null || echo "unknown")
+            echo "total_rules=$TOTAL" >> $GITHUB_OUTPUT
+            echo "block_rules=$BLOCK" >> $GITHUB_OUTPUT
+            echo "allow_rules=$ALLOW" >> $GITHUB_OUTPUT
+          else
+            echo "total_rules=${{ steps.verify.outputs.line_count }}" >> $GITHUB_OUTPUT
+            echo "block_rules=unknown" >> $GITHUB_OUTPUT
+            echo "allow_rules=unknown" >> $GITHUB_OUTPUT
+          fi
+
+      # ─── 9. Commit and push ─────────────────────────────────────────────
+      - name: Commit and push changes
+        id: commit
+        run: |
+          git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          
+
           git add -A
-          
+
           if git diff --cached --quiet; then
-            echo "ℹ️ لا يوجد تغييرات للرفع"
+            echo "✅ لا يوجد تغييرات جديدة"
+            echo "changed=false" >> $GITHUB_OUTPUT
             exit 0
           fi
-          
-          # قراءة الإحصائيات
-          TOTAL_RULES=$(python3 -c "import json; d=json.load(open('merged_filters/stats.json')); print(f'{d[\"total_rules\"]:,}')" 2>/dev/null || echo "unknown")
-          
-          git commit -m "🔄 Auto-update: ${TOTAL_RULES} rules | $(date -u '+%Y-%m-%d %H:%M UTC')"
-          git push https://${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }}.git HEAD:${{ github.ref_name }}
-          
-          echo "✅ تم الرفع بنجاح!"
 
-      # ─── Upload artifacts (اختياري) ────────────────────────────────────
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: merged-filters-${{ github.run_number }}
-          path: merged_filters/
-          retention-days: 7
-'''
+          TOTAL="${{ steps.stats.outputs.total_rules }}"
+          BLOCK="${{ steps.stats.outputs.block_rules }}"
+          ALLOW="${{ steps.stats.outputs.allow_rules }}"
+          DATE=$(date -u '+%Y-%m-%d %H:%M UTC')
 
-with open('/mnt/agents/output/update-filters.yml', 'w', encoding='utf-8') as f:
-    f.write(workflow_content)
+          git commit -m "🔄 Auto-update: ${TOTAL} rules (${BLOCK} block, ${ALLOW} allow) | ${DATE}"
 
-print("✅ Saved update-filters.yml")
-print(f"   Size: {len(workflow_content):,} bytes")
+          # محاولة الرفع مع retry
+          for i in 1 2 3; do
+            if git push "https://${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }}.git" "HEAD:${{ github.ref_name }}"; then
+              echo "✅ تم الرفع بنجاح!"
+              echo "changed=true" >> $GITHUB_OUTPUT
+              break
+            else
+              echo "⚠️ محاولة الرفع $i فشلت، إعادة المحاولة..."
+              git pull --rebase "https://${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }}.git" "${{ github.ref_name }}" || true
+              sleep 3
+            fi
+          done
+
+      # ─── 10. Summary ────────────────────────────────────────────────────
+      - name: Job Summary
+        if: always()
+        run: |
+          echo "## 📊 Filters.AdGuard.Android - نتيجة التشغيل" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| المقياس | القيمة |" >> $GITHUB_STEP_SUMMARY
+          echo "|---------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| ⏰ الوقت | $(date -u '+%Y-%m-%d %H:%M UTC') |" >> $GITHUB_STEP_SUMMARY
+          echo "| 📁 الملف الرئيسي | adguard_android_filter.txt |" >> $GITHUB_STEP_SUMMARY
+          echo "| 📊 إجمالي القواعد | ${{ steps.stats.outputs.total_rules }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🚫 قواعد الحظر | ${{ steps.stats.outputs.block_rules }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| ✅ قواعد الاستثناء | ${{ steps.stats.outputs.allow_rules }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 📏 عدد الأسطر | ${{ steps.verify.outputs.line_count }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 📝 تم التغيير | ${{ steps.commit.outputs.changed }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "🔧 [عرض الملفات](https://github.com/${{ github.repository }}/tree/${{ github.ref_name }}/merged_filters)" >> $GITHUB_STEP_SUMMARY
