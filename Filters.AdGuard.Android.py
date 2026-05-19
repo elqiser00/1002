@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Filters.AdGuard.Android - Advanced Filter Merger v3
-====================================================
-محسّن لتجنب Rate Limiting ويدعم جميع أنواع الروابط
+Filters.AdGuard.Android - Universal Filter Merger v4
+=====================================================
+يدعم جميع صيغ الفلاتر ويحولها لـ AdGuard Android
 """
 
 import requests
@@ -21,21 +21,19 @@ from datetime import datetime
 
 # ─── Configuration ──────────────────────────────────────────────────────────
 MAX_LINES_PER_PART = 1_500_000
-MAX_LINE_LENGTH = 4096
+MAX_LINE_LENGTH = 8192
 REQUEST_TIMEOUT = 120
-REQUEST_DELAY_MIN = 1.0
-REQUEST_DELAY_MAX = 3.0
-MAX_WORKERS = 5           # قللنا علشان Rate Limit
-MAX_RETRIES = 8
-BACKOFF_FACTOR = 3
+REQUEST_DELAY_MIN = 0.5
+REQUEST_DELAY_MAX = 2.0
+MAX_WORKERS = 8
+MAX_RETRIES = 10
+BACKOFF_FACTOR = 2
 
-# User-Agents متعددة (تقليد متصفحات حقيقية)
 USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
     "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:125.0) Gecko/20100101 Firefox/125.0",
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15",
 ]
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -43,8 +41,6 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 # ─── Session ─────────────────────────────────────────────────────────────────
 def create_session():
     session = requests.Session()
-
-    # Retry strategy أقوى
     retry_strategy = requests.adapters.Retry(
         total=MAX_RETRIES,
         backoff_factor=BACKOFF_FACTOR,
@@ -52,50 +48,35 @@ def create_session():
         allowed_methods=["HEAD", "GET", "OPTIONS"],
         raise_on_status=False
     )
-
     adapter = requests.adapters.HTTPAdapter(
         max_retries=retry_strategy,
         pool_connections=MAX_WORKERS,
         pool_maxsize=MAX_WORKERS * 3,
         pool_block=False
     )
-
     session.mount('https://', adapter)
     session.mount('http://', adapter)
-
-    # Headers شبه متصفح حقيقي
     session.headers.update({
         'User-Agent': random.choice(USER_AGENTS),
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.9,ar;q=0.8',
-        'Accept-Encoding': 'gzip, deflate, br',
-        'DNT': '1',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Accept-Encoding': 'gzip, deflate',
         'Connection': 'keep-alive',
-        'Upgrade-Insecure-Requests': '1',
-        'Sec-Fetch-Dest': 'document',
-        'Sec-Fetch-Mode': 'navigate',
-        'Sec-Fetch-Site': 'none',
-        'Sec-Fetch-User': '?1',
-        'Cache-Control': 'max-age=0',
     })
-
     return session
 
 # ─── Load URLs ───────────────────────────────────────────────────────────────
 def load_filter_urls(filename="list.txt"):
     try:
         with open(filename, "r", encoding="utf-8") as file:
-            urls = []
-            for line in file:
-                line = line.strip()
-                if line and line.startswith(("http://", "https://")):
-                    urls.append(line)
+            urls = [line.strip() for line in file 
+                    if line.strip() and line.strip().startswith(("http://", "https://"))]
             return urls
     except FileNotFoundError:
         print(f"❌ ملف {filename} غير موجود!")
         return []
 
-# ─── Rule Processing ─────────────────────────────────────────────────────────
+# ─── Domain Processing ───────────────────────────────────────────────────────
 def normalize_domain(domain):
     domain = domain.strip().lower()
     if domain.startswith('www.'):
@@ -105,36 +86,74 @@ def normalize_domain(domain):
 def is_valid_domain(domain):
     if not domain or len(domain) > 253:
         return False
+    # دعم IDN + نطاقات عادية
     if re.match(r'^[a-z0-9\u00a1-\uffff]([a-z0-9\u00a1-\uffff-]{0,61}[a-z0-9\u00a1-\uffff])?(\.[a-z0-9\u00a1-\uffff]([a-z0-9\u00a1-\uffff-]{0,61}[a-z0-9\u00a1-\uffff])?)*\.[a-zA-Z]{2,}$', domain):
         return True
     return False
 
+def extract_domain_from_rule(rule):
+    """استخراج النطاق من أي قاعدة"""
+    # إزالة @@ و || و ^ و modifiers
+    clean = rule.lstrip("@").lstrip("|").rstrip("^")
+    if '$' in clean:
+        clean = clean.split('$')[0]
+    if '/' in clean:
+        clean = clean.split('/')[0]
+    return clean
+
+# ─── Universal Rule Converter ────────────────────────────────────────────────
 def convert_to_adguard(line):
+    """
+    محول شامل يدعم جميع صيغ الفلاتر:
+    - AdGuard: ||domain^, ||domain^$modifier, @@||domain^$modifier
+    - Hosts: 0.0.0.0 domain, 127.0.0.1 domain
+    - Plain domain: domain.com
+    - Wildcard: *.domain.com
+    - EasyList: ||domain^$third-party, ||domain^$popup
+    - DNS: domain (plain)
+    """
     line = line.strip()
     if not line or len(line) > MAX_LINE_LENGTH:
         return None
 
-    if not line or line.startswith(("!", "#", ";", "[", "$", "%", "&", "*", "//")):
-        return None
+    # تجاهل التعليقات والأسطر الفارغة والميتا-داتا
+    if not line or line.startswith(("!", "#", ";", "[", "$", "%", "&", "*", "//", "@")):
+        # استثناء: @@||domain^ (قواعد استثناء AdGuard)
+        if not line.startswith("@@"):
+            return None
 
-    # AdGuard rules
-    ag_match = re.match(r'^(@@)?\|\|([a-z0-9\u00a1-\uffff._-]+)\^?$', line, re.IGNORECASE)
-    if ag_match:
-        exc = ag_match.group(1) or ""
-        domain = normalize_domain(ag_match.group(2))
+    # ── 1. قواعد AdGuard مع modifiers ────────────────────────────────────
+    # ||domain^$third-party,important,etc
+    ag_mod = re.match(r'^(@@)?\|\|([a-z0-9\u00a1-\uffff._-]+)\^(\$[^\s]*)?$', line, re.IGNORECASE)
+    if ag_mod:
+        exc = ag_mod.group(1) or ""
+        domain = normalize_domain(ag_mod.group(2))
         if is_valid_domain(domain):
             return f"{exc}||{domain}^"
         return None
 
-    # DNS / hosts
-    dns_match = re.match(r'^(?:0\.0\.0\.0|127\.0\.0\.1|::1|::)\s+(.+)$', line, re.IGNORECASE)
+    # ── 2. قواعد AdGuard بدون ^ ─────────────────────────────────────────
+    # ||domain (بدون ^)
+    ag_plain = re.match(r'^(@@)?\|\|([a-z0-9\u00a1-\uffff._-]+)$', line, re.IGNORECASE)
+    if ag_plain:
+        exc = ag_plain.group(1) or ""
+        domain = normalize_domain(ag_plain.group(2))
+        if is_valid_domain(domain):
+            return f"{exc}||{domain}^"
+        return None
+
+    # ── 3. قواعد DNS / hosts ─────────────────────────────────────────────
+    dns_match = re.match(r'^(?:0\.0\.0\.0|127\.0\.0\.1|::1|::|255\.255\.255\.255)\s+(.+)$', line, re.IGNORECASE)
     if dns_match:
         domain = normalize_domain(dns_match.group(1))
+        # تجاهل localhost
+        if domain in ('localhost', 'localhost.localdomain', 'broadcasthost'):
+            return None
         if is_valid_domain(domain):
             return f"||{domain}^"
         return None
 
-    # Exception DNS
+    # ── 4. قواعد استثناء DNS ─────────────────────────────────────────────
     exc_dns = re.match(r'^@@(?:0\.0\.0\.0|127\.0\.0\.1|::1|::)\s+(.+)$', line, re.IGNORECASE)
     if exc_dns:
         domain = normalize_domain(exc_dns.group(1))
@@ -142,83 +161,112 @@ def convert_to_adguard(line):
             return f"@@||{domain}^"
         return None
 
-    # Wildcard
+    # ── 5. Wildcard domains ──────────────────────────────────────────────
     if line.startswith("*."):
         domain = line[2:]
         if is_valid_domain(domain):
             return f"||{normalize_domain(domain)}^"
         return None
 
-    # Plain domain
+    # ── 6. نطاق صريح (بدون بادئة) ────────────────────────────────────────
+    # domain.com أو domain.co.uk
     if re.match(r'^([a-z0-9\u00a1-\uffff_-]+\.)+[a-zA-Z]{2,}$', line):
         if is_valid_domain(line):
             return f"||{normalize_domain(line)}^"
         return None
 
-    # Direct IP
+    # ── 7. IP مباشرة ─────────────────────────────────────────────────────
     if re.match(r'^(\d{1,3}\.){3}\d{1,3}$', line):
         return f"||{line}^"
 
+    # ── 8. قواعد EasyList المتقدمة ──────────────────────────────────────
+    # ||domain.com^$third-party
+    easy_match = re.match(r'^(@@)?\|\|([^\s\$]+)\^(\$[^\s]*)?$', line)
+    if easy_match:
+        exc = easy_match.group(1) or ""
+        domain = normalize_domain(easy_match.group(2))
+        if is_valid_domain(domain):
+            return f"{exc}||{domain}^"
+        return None
+
+    # ── 9. قواعد مسار (path rules) ──────────────────────────────────────
+    # ||domain.com/path
+    path_match = re.match(r'^(@@)?\|\|([^/\s]+)(/[^\s]*)?$', line)
+    if path_match:
+        exc = path_match.group(1) or ""
+        domain = normalize_domain(path_match.group(2))
+        if is_valid_domain(domain):
+            return f"{exc}||{domain}^"
+        return None
+
+    # ── 10. قواعد نطاق مع استثناء مسار ──────────────────────────────────
+    # @@||domain.com
+    exc_plain = re.match(r'^@@\|\|([^\s\$]+)\^?$', line)
+    if exc_plain:
+        domain = normalize_domain(exc_plain.group(1))
+        if is_valid_domain(domain):
+            return f"@@||{domain}^"
+        return None
+
     return None
+
+# ─── Smart Filter Detector ───────────────────────────────────────────────────
+def looks_like_filter(text):
+    """اكتشاف ذكي لمحتوى الفلتر"""
+    if not text or len(text) < 50:
+        return False
+
+    lines = text.split("\n")[:100]
+
+    # مؤشرات القواعد
+    rule_indicators = ["||", "@@", "0.0.0.0", "127.0.0.1", "[Adblock", "! Title", "! Version"]
+    rule_count = sum(1 for line in lines if any(ind in line for ind in rule_indicators))
+
+    # مؤشرات الفلتر
+    filter_indicators = ["[Adblock", "! Title:", "! Version:", "! Expires:", "! Homepage:", "! Last modified:"]
+    meta_count = sum(1 for line in lines if any(ind in line for ind in filter_indicators))
+
+    # لو فيه metadata أو قواعد كفاية
+    return rule_count >= 2 or meta_count >= 1 or len(text) > 5000
 
 # ─── Advanced Download ───────────────────────────────────────────────────────
 def download_filter(url, session, attempt=0):
-    """تحميل مع retry متقدم ومعالجة جميع الحالات"""
-
     parsed = urlparse(url)
     domain = parsed.netloc
 
-    # استراتيجيات متعددة
     strategies = []
 
-    # 1. الروابط المباشرة
-    strategies.append({
-        "url": url,
-        "headers": {
-            'Host': domain,
-            'Referer': f"https://{domain}/",
-        }
-    })
+    # 1. الرابط الأصلي
+    strategies.append({"url": url, "headers": {}})
 
     # 2. GitHub blob → raw
     if "github.com" in domain and "/blob/" in url:
         raw_url = url.replace("github.com", "raw.githubusercontent.com").replace("/blob/", "/")
-        strategies.insert(0, {
-            "url": raw_url,
-            "headers": {'Host': 'raw.githubusercontent.com'}
-        })
+        strategies.insert(0, {"url": raw_url, "headers": {}})
 
     # 3. GitLab blob → raw
-    if "gitlab.com" in domain and "/blob/" in url:
+    if "gitlab.com" in domain and "-" in url and "/raw/" not in url:
         parts = url.split("/blob/")
         if len(parts) == 2:
             raw_url = f"{parts[0]}/raw/{parts[1]}"
-            strategies.insert(0, {
-                "url": raw_url,
-                "headers": {'Host': 'gitlab.com'}
-            })
+            strategies.insert(0, {"url": raw_url, "headers": {}})
 
     # 4. HTTP fallback
     if url.startswith("https://"):
-        strategies.append({
-            "url": url.replace("https://", "http://", 1),
-            "headers": {'Host': domain}
-        })
+        strategies.append({"url": url.replace("https://", "http://", 1), "headers": {}})
 
     last_error = None
 
     for strategy in strategies:
         try:
-            # Delay عشوائي لتجنب pattern detection
             delay = random.uniform(REQUEST_DELAY_MIN, REQUEST_DELAY_MAX)
             if attempt > 0:
-                delay *= (attempt + 1)
+                delay *= (attempt + 1) * 0.5
             time.sleep(delay)
 
-            # تحديث User-Agent عشوائي
             session.headers['User-Agent'] = random.choice(USER_AGENTS)
 
-            headers = session.headers.copy()
+            headers = dict(session.headers)
             headers.update(strategy.get("headers", {}))
 
             response = session.get(
@@ -226,14 +274,12 @@ def download_filter(url, session, attempt=0):
                 headers=headers,
                 timeout=REQUEST_TIMEOUT,
                 verify=False,
-                allow_redirects=True,
-                stream=False
+                allow_redirects=True
             )
 
-            # التعامل مع rate limit
             if response.status_code == 429:
-                retry_after = int(response.headers.get('Retry-After', 5))
-                print(f"⏳ Rate limit on {domain}, waiting {retry_after}s...")
+                retry_after = int(response.headers.get('Retry-After', 10))
+                print(f"⏳ Rate limit: {domain}, waiting {retry_after}s...")
                 time.sleep(retry_after)
                 if attempt < MAX_RETRIES:
                     return download_filter(url, session, attempt + 1)
@@ -241,7 +287,6 @@ def download_filter(url, session, attempt=0):
 
             response.raise_for_status()
 
-            # فك ضغط
             content = response.content
             if content[:2] == b'\x1f\x8b':
                 try:
@@ -251,10 +296,10 @@ def download_filter(url, session, attempt=0):
 
             text = content.decode("utf-8", errors="replace")
 
-            # التحقق السريع
+            # التحقق من المحتوى
             if len(text) < 100:
-                # محتوى قصير جداً، ربما error page
-                if not any(ind in text for ind in ["||", "@@", "0.0.0.0", "127.0.0.1"]):
+                if not looks_like_filter(text):
+                    last_error = "Empty or invalid content"
                     continue
 
             return text
@@ -274,14 +319,6 @@ def download_filter(url, session, attempt=0):
 
     return None
 
-def looks_like_filter(text):
-    if not text or len(text) < 50:
-        return False
-    lines = text.split("\n")[:50]
-    indicators = ["||", "@@", "0.0.0.0", "127.0.0.1", "#", "!"]
-    count = sum(1 for line in lines if any(ind in line for ind in indicators))
-    return count >= 2
-
 # ─── Main Processing ─────────────────────────────────────────────────────────
 def process_all_filters(urls):
     session = create_session()
@@ -291,7 +328,7 @@ def process_all_filters(urls):
     failed_reasons = {}
 
     print(f"🔍 معالجة {len(urls)} مصدر...")
-    print(f"⚙️  Workers: {MAX_WORKERS} | Timeout: {REQUEST_TIMEOUT}s | Delay: {REQUEST_DELAY_MIN}-{REQUEST_DELAY_MAX}s")
+    print(f"⚙️  Workers: {MAX_WORKERS} | Timeout: {REQUEST_TIMEOUT}s")
     print("=" * 70)
 
     def process_one(url):
@@ -300,7 +337,9 @@ def process_all_filters(urls):
             return url, [], False, "Download failed"
 
         if not looks_like_filter(text):
-            return url, [], False, "Not a filter file"
+            # جرب نعرض شوية من المحتوى للتشخيص
+            preview = text[:200].replace('\n', ' ')
+            return url, [], False, f"Not a filter (preview: {preview[:80]}...)"
 
         rules = []
         for line in text.splitlines():
@@ -309,7 +348,10 @@ def process_all_filters(urls):
                 rules.append(converted)
 
         if not rules:
-            return url, [], False, "No valid rules found"
+            # تشخيص: اعرض شوية أسطر من الملف
+            preview_lines = [l for l in text.splitlines()[:20] if l.strip() and not l.startswith('!')]
+            preview = ' | '.join(preview_lines[:5])
+            return url, [], False, f"No valid rules (sample: {preview[:100]}...)"
 
         return url, rules, True, "OK"
 
@@ -338,11 +380,11 @@ def process_all_filters(urls):
             else:
                 failed_urls.append(url)
                 failed_reasons[url] = reason
-                print(f"❌ [{i:3d}/{len(urls)}] {domain:35s} | {reason}")
+                print(f"❌ [{i:3d}/{len(urls)}] {domain:35s} | {reason[:50]}")
 
     # ترتيب
-    sorted_rules = sorted(allow_rules, key=lambda x: x.lstrip("@|").rstrip("^"))
-    sorted_rules.extend(sorted(block_rules, key=lambda x: x.lstrip("|").rstrip("^")))
+    sorted_rules = sorted(allow_rules, key=lambda x: extract_domain_from_rule(x))
+    sorted_rules.extend(sorted(block_rules, key=lambda x: extract_domain_from_rule(x)))
 
     print("=" * 70)
     print(f"📊 النتائج:")
@@ -351,11 +393,11 @@ def process_all_filters(urls):
     print(f"   🚫 قواعد حظر: {len(block_rules):,}")
     print(f"   ✅ قواعد استثناء: {len(allow_rules):,}")
 
-    # عرض أسباب الفشل الأكثر شيوعاً
     if failed_urls:
         reason_counts = {}
         for reason in failed_reasons.values():
-            reason_counts[reason] = reason_counts.get(reason, 0) + 1
+            key = reason.split('(')[0].strip()
+            reason_counts[key] = reason_counts.get(key, 0) + 1
         print(f"\n📋 أسباب الفشل:")
         for reason, count in sorted(reason_counts.items(), key=lambda x: -x[1])[:5]:
             print(f"   - {reason}: {count}")
@@ -414,7 +456,7 @@ def save_filters(rules, output_dir="merged_filters", total_urls=0, failed_count=
 # ─── Main ────────────────────────────────────────────────────────────────────
 def main():
     print("=" * 70)
-    print("   Filters.AdGuard.Android v3 - Filter Merger")
+    print("   Filters.AdGuard.Android v4 - Universal Filter Merger")
     print("=" * 70)
 
     urls = load_filter_urls("list.txt")
