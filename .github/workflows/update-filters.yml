@@ -1,0 +1,108 @@
+
+workflow_content = '''name: Auto-update AdGuard Android Filters
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'  # كل 6 ساعات
+  workflow_dispatch:       # تشغيل يدوي
+  push:
+    branches: [main]
+    paths:
+      - 'list.txt'
+      - 'Filters.AdGuard.Android.py'
+
+env:
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  merge-and-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: write
+
+    steps:
+      # ─── Checkout ─────────────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_TOKEN }}
+          fetch-depth: 0
+
+      # ─── Setup Python ────────────────────────────────────────────────────
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      # ─── Cache dependencies ────────────────────────────────────────────
+      - name: Cache pip packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      # ─── Install dependencies ────────────────────────────────────────────
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests urllib3
+
+      # ─── Run Filter Merger ──────────────────────────────────────────────
+      - name: Run Filters.AdGuard.Android
+        run: |
+          echo "🚀 بدء عملية دمج الفلاتر..."
+          python Filters.AdGuard.Android.py
+        env:
+          PYTHONUNBUFFERED: "1"
+
+      # ─── Verify output ───────────────────────────────────────────────────
+      - name: Verify output files
+        run: |
+          echo "📁 التحقق من الملفات المُنتجة..."
+          ls -lah merged_filters/
+          echo ""
+          echo "📊 حجم الملفات:"
+          du -sh merged_filters/*
+          echo ""
+          echo "🔍 عدد الأسطر في الملف الرئيسي:"
+          wc -l merged_filters/adguard_android_filter.txt
+
+      # ─── Commit & Push ───────────────────────────────────────────────────
+      - name: Commit and push changes
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          git add -A
+          
+          if git diff --cached --quiet; then
+            echo "ℹ️ لا يوجد تغييرات للرفع"
+            exit 0
+          fi
+          
+          # قراءة الإحصائيات
+          TOTAL_RULES=$(python3 -c "import json; d=json.load(open('merged_filters/stats.json')); print(f'{d[\"total_rules\"]:,}')" 2>/dev/null || echo "unknown")
+          
+          git commit -m "🔄 Auto-update: ${TOTAL_RULES} rules | $(date -u '+%Y-%m-%d %H:%M UTC')"
+          git push https://${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }}.git HEAD:${{ github.ref_name }}
+          
+          echo "✅ تم الرفع بنجاح!"
+
+      # ─── Upload artifacts (اختياري) ────────────────────────────────────
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: merged-filters-${{ github.run_number }}
+          path: merged_filters/
+          retention-days: 7
+'''
+
+with open('/mnt/agents/output/update-filters.yml', 'w', encoding='utf-8') as f:
+    f.write(workflow_content)
+
+print("✅ Saved update-filters.yml")
+print(f"   Size: {len(workflow_content):,} bytes")
