@@ -1,13 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Filters.AdGuard.Android - Universal Filter Merger v6
+Filters.AdGuard.Android - Universal Filter Merger v7
 =====================================================
-- يدعم IP مع Port
-- يدعم دومينات صريحة (بدون ||)
-- يتجاهل CSS rules (##)
-- يتعامل مع comments بشكل صحيح
-- ملف واحد فقط
+- يدعم wildcard domains (*.domain^)
+- يشيل modifiers ($denyallow, $third-party, $popup, إلخ)
+- يحول أي قاعدة لصيغة AdGuard Android البسيطة
 """
 
 import requests
@@ -89,7 +87,9 @@ def normalize_domain(domain):
 def is_valid_domain(domain):
     if not domain or len(domain) > 253:
         return False
-    if re.match(r'^[a-z0-9\u00a1-\uffff]([a-z0-9\u00a1-\uffff-]{0,61}[a-z0-9\u00a1-\uffff])?(\.[a-z0-9\u00a1-\uffff]([a-z0-9\u00a1-\uffff-]{0,61}[a-z0-9\u00a1-\uffff])?)*\.[a-zA-Z]{2,}$', domain):
+    # دعم wildcard في النطاق
+    domain_clean = domain.replace("*.", "")
+    if re.match(r'^[a-z0-9\u00a1-\uffff]([a-z0-9\u00a1-\uffff-]{0,61}[a-z0-9\u00a1-\uffff])?(\.[a-z0-9\u00a1-\uffff]([a-z0-9\u00a1-\uffff-]{0,61}[a-z0-9\u00a1-\uffff])?)*\.[a-zA-Z]{2,}$', domain_clean):
         return True
     return False
 
@@ -113,7 +113,7 @@ def extract_domain_from_rule(rule):
 # ─── Universal Rule Converter ────────────────────────────────────────────────
 def convert_to_adguard(line):
     """
-    محول شامل يدعم جميع صيغ الفلاتر
+    محول شامل يدعم جميع صيغ الفلاتر ويحولها لـ AdGuard Android
     """
     line = line.strip()
     if not line or len(line) > MAX_LINE_LENGTH:
@@ -124,40 +124,41 @@ def convert_to_adguard(line):
         return None
 
     # ── تجاهل التعليقات ──────────────────────────────────────────────────
-    # AdGuard comments: ! ...
     if line.startswith("!"):
         return None
 
-    # Hosts/DNS comments: # ... (لكن ليس # في بداية السطر لو هو رقم)
     if line.startswith("#"):
         return None
 
     # ── تجاهل CSS rules ──────────────────────────────────────────────────
-    # ##... أو #@#... (uBlock/AdGuard cosmetic filters)
     if re.match(r'^#@?#', line):
         return None
 
-    # ── تجاهل الأسطر اللي فيها مسافات في البداية (indentation) ────────────
-    if line.startswith(" ") or line.startswith("\t"):
-        # ممكن يكون دومين مسبوق بمسافة
-        line = line.strip()
+    # ── تجاهل الأسطر اللي فيها مسافات في البداية ─────────────────────────
+    line = line.strip()
 
     # ── 1. قواعد AdGuard مع modifiers ────────────────────────────────────
-    ag_mod = re.match(r'^(@@)?\|\|([a-z0-9\u00a1-\uffff._-]+)\^(\$[^\s]*)?$', line, re.IGNORECASE)
+    # ||domain^$modifier → ||domain^
+    # ||*.domain^$denyallow=... → ||*.domain^
+    ag_mod = re.match(r'^(@@)?(\|\|)?(\*\.)?([a-z0-9\u00a1-\uffff._-]+)\^(\$[^\s]*)?$', line, re.IGNORECASE)
     if ag_mod:
         exc = ag_mod.group(1) or ""
-        domain = normalize_domain(ag_mod.group(2))
+        prefix = ag_mod.group(2) or "||"
+        star = ag_mod.group(3) or ""
+        domain = normalize_domain(ag_mod.group(4))
         if is_valid_domain(domain):
-            return f"{exc}||{domain}^"
+            return f"{exc}{prefix}{star}{domain}^"
         return None
 
     # ── 2. قواعد AdGuard بدون ^ ─────────────────────────────────────────
-    ag_plain = re.match(r'^(@@)?\|\|([a-z0-9\u00a1-\uffff._-]+)$', line, re.IGNORECASE)
+    ag_plain = re.match(r'^(@@)?(\|\|)?(\*\.)?([a-z0-9\u00a1-\uffff._-]+)$', line, re.IGNORECASE)
     if ag_plain:
         exc = ag_plain.group(1) or ""
-        domain = normalize_domain(ag_plain.group(2))
+        prefix = ag_plain.group(2) or "||"
+        star = ag_plain.group(3) or ""
+        domain = normalize_domain(ag_plain.group(4))
         if is_valid_domain(domain):
-            return f"{exc}||{domain}^"
+            return f"{exc}{prefix}{star}{domain}^"
         return None
 
     # ── 3. قواعد DNS / hosts ─────────────────────────────────────────────
@@ -168,7 +169,6 @@ def convert_to_adguard(line):
             return None
         if is_valid_domain(domain):
             return f"||{domain}^"
-        # IP مع domain
         if is_valid_ip(domain):
             return f"||{domain}^"
         return None
@@ -185,24 +185,20 @@ def convert_to_adguard(line):
     if line.startswith("*."):
         domain = line[2:]
         if is_valid_domain(domain):
-            return f"||{normalize_domain(domain)}^"
+            return f"||*.{normalize_domain(domain)}^"
         return None
 
-    # ── 6. نطاق صريح (سطر واحد بدون أي بادئة) ────────────────────────────
-    # metrix.ir → ||metrix.ir^
-    # tracker.digikala.com → ||tracker.digikala.com^
+    # ── 6. نطاق صريح ─────────────────────────────────────────────────────
     if re.match(r'^([a-z0-9\u00a1-\uffff_-]+\.)+[a-zA-Z]{2,}$', line):
         if is_valid_domain(line):
             return f"||{normalize_domain(line)}^"
         return None
 
     # ── 7. IP مباشرة ─────────────────────────────────────────────────────
-    # 42.57.191.88 → ||42.57.191.88^
     if is_valid_ip(line):
         return f"||{line}^"
 
-    # ── 8. IP مع Port (من URL) ───────────────────────────────────────────
-    # http://42.57.191.88:46154/i → ||42.57.191.88^
+    # ── 8. IP مع Port ────────────────────────────────────────────────────
     ip_port_match = re.match(r'^(?:https?://)?(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?::\d+)?', line)
     if ip_port_match:
         ip = ip_port_match.group(1)
@@ -211,47 +207,56 @@ def convert_to_adguard(line):
         return None
 
     # ── 9. قواعد EasyList المتقدمة ──────────────────────────────────────
-    easy_match = re.match(r'^(@@)?\|\|([^\s\$]+)\^(\$[^\s]*)?$', line)
+    easy_match = re.match(r'^(@@)?(\|\|)?(\*\.)?([^\s\$]+)\^(\$[^\s]*)?$', line)
     if easy_match:
         exc = easy_match.group(1) or ""
-        domain = normalize_domain(easy_match.group(2))
+        prefix = easy_match.group(2) or "||"
+        star = easy_match.group(3) or ""
+        domain = normalize_domain(easy_match.group(4))
         if is_valid_domain(domain):
-            return f"{exc}||{domain}^"
+            return f"{exc}{prefix}{star}{domain}^"
         return None
 
     # ── 10. قواعد مسار (path rules) ──────────────────────────────────────
-    path_match = re.match(r'^(@@)?\|\|([^/\s]+)(/[^\s]*)?$', line)
+    path_match = re.match(r'^(@@)?(\|\|)?(\*\.)?([^/\s]+)(/[^\s]*)?$', line)
     if path_match:
         exc = path_match.group(1) or ""
-        domain = normalize_domain(path_match.group(2))
+        prefix = path_match.group(2) or "||"
+        star = path_match.group(3) or ""
+        domain = normalize_domain(path_match.group(4))
         if is_valid_domain(domain):
-            return f"{exc}||{domain}^"
+            return f"{exc}{prefix}{star}{domain}^"
         return None
 
     # ── 11. قواعد استثناء مسار ───────────────────────────────────────────
-    exc_plain = re.match(r'^@@\|\|([^\s\$]+)\^?$', line)
+    exc_plain = re.match(r'^@@(\|\|)?(\*\.)?([^\s\$]+)\^?$', line)
     if exc_plain:
-        domain = normalize_domain(exc_plain.group(1))
+        prefix = exc_plain.group(1) or "||"
+        star = exc_plain.group(2) or ""
+        domain = normalize_domain(exc_plain.group(3))
         if is_valid_domain(domain):
-            return f"@@||{domain}^"
+            return f"@@{prefix}{star}{domain}^"
         return None
 
     # ── 12. قواعد نطاق مع نجمة ──────────────────────────────────────────
-    star_match = re.match(r'^(@@)?\|\|\*\.([a-z0-9\u00a1-\uffff._-]+)\^?$', line, re.IGNORECASE)
+    star_match = re.match(r'^(@@)?(\|\|)?\*\.([a-z0-9\u00a1-\uffff._-]+)\^?$', line, re.IGNORECASE)
     if star_match:
         exc = star_match.group(1) or ""
-        domain = normalize_domain(star_match.group(2))
+        prefix = star_match.group(2) or "||"
+        domain = normalize_domain(star_match.group(3))
         if is_valid_domain(domain):
-            return f"{exc}||{domain}^"
+            return f"{exc}{prefix}*.{domain}^"
         return None
 
     # ── 13. قواعد AdGuard مع مسار و modifiers ────────────────────────────
-    ag_path_mod = re.match(r'^(@@)?\|\|([^/\s]+)/[^\s]*\^(\$[^\s]*)?$', line)
+    ag_path_mod = re.match(r'^(@@)?(\|\|)?(\*\.)?([^/\s]+)/[^\s]*\^(\$[^\s]*)?$', line)
     if ag_path_mod:
         exc = ag_path_mod.group(1) or ""
-        domain = normalize_domain(ag_path_mod.group(2))
+        prefix = ag_path_mod.group(2) or "||"
+        star = ag_path_mod.group(3) or ""
+        domain = normalize_domain(ag_path_mod.group(4))
         if is_valid_domain(domain):
-            return f"{exc}||{domain}^"
+            return f"{exc}{prefix}{star}{domain}^"
         return None
 
     return None
@@ -271,7 +276,7 @@ def looks_like_filter(text):
     filter_indicators = ["[Adblock", "! Title:", "! Version:", "! Expires:", "! Homepage:", "! Last modified:"]
     meta_count = sum(1 for line in lines if any(ind in line for ind in filter_indicators))
 
-    # دومينات صريحة (سطر واحد)
+    # دومينات صريحة
     domain_count = sum(1 for line in lines if re.match(r'^([a-z0-9_-]+\.)+[a-z]{2,}$', line.strip()))
 
     return rule_count >= 2 or meta_count >= 1 or domain_count >= 3 or len(text) > 5000
@@ -488,7 +493,7 @@ def save_filters(rules, output_dir="merged_filters", total_urls=0, failed_count=
 # ─── Main ────────────────────────────────────────────────────────────────────
 def main():
     print("=" * 70)
-    print("   Filters.AdGuard.Android v6 - Universal Merger")
+    print("   Filters.AdGuard.Android v7 - Universal Merger")
     print("=" * 70)
 
     urls = load_filter_urls("list.txt")
