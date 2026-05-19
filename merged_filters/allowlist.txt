@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
-! Version: 2026.05.18
-! Total rules: 11854
+! Version: 2026.05.19
+! Total rules: 11845
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -469,7 +469,6 @@
 @@||adv.clickadu.com^
 @@||adv.gg^
 @@||adv.gpm-digital.com^
-@@||adv.ilsole24ore.it^
 @@||adv.informika.ru^
 @@||adv.lack-girl.com^
 @@||adv.svo.aero^
@@ -1186,7 +1185,6 @@
 @@||assets1.gio.com^
 @@||assetstore.unity.com^
 @@||assiste.com^
-@@||assistenza.sky.it^
 @@||assistir-tv.online^
 @@||assistir.biz^
 @@||assoc-amazon.com^
@@ -1488,7 +1486,6 @@
 @@||betaplayer.site^
 @@||betaprofiles.com^
 @@||betconnect.website^
-@@||betrad.com^
 @@||betterads.org^
 @@||betterworldbooks.com^
 @@||bettycrocker.com^
@@ -3149,7 +3146,6 @@
 @@||dict.rambler.ru^
 @@||dictionary.search.yahoo^
 @@||dictionnaire-medical.net^
-@@||didascaleion.it^
 @@||dieblaue24.com^
 @@||diedit.com^
 @@||dienmayxanh.com^
@@ -3707,7 +3703,6 @@
 @@||esprit.de^
 @@||esputnik.com^
 @@||esradio.libertaddigital.com^
-@@||esselungaacasa.it^
 @@||essentiallysports.com^
 @@||estaxi.ru^
 @@||estore.sonymobile.com^
@@ -3829,7 +3824,6 @@
 @@||faas-fe-prd-ext.prd.aws^
 @@||faberlic.com^
 @@||faberlic.ru^
-@@||facciabuco.com^
 @@||facebook.com^
 @@||facepunch.io^
 @@||facetoshi.live^
@@ -4488,7 +4482,6 @@
 @@||gigaho.com^
 @@||gigya.com^
 @@||gioialive.it^
-@@||gioxx.org^
 @@||gipfelbuch.ch^
 @@||giraff.io^
 @@||gironde.fr^
@@ -6411,7 +6404,6 @@
 @@||manageengine.com^
 @@||management.azure.com^
 @@||manager-magazin.de^
-@@||manager.targetcircle.com^
 @@||managerka.com^
 @@||manchetehoje.xyz^
 @@||mangacanblog.com^
@@ -7269,7 +7261,6 @@
 @@||nnaa66.xyz^
 @@||nnn.de^
 @@||nnxas.bustago.or^
-@@||noads.it^
 @@||noahedu.com^
 @@||nobugin.com^
 @@||nocorspolicy.com^
