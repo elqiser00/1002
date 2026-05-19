@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.05.19
-! Total rules: 11845
+! Total rules: 11853
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -469,6 +469,7 @@
 @@||adv.clickadu.com^
 @@||adv.gg^
 @@||adv.gpm-digital.com^
+@@||adv.ilsole24ore.it^
 @@||adv.informika.ru^
 @@||adv.lack-girl.com^
 @@||adv.svo.aero^
@@ -1185,6 +1186,7 @@
 @@||assets1.gio.com^
 @@||assetstore.unity.com^
 @@||assiste.com^
+@@||assistenza.sky.it^
 @@||assistir-tv.online^
 @@||assistir.biz^
 @@||assoc-amazon.com^
@@ -1486,6 +1488,7 @@
 @@||betaplayer.site^
 @@||betaprofiles.com^
 @@||betconnect.website^
+@@||betrad.com^
 @@||betterads.org^
 @@||betterworldbooks.com^
 @@||bettycrocker.com^
@@ -3146,6 +3149,7 @@
 @@||dict.rambler.ru^
 @@||dictionary.search.yahoo^
 @@||dictionnaire-medical.net^
+@@||didascaleion.it^
 @@||dieblaue24.com^
 @@||diedit.com^
 @@||dienmayxanh.com^
@@ -3256,7 +3260,6 @@
 @@||docs.qq.com^
 @@||docs.woopt.com^
 @@||docu.org^
-@@||documaniatv.com^
 @@||doda.jp^
 @@||dodo.ac^
 @@||dogdrip.net^
@@ -3703,6 +3706,7 @@
 @@||esprit.de^
 @@||esputnik.com^
 @@||esradio.libertaddigital.com^
+@@||esselungaacasa.it^
 @@||essentiallysports.com^
 @@||estaxi.ru^
 @@||estore.sonymobile.com^
@@ -3824,6 +3828,7 @@
 @@||faas-fe-prd-ext.prd.aws^
 @@||faberlic.com^
 @@||faberlic.ru^
+@@||facciabuco.com^
 @@||facebook.com^
 @@||facepunch.io^
 @@||facetoshi.live^
@@ -4353,6 +4358,7 @@
 @@||gardenista.com^
 @@||gardenwildlifedirect.co.uk^
 @@||gareautheatre.com^
+@@||garuda.tv^
 @@||gastro-smart.com^
 @@||gastroguide.de^
 @@||gate.first-id.fr^
@@ -4482,6 +4488,7 @@
 @@||gigaho.com^
 @@||gigya.com^
 @@||gioialive.it^
+@@||gioxx.org^
 @@||gipfelbuch.ch^
 @@||giraff.io^
 @@||gironde.fr^
@@ -5492,7 +5499,6 @@
 @@||itbusiness.com.ua^
 @@||itc.cn^
 @@||itdmusic.com^
-@@||itdmusic.in^
 @@||itdmusics.com^
 @@||itechfever.com^
 @@||itechpost.com^
@@ -6404,6 +6410,7 @@
 @@||manageengine.com^
 @@||management.azure.com^
 @@||manager-magazin.de^
+@@||manager.targetcircle.com^
 @@||managerka.com^
 @@||manchetehoje.xyz^
 @@||mangacanblog.com^
@@ -7261,6 +7268,7 @@
 @@||nnaa66.xyz^
 @@||nnn.de^
 @@||nnxas.bustago.or^
+@@||noads.it^
 @@||noahedu.com^
 @@||nobugin.com^
 @@||nocorspolicy.com^
@@ -11581,6 +11589,7 @@
 @@||xboxservices.com^
 @@||xcafe.com^
 @@||xcams.com^
+@@||xcandid.vip^
 @@||xcdnpro.com^
 @@||xcweather.co.uk^
 @@||xda-developers-android.blogspot.com^
@@ -11750,7 +11759,6 @@
 @@||yummy.best^
 @@||yunduanxin.xyz^
 @@||yunjiema.top^
-@@||yupptv.in^
 @@||yuru-mbti.com^
 @@||yygsz.com^
 @@||yyv.co^
