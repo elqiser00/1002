@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Filters.AdGuard.Android - Universal Filter Merger v5
+Filters.AdGuard.Android - Universal Filter Merger v6
 =====================================================
-- ملف واحد فقط (بدون تقسيم)
-- محول شامل لجميع صيغ AdGuard Android
-- عرض الرابط الكامل للروابط الفاشلة
+- يدعم IP مع Port
+- يدعم دومينات صريحة (بدون ||)
+- يتجاهل CSS rules (##)
+- يتعامل مع comments بشكل صحيح
+- ملف واحد فقط
 """
 
 import requests
@@ -91,6 +93,14 @@ def is_valid_domain(domain):
         return True
     return False
 
+def is_valid_ip(ip):
+    """التحقق من صحة IP address"""
+    if re.match(r'^(\d{1,3}\.){3}\d{1,3}$', ip):
+        parts = ip.split('.')
+        if all(0 <= int(p) <= 255 for p in parts):
+            return True
+    return False
+
 def extract_domain_from_rule(rule):
     """استخراج النطاق من القاعدة للمقارنة"""
     clean = rule.lstrip("@").lstrip("|").rstrip("^")
@@ -103,22 +113,36 @@ def extract_domain_from_rule(rule):
 # ─── Universal Rule Converter ────────────────────────────────────────────────
 def convert_to_adguard(line):
     """
-    محول شامل يدعم جميع صيغ الفلاتر ويحولها لـ AdGuard Android المتوافق
+    محول شامل يدعم جميع صيغ الفلاتر
     """
     line = line.strip()
     if not line or len(line) > MAX_LINE_LENGTH:
         return None
 
-    # تجاهل التعليقات والأسطر الفارغة
+    # تجاهل الأسطر الفارغة
     if not line:
         return None
 
-    # تجاهل التعليقات (لكن ليس @@)
-    if line.startswith(("!", "#", ";", "[", "$", "%", "&", "*", "//")):
+    # ── تجاهل التعليقات ──────────────────────────────────────────────────
+    # AdGuard comments: ! ...
+    if line.startswith("!"):
         return None
 
+    # Hosts/DNS comments: # ... (لكن ليس # في بداية السطر لو هو رقم)
+    if line.startswith("#"):
+        return None
+
+    # ── تجاهل CSS rules ──────────────────────────────────────────────────
+    # ##... أو #@#... (uBlock/AdGuard cosmetic filters)
+    if re.match(r'^#@?#', line):
+        return None
+
+    # ── تجاهل الأسطر اللي فيها مسافات في البداية (indentation) ────────────
+    if line.startswith(" ") or line.startswith("\t"):
+        # ممكن يكون دومين مسبوق بمسافة
+        line = line.strip()
+
     # ── 1. قواعد AdGuard مع modifiers ────────────────────────────────────
-    # ||domain^$third-party,important,etc → ||domain^
     ag_mod = re.match(r'^(@@)?\|\|([a-z0-9\u00a1-\uffff._-]+)\^(\$[^\s]*)?$', line, re.IGNORECASE)
     if ag_mod:
         exc = ag_mod.group(1) or ""
@@ -128,7 +152,6 @@ def convert_to_adguard(line):
         return None
 
     # ── 2. قواعد AdGuard بدون ^ ─────────────────────────────────────────
-    # ||domain → ||domain^
     ag_plain = re.match(r'^(@@)?\|\|([a-z0-9\u00a1-\uffff._-]+)$', line, re.IGNORECASE)
     if ag_plain:
         exc = ag_plain.group(1) or ""
@@ -138,13 +161,15 @@ def convert_to_adguard(line):
         return None
 
     # ── 3. قواعد DNS / hosts ─────────────────────────────────────────────
-    # 0.0.0.0 domain → ||domain^
     dns_match = re.match(r'^(?:0\.0\.0\.0|127\.0\.0\.1|::1|::|255\.255\.255\.255)\s+(.+)$', line, re.IGNORECASE)
     if dns_match:
         domain = normalize_domain(dns_match.group(1))
         if domain in ('localhost', 'localhost.localdomain', 'broadcasthost'):
             return None
         if is_valid_domain(domain):
+            return f"||{domain}^"
+        # IP مع domain
+        if is_valid_ip(domain):
             return f"||{domain}^"
         return None
 
@@ -157,26 +182,35 @@ def convert_to_adguard(line):
         return None
 
     # ── 5. Wildcard domains ──────────────────────────────────────────────
-    # *.domain.com → ||domain.com^
     if line.startswith("*."):
         domain = line[2:]
         if is_valid_domain(domain):
             return f"||{normalize_domain(domain)}^"
         return None
 
-    # ── 6. نطاق صريح ─────────────────────────────────────────────────────
-    # domain.com → ||domain.com^
+    # ── 6. نطاق صريح (سطر واحد بدون أي بادئة) ────────────────────────────
+    # metrix.ir → ||metrix.ir^
+    # tracker.digikala.com → ||tracker.digikala.com^
     if re.match(r'^([a-z0-9\u00a1-\uffff_-]+\.)+[a-zA-Z]{2,}$', line):
         if is_valid_domain(line):
             return f"||{normalize_domain(line)}^"
         return None
 
     # ── 7. IP مباشرة ─────────────────────────────────────────────────────
-    if re.match(r'^(\d{1,3}\.){3}\d{1,3}$', line):
+    # 42.57.191.88 → ||42.57.191.88^
+    if is_valid_ip(line):
         return f"||{line}^"
 
-    # ── 8. قواعد EasyList المتقدمة ──────────────────────────────────────
-    # ||domain.com^$third-party → ||domain.com^
+    # ── 8. IP مع Port (من URL) ───────────────────────────────────────────
+    # http://42.57.191.88:46154/i → ||42.57.191.88^
+    ip_port_match = re.match(r'^(?:https?://)?(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?::\d+)?', line)
+    if ip_port_match:
+        ip = ip_port_match.group(1)
+        if is_valid_ip(ip):
+            return f"||{ip}^"
+        return None
+
+    # ── 9. قواعد EasyList المتقدمة ──────────────────────────────────────
     easy_match = re.match(r'^(@@)?\|\|([^\s\$]+)\^(\$[^\s]*)?$', line)
     if easy_match:
         exc = easy_match.group(1) or ""
@@ -185,8 +219,7 @@ def convert_to_adguard(line):
             return f"{exc}||{domain}^"
         return None
 
-    # ── 9. قواعد مسار (path rules) ──────────────────────────────────────
-    # ||domain.com/path → ||domain.com^
+    # ── 10. قواعد مسار (path rules) ──────────────────────────────────────
     path_match = re.match(r'^(@@)?\|\|([^/\s]+)(/[^\s]*)?$', line)
     if path_match:
         exc = path_match.group(1) or ""
@@ -195,8 +228,7 @@ def convert_to_adguard(line):
             return f"{exc}||{domain}^"
         return None
 
-    # ── 10. قواعد استثناء مسار ───────────────────────────────────────────
-    # @@||domain.com → @@||domain.com^
+    # ── 11. قواعد استثناء مسار ───────────────────────────────────────────
     exc_plain = re.match(r'^@@\|\|([^\s\$]+)\^?$', line)
     if exc_plain:
         domain = normalize_domain(exc_plain.group(1))
@@ -204,8 +236,7 @@ def convert_to_adguard(line):
             return f"@@||{domain}^"
         return None
 
-    # ── 11. قواعد نطاق مع نجمة ──────────────────────────────────────────
-    # ||*.domain.com^ → ||domain.com^
+    # ── 12. قواعد نطاق مع نجمة ──────────────────────────────────────────
     star_match = re.match(r'^(@@)?\|\|\*\.([a-z0-9\u00a1-\uffff._-]+)\^?$', line, re.IGNORECASE)
     if star_match:
         exc = star_match.group(1) or ""
@@ -214,8 +245,7 @@ def convert_to_adguard(line):
             return f"{exc}||{domain}^"
         return None
 
-    # ── 12. قواعد AdGuard مع مسار و modifiers ────────────────────────────
-    # ||domain.com/path^$modifier → ||domain.com^
+    # ── 13. قواعد AdGuard مع مسار و modifiers ────────────────────────────
     ag_path_mod = re.match(r'^(@@)?\|\|([^/\s]+)/[^\s]*\^(\$[^\s]*)?$', line)
     if ag_path_mod:
         exc = ag_path_mod.group(1) or ""
@@ -241,7 +271,10 @@ def looks_like_filter(text):
     filter_indicators = ["[Adblock", "! Title:", "! Version:", "! Expires:", "! Homepage:", "! Last modified:"]
     meta_count = sum(1 for line in lines if any(ind in line for ind in filter_indicators))
 
-    return rule_count >= 2 or meta_count >= 1 or len(text) > 5000
+    # دومينات صريحة (سطر واحد)
+    domain_count = sum(1 for line in lines if re.match(r'^([a-z0-9_-]+\.)+[a-z]{2,}$', line.strip()))
+
+    return rule_count >= 2 or meta_count >= 1 or domain_count >= 3 or len(text) > 5000
 
 # ─── Advanced Download ───────────────────────────────────────────────────────
 def download_filter(url, session, attempt=0):
@@ -360,7 +393,7 @@ def process_all_filters(urls):
                 rules.append(converted)
 
         if not rules:
-            preview_lines = [l for l in text.splitlines()[:20] if l.strip() and not l.startswith('!')]
+            preview_lines = [l for l in text.splitlines()[:20] if l.strip() and not l.startswith('!') and not l.startswith('#')]
             preview = ' | '.join(preview_lines[:5])
             return url, [], False, f"No valid rules (sample: {preview[:100]}...)"
 
@@ -391,7 +424,6 @@ def process_all_filters(urls):
             else:
                 failed_urls.append(url)
                 failed_reasons[url] = reason
-                # عرض الرابط الكامل
                 print(f"❌ [{i:3d}/{len(urls)}] {domain:35s} | {reason[:40]}")
                 print(f"   ↳ {url}")
 
@@ -406,7 +438,6 @@ def process_all_filters(urls):
     print(f"   🚫 قواعد حظر: {len(block_rules):,}")
     print(f"   ✅ قواعد استثناء: {len(allow_rules):,}")
 
-    # عرض الروابط الفاشلة الكاملة
     if failed_urls:
         print(f"\n🔗 الروابط الفاشلة ({len(failed_urls)}):")
         for url in failed_urls:
@@ -430,7 +461,7 @@ def save_filters(rules, output_dir="merged_filters", total_urls=0, failed_count=
 !
 """
 
-    # ملف واحد فقط - بدون تقسيم
+    # ملف واحد فقط
     main_file = os.path.join(output_dir, "adguard_android_filter.txt")
     with open(main_file, 'w', encoding='utf-8') as f:
         f.write(header)
@@ -438,7 +469,7 @@ def save_filters(rules, output_dir="merged_filters", total_urls=0, failed_count=
 
     print(f"\n✅ تم الحفظ: {main_file}")
     print(f"   📊 إجمالي القواعد: {len(rules):,}")
-    print(f"   📁 ملف واحد فقط (بدون تقسيم)")
+    print(f"   📁 ملف واحد فقط")
 
     stats = {
         "generated_at": now,
@@ -457,7 +488,7 @@ def save_filters(rules, output_dir="merged_filters", total_urls=0, failed_count=
 # ─── Main ────────────────────────────────────────────────────────────────────
 def main():
     print("=" * 70)
-    print("   Filters.AdGuard.Android v5 - Single File Merger")
+    print("   Filters.AdGuard.Android v6 - Universal Merger")
     print("=" * 70)
 
     urls = load_filter_urls("list.txt")
