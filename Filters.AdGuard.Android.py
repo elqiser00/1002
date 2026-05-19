@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Filters.AdGuard.Android - Universal Filter Merger v7
+Filters.AdGuard.Android - Universal Filter Merger v8
 =====================================================
-- يدعم wildcard domains (*.domain^)
-- يشيل modifiers ($denyallow, $third-party, $popup, إلخ)
-- يحول أي قاعدة لصيغة AdGuard Android البسيطة
+- يستخرج الدومينات من CSS rules ويحولها لـ ||domain^
+- يدعم جميع صيغ الفلاتر
 """
 
 import requests
@@ -87,14 +86,12 @@ def normalize_domain(domain):
 def is_valid_domain(domain):
     if not domain or len(domain) > 253:
         return False
-    # دعم wildcard في النطاق
     domain_clean = domain.replace("*.", "")
     if re.match(r'^[a-z0-9\u00a1-\uffff]([a-z0-9\u00a1-\uffff-]{0,61}[a-z0-9\u00a1-\uffff])?(\.[a-z0-9\u00a1-\uffff]([a-z0-9\u00a1-\uffff-]{0,61}[a-z0-9\u00a1-\uffff])?)*\.[a-zA-Z]{2,}$', domain_clean):
         return True
     return False
 
 def is_valid_ip(ip):
-    """التحقق من صحة IP address"""
     if re.match(r'^(\d{1,3}\.){3}\d{1,3}$', ip):
         parts = ip.split('.')
         if all(0 <= int(p) <= 255 for p in parts):
@@ -102,7 +99,6 @@ def is_valid_ip(ip):
     return False
 
 def extract_domain_from_rule(rule):
-    """استخراج النطاق من القاعدة للمقارنة"""
     clean = rule.lstrip("@").lstrip("|").rstrip("^")
     if '$' in clean:
         clean = clean.split('$')[0]
@@ -110,16 +106,30 @@ def extract_domain_from_rule(rule):
         clean = clean.split('/')[0]
     return clean
 
+# ─── Extract Domain from CSS Rule ────────────────────────────────────────────
+def extract_domain_from_css(line):
+    """
+    استخراج الدومين من CSS rule
+    zoomit.ir##div → zoomit.ir
+    www.google.com##span → www.google.com
+    """
+    # نمط: domain##... أو domain#@#...
+    css_match = re.match(r'^([a-z0-9\u00a1-\uffff._-]+)(?:##|#@#|#\?#)', line)
+    if css_match:
+        domain = normalize_domain(css_match.group(1))
+        if is_valid_domain(domain):
+            return domain
+    return None
+
 # ─── Universal Rule Converter ────────────────────────────────────────────────
 def convert_to_adguard(line):
     """
-    محول شامل يدعم جميع صيغ الفلاتر ويحولها لـ AdGuard Android
+    محول شامل يدعم جميع صيغ الفلاتر
     """
     line = line.strip()
     if not line or len(line) > MAX_LINE_LENGTH:
         return None
 
-    # تجاهل الأسطر الفارغة
     if not line:
         return None
 
@@ -130,16 +140,18 @@ def convert_to_adguard(line):
     if line.startswith("#"):
         return None
 
-    # ── تجاهل CSS rules ──────────────────────────────────────────────────
-    if re.match(r'^#@?#', line):
+    # ── تجاهل الأسطر الفارغة ─────────────────────────────────────────────
+    line = line.strip()
+    if not line:
         return None
 
-    # ── تجاهل الأسطر اللي فيها مسافات في البداية ─────────────────────────
-    line = line.strip()
+    # ── 0. استخراج دومين من CSS rules ────────────────────────────────────
+    # zoomit.ir##div → ||zoomit.ir^
+    css_domain = extract_domain_from_css(line)
+    if css_domain:
+        return f"||{css_domain}^"
 
     # ── 1. قواعد AdGuard مع modifiers ────────────────────────────────────
-    # ||domain^$modifier → ||domain^
-    # ||*.domain^$denyallow=... → ||*.domain^
     ag_mod = re.match(r'^(@@)?(\|\|)?(\*\.)?([a-z0-9\u00a1-\uffff._-]+)\^(\$[^\s]*)?$', line, re.IGNORECASE)
     if ag_mod:
         exc = ag_mod.group(1) or ""
@@ -269,7 +281,7 @@ def looks_like_filter(text):
     lines = text.split("\n")[:100]
 
     # مؤشرات القواعد
-    rule_indicators = ["||", "@@", "0.0.0.0", "127.0.0.1", "[Adblock", "! Title", "! Version"]
+    rule_indicators = ["||", "@@", "0.0.0.0", "127.0.0.1", "[Adblock", "! Title", "! Version", "##", "#@#"]
     rule_count = sum(1 for line in lines if any(ind in line for ind in rule_indicators))
 
     # مؤشرات الفلتر
@@ -392,10 +404,19 @@ def process_all_filters(urls):
             return url, [], False, f"Not a filter (preview: {preview[:80]}...)"
 
         rules = []
+        css_domains = set()  # لتجنب تكرار الدومينات من CSS
+
         for line in text.splitlines():
             converted = convert_to_adguard(line)
             if converted:
-                rules.append(converted)
+                # لو جاي من CSS rule، نتأكد إن الدومين مش متكرر
+                if line.strip().find('##') > 0 or line.strip().find('#@#') > 0:
+                    domain = extract_domain_from_css(line)
+                    if domain and domain not in css_domains:
+                        css_domains.add(domain)
+                        rules.append(converted)
+                else:
+                    rules.append(converted)
 
         if not rules:
             preview_lines = [l for l in text.splitlines()[:20] if l.strip() and not l.startswith('!') and not l.startswith('#')]
@@ -493,7 +514,7 @@ def save_filters(rules, output_dir="merged_filters", total_urls=0, failed_count=
 # ─── Main ────────────────────────────────────────────────────────────────────
 def main():
     print("=" * 70)
-    print("   Filters.AdGuard.Android v7 - Universal Merger")
+    print("   Filters.AdGuard.Android v8 - CSS Domain Extractor")
     print("=" * 70)
 
     urls = load_filter_urls("list.txt")
