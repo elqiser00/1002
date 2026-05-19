@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-05-19 22:53:55 UTC",
-  "total_rules": 2321895,
+  "generated_at": "2026-05-19 23:02:17 UTC",
+  "total_rules": 2321899,
   "allow_rules": 12401,
-  "block_rules": 2309494,
+  "block_rules": 2309498,
   "total_sources": 262,
   "successful_sources": 237,
   "failed_sources": 25
