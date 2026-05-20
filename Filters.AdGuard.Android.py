@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Filters.AdGuard.Android - Universal Filter Merger v18
+Filters.AdGuard.Android - Universal Filter Merger v19
 =======================================================
-- Per-source output files (delta updates via !#include)
-- Auto-extract source names from filter metadata
+- Single merged file (fast write for large sources)
 - Allow priority over block (@@ wins over ||)
 - Clean ALL rules: remove *. and . from domain start
-- Auto-cleanup removed sources
+- Auto-extract source names from filter metadata
 - Support all hosts formats with inline comments
 """
 
@@ -106,13 +105,11 @@ def is_valid_ip(ip):
     return False
 
 def extract_domain_from_rule(rule):
-    """Extract clean domain from rule for deduplication comparison"""
     clean = rule.lstrip("@").lstrip("|").rstrip("^")
     if '$' in clean:
         clean = clean.split('$')[0]
     if '/' in clean:
         clean = clean.split('/')[0]
-    # Remove ALL leading wildcards and dots
     clean = clean.lstrip('*').lstrip('.')
     return clean
 
@@ -140,30 +137,21 @@ def extract_domain_from_url(line):
     return None
 
 def clean_rule(rule):
-    """Remove leading wildcards and dots from any rule: ||*.domain^ -> ||domain^"""
     if not rule:
         return rule
     is_exc = rule.startswith("@@")
     prefix = "@@||" if is_exc else "||"
-
-    # Extract domain part between || and ^ or between || and ^$
     match = re.match(r'^(@@)?\|\|(.+)\^(\$[^\s]*)?$', rule)
     if not match:
         return rule
-
     domain = match.group(2)
-    # Remove all leading wildcards and dots
     domain = domain.lstrip('*').lstrip('.')
-    # Remove any remaining * characters inside the domain (for clean rules)
     if '*' in domain and not domain.startswith('*.'):
         domain = domain.replace('*', '')
-
     suffix = match.group(3) or ""
-
     return f"{prefix}{domain}^{suffix}"
 
 def extract_source_name(text, url):
-    """Extract filter name from source file metadata or URL"""
     lines = text.split('\n')[:50]
     for line in lines:
         title_match = re.match(r'^!\s*Title:\s*(.+)$', line, re.IGNORECASE)
@@ -615,32 +603,15 @@ def process_all_filters(urls):
 
 def save_filters(source_data, allow_rules, block_rules, output_dir="merged_filters", total_urls=0, failed_count=0):
     os.makedirs(output_dir, exist_ok=True)
-    sources_dir = os.path.join(output_dir, "sources")
-    os.makedirs(sources_dir, exist_ok=True)
 
     now = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
 
-    include_lines = []
-
-    exc_file = os.path.join(sources_dir, "000_exceptions.txt")
-    with open(exc_file, 'w', encoding='utf-8') as f:
-        f.write(f"! Title: Exceptions (Allow Rules)\n")
-        f.write(f"! Description: استثناءات عامة - أولوية على الحظر\n")
-        f.write(f"! Last Modified: {now}\n")
-        f.write(f"! Rules: {len(allow_rules):,}\n")
-        f.write("!\n")
-        f.write("\n".join(allow_rules))
-    include_lines.append("!#include sources/000_exceptions.txt")
-    print(f"\n📁 [000] Exceptions: {len(allow_rules):,} rules")
-
+    # Build source info comments
+    source_comments = []
     source_idx = 1
     for source in source_data:
         if not source['success']:
             continue
-
-        safe_name = re.sub(r'[^a-zA-Z0-9_\-]', '_', source['name'])[:40]
-        filename = f"{source_idx:03d}_{safe_name}.txt"
-        filepath = os.path.join(sources_dir, filename)
 
         source_block = []
         for rule in source['block_rules']:
@@ -652,43 +623,23 @@ def save_filters(source_data, allow_rules, block_rules, output_dir="merged_filte
         if not source_block:
             continue
 
-        source_block_sorted = sorted(source_block, key=lambda x: extract_domain_from_rule(x))
-
-        with open(filepath, 'w', encoding='utf-8') as f:
-            f.write(f"! Title: {source['name']}\n")
-            f.write(f"! Source: {source['url']}\n")
-            f.write(f"! Description: {len(source_block_sorted):,} block rules\n")
-            f.write(f"! Last Modified: {now}\n")
-            f.write(f"! Original Allow Rules: {len(source['allow_rules'])}\n")
-            f.write(f"! Original Block Rules: {len(source['block_rules'])}\n")
-            f.write(f"! Final Block Rules: {len(source_block_sorted)}\n")
-            f.write("!\n")
-            f.write("\n".join(source_block_sorted))
-
-        include_lines.append(f"!#include sources/{filename}")
-        print(f"📁 [{source_idx:03d}] {source['name'][:40]:40s} | {len(source_block_sorted):6,} rules | {filename}")
+        source_comments.append(
+            f"! [{source_idx:03d}] {source['name'][:50]} | "
+            f"Block: {len(source_block):,} | "
+            f"Allow: {len(source['allow_rules']):,} | "
+            f"URL: {source['url'][:60]}"
+        )
         source_idx += 1
 
-    current_files = set()
-    for line in include_lines:
-        if line.startswith("!#include sources/"):
-            fname = line.replace("!#include sources/", "")
-            current_files.add(fname)
-    current_files.add("000_exceptions.txt")
-
-    removed_old = 0
-    if os.path.exists(sources_dir):
-        for old_file in os.listdir(sources_dir):
-            if old_file not in current_files:
-                os.remove(os.path.join(sources_dir, old_file))
-                removed_old += 1
-    if removed_old > 0:
-        print(f"\n🗑️  تم حذف {removed_old} ملف مصدر قديم")
-
+    # Write single merged file
     main_file = os.path.join(output_dir, "adguard_android_filter.txt")
+
+    print(f"\n💾 كتابة الملف الرئيسي ({len(allow_rules) + len(block_rules):,} قاعدة)...")
+
     with open(main_file, 'w', encoding='utf-8') as f:
+        # Header
         f.write(f"! Title: Merged Filters for AdGuard Android\n")
-        f.write(f"! Description: مجمع فلاتر متقدم لـ AdGuard Android - Delta Update Enabled\n")
+        f.write(f"! Description: مجمع فلاتر متقدم لـ AdGuard Android\n")
         f.write(f"! Version: {now.replace(' ', '-').replace(':', '-')}\n")
         f.write(f"! Last Modified: {now}\n")
         f.write(f"! Expires: 6 hours\n")
@@ -696,15 +647,28 @@ def save_filters(source_data, allow_rules, block_rules, output_dir="merged_filte
         f.write(f"! Total Rules: {len(allow_rules) + len(block_rules):,}\n")
         f.write(f"! Allow Rules: {len(allow_rules):,}\n")
         f.write(f"! Block Rules: {len(block_rules):,}\n")
-        f.write(f"! Format: Uses !#include for per-source delta updates\n")
-        f.write(f"! Note: AdGuard loads each included file separately (caches per file)\n")
+        f.write(f"! Format: Single merged file (fast write mode)\n")
         f.write("!\n")
-        f.write("\n".join(include_lines))
 
-    print(f"\n✅ تم الحفظ: {main_file}")
+        # Source info
+        f.write("! === Sources ===\n")
+        for comment in source_comments:
+            f.write(comment + "\n")
+        f.write("!\n")
+
+        # Allow rules first (for priority)
+        f.write("! === Allow Rules (Exceptions) ===\n")
+        f.write("\n".join(allow_rules))
+        f.write("\n\n")
+
+        # Block rules
+        f.write("! === Block Rules ===\n")
+        f.write("\n".join(block_rules))
+        f.write("\n")
+
+    print(f"✅ تم الحفظ: {main_file}")
     print(f"   📊 إجمالي القواعد: {len(allow_rules) + len(block_rules):,}")
-    print(f"   📁 ملفات فرعية: {len(include_lines)}")
-    print(f"   📂 المجلد: {sources_dir}/")
+    print(f"   📁 مصادر مسجلة: {len(source_comments)}")
 
     stats = {
         "generated_at": now,
@@ -714,8 +678,8 @@ def save_filters(source_data, allow_rules, block_rules, output_dir="merged_filte
         "total_sources": total_urls,
         "successful_sources": total_urls - failed_count,
         "failed_sources": failed_count,
-        "source_files": len(include_lines) - 1,
-        "delta_update_enabled": True
+        "delta_update_enabled": False,
+        "single_file_mode": True
     }
     with open(os.path.join(output_dir, "stats.json"), 'w', encoding='utf-8') as f:
         json.dump(stats, f, indent=2, ensure_ascii=False)
@@ -724,8 +688,8 @@ def save_filters(source_data, allow_rules, block_rules, output_dir="merged_filte
 
 def main():
     print("=" * 70)
-    print("   Filters.AdGuard.Android v18 - Delta Update Mode")
-    print("   يدعم: Per-source files | !#include | Delta updates | Allow Priority | Clean Rules")
+    print("   Filters.AdGuard.Android v19 - Single File Mode")
+    print("   يدعم: Single file | Allow Priority | Clean Rules | Fast write")
     print("=" * 70)
 
     urls = load_filter_urls("list.txt")
