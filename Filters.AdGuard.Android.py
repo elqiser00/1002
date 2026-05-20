@@ -1,17 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Filters.AdGuard.Android - Universal Filter Merger v10
+Filters.AdGuard.Android - Universal Filter Merger v11
 ======================================================
-- يدعم Surge/Quantumult X (DOMAIN-SUFFIX, DOMAIN-KEYWORD, DOMAIN-WILDCARD)
-- يدعم BIND zone files
-- يدعم CSV format
-- يدعم dnsmasq server=/
-- يدعم Surge host rules
-- يستخرج الدومينات من CSS rules
-- يدعم DNS RPZ
-- يدعم Hosts with comments
-- يدعم Plain URLs
+- Force close للـ threads المعلقة
+- Global timeout على كل رابط
+- Kill switch لو الـ Action وقف
 """
 
 import requests
@@ -22,19 +16,22 @@ import re
 import json
 import gzip
 import random
-from concurrent.futures import ThreadPoolExecutor, as_completed
+import signal
+from concurrent.futures import ThreadPoolExecutor, as_completed, TimeoutError as FutureTimeoutError
 from urllib.parse import urlparse
 import urllib3
 from datetime import datetime
 
 # ─── Configuration ──────────────────────────────────────────────────────────
 MAX_LINE_LENGTH = 8192
-REQUEST_TIMEOUT = 120
-REQUEST_DELAY_MIN = 0.5
-REQUEST_DELAY_MAX = 2.0
-MAX_WORKERS = 8
-MAX_RETRIES = 10
-BACKOFF_FACTOR = 2
+REQUEST_TIMEOUT = 30          # Timeout قصير على كل طلب
+GLOBAL_TIMEOUT = 45           # Global timeout على كل رابط
+MAX_TOTAL_TIME = 1500       # 25 دقيقة كحد أقصى للـ Action كله
+REQUEST_DELAY_MIN = 0.3
+REQUEST_DELAY_MAX = 1.5
+MAX_WORKERS = 5               # قللنا علشان مايتعلقش
+MAX_RETRIES = 3               # قللنا المحاولات
+BACKOFF_FACTOR = 1
 
 USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
@@ -45,20 +42,28 @@ USER_AGENTS = [
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
+# ─── Global Timer ────────────────────────────────────────────────────────────
+START_TIME = time.time()
+
+def check_timeout():
+    if time.time() - START_TIME > MAX_TOTAL_TIME:
+        print(f"\n⏰ تجاوز الوقت الأقصى ({MAX_TOTAL_TIME}s). إيقاف...")
+        sys.exit(1)
+
 # ─── Session ─────────────────────────────────────────────────────────────────
 def create_session():
     session = requests.Session()
     retry_strategy = requests.adapters.Retry(
         total=MAX_RETRIES,
         backoff_factor=BACKOFF_FACTOR,
-        status_forcelist=[429, 500, 502, 503, 504, 520, 521, 522, 523, 524],
+        status_forcelist=[429, 500, 502, 503, 504],
         allowed_methods=["HEAD", "GET", "OPTIONS"],
         raise_on_status=False
     )
     adapter = requests.adapters.HTTPAdapter(
         max_retries=retry_strategy,
         pool_connections=MAX_WORKERS,
-        pool_maxsize=MAX_WORKERS * 3,
+        pool_maxsize=MAX_WORKERS * 2,
         pool_block=False
     )
     session.mount('https://', adapter)
@@ -122,7 +127,6 @@ def extract_domain_from_css(line):
             return domain
     return None
 
-# ─── Extract Domain from URL ─────────────────────────────────────────────────
 def extract_domain_from_url(line):
     url_match = re.match(r'^(?:https?://)([^/\s]+)', line)
     if url_match:
@@ -135,36 +139,23 @@ def extract_domain_from_url(line):
 
 # ─── Universal Rule Converter ────────────────────────────────────────────────
 def convert_to_adguard(line):
-    """
-    محول شامل يدعم جميع صيغ الفلاتر
-    """
     line = line.strip()
     if not line or len(line) > MAX_LINE_LENGTH:
         return None
-
     if not line:
         return None
-
-    # ── تجاهل التعليقات ──────────────────────────────────────────────────
     if line.startswith("!"):
         return None
-
-    # ── تجاهل أسطر DNS zone metadata ─────────────────────────────────────
     if line.startswith(("$TTL", "@ IN SOA", " NS ", " NS\t", ";")):
         return None
-
-    # ── تجاهل الأسطر الفارغة ─────────────────────────────────────────────
     line = line.strip()
     if not line:
         return None
 
-    # ── 0. استخراج دومين من CSS rules ────────────────────────────────────
     css_domain = extract_domain_from_css(line)
     if css_domain:
         return f"||{css_domain}^"
 
-    # ── 1. Surge/Quantumult X: DOMAIN-SUFFIX ─────────────────────────────
-    # DOMAIN-SUFFIX,example.com,Reject → ||example.com^
     surge_suffix = re.match(r'^DOMAIN-SUFFIX,([a-z0-9\u00a1-\uffff._-]+)', line, re.IGNORECASE)
     if surge_suffix:
         domain = normalize_domain(surge_suffix.group(1))
@@ -172,8 +163,6 @@ def convert_to_adguard(line):
             return f"||{domain}^"
         return None
 
-    # ── 2. Surge/Quantumult X: DOMAIN-KEYWORD ────────────────────────────
-    # DOMAIN-KEYWORD,adash,reject → ||*adash*
     surge_keyword = re.match(r'^DOMAIN-KEYWORD,([a-z0-9\u00a1-\uffff._-]+)', line, re.IGNORECASE)
     if surge_keyword:
         keyword = surge_keyword.group(1).strip()
@@ -181,8 +170,6 @@ def convert_to_adguard(line):
             return f"||*{keyword}*"
         return None
 
-    # ── 3. Surge/Quantumult X: DOMAIN-WILDCARD ───────────────────────────
-    # DOMAIN-WILDCARD,*.domain.com → ||*.domain.com^
     surge_wildcard = re.match(r'^DOMAIN-WILDCARD,([a-z0-9\u00a1-\uffff._*-]+)', line, re.IGNORECASE)
     if surge_wildcard:
         pattern = surge_wildcard.group(1).strip()
@@ -196,8 +183,6 @@ def convert_to_adguard(line):
                 return f"||*.{normalize_domain(parts[1])}^"
         return None
 
-    # ── 4. Surge/Quantumult X: DOMAIN ────────────────────────────────────
-    # DOMAIN,example.com,proxy → ||example.com^
     surge_domain = re.match(r'^DOMAIN,([a-z0-9\u00a1-\uffff._-]+)', line, re.IGNORECASE)
     if surge_domain:
         domain = normalize_domain(surge_domain.group(1))
@@ -205,8 +190,6 @@ def convert_to_adguard(line):
             return f"||{domain}^"
         return None
 
-    # ── 5. Surge: host rules ─────────────────────────────────────────────
-    # host, domain.com, reject → ||domain.com^
     surge_host = re.match(r'^host,\s*([a-z0-9\u00a1-\uffff._-]+)', line, re.IGNORECASE)
     if surge_host:
         domain = normalize_domain(surge_host.group(1))
@@ -214,8 +197,6 @@ def convert_to_adguard(line):
             return f"||{domain}^"
         return None
 
-    # ── 6. Surge: host-suffix ────────────────────────────────────────────
-    # host-suffix, domain.com, proxy → ||domain.com^
     surge_host_suffix = re.match(r'^host-suffix,\s*([a-z0-9\u00a1-\uffff._-]+)', line, re.IGNORECASE)
     if surge_host_suffix:
         domain = normalize_domain(surge_host_suffix.group(1))
@@ -223,8 +204,6 @@ def convert_to_adguard(line):
             return f"||{domain}^"
         return None
 
-    # ── 7. Surge: host-keyword ───────────────────────────────────────────
-    # host-keyword, adash, reject → ||*adash*
     surge_host_kw = re.match(r'^host-keyword,\s*([a-z0-9\u00a1-\uffff._-]+)', line, re.IGNORECASE)
     if surge_host_kw:
         keyword = surge_host_kw.group(1).strip()
@@ -232,12 +211,9 @@ def convert_to_adguard(line):
             return f"||*{keyword}*"
         return None
 
-    # ── 8. Surge: user-agent / URL-REGEX (تجاهل) ──────────────────────────
     if re.match(r'^(USER-AGENT|URL-REGEX|AND|OR|NOT),', line, re.IGNORECASE):
         return None
 
-    # ── 9. CSV format: domain,last_seen,ip,... ───────────────────────────
-    # domain.com,2022-04-15,103.224.182.207,... → ||domain.com^
     csv_match = re.match(r'^([a-z0-9\u00a1-\uffff._-]+),\d{4}-\d{2}-\d{2},', line)
     if csv_match:
         domain = normalize_domain(csv_match.group(1))
@@ -245,7 +221,6 @@ def convert_to_adguard(line):
             return f"||{domain}^"
         return None
 
-    # ── 10. BIND zone: zone "domain.com" { ... } ──────────────────────────
     bind_match = re.match(r'^zone\s+"([a-z0-9\u00a1-\uffff._-]+)"\s+\{', line)
     if bind_match:
         domain = normalize_domain(bind_match.group(1))
@@ -253,7 +228,6 @@ def convert_to_adguard(line):
             return f"||{domain}^"
         return None
 
-    # ── 11. dnsmasq: server=/domain.com/ ─────────────────────────────────
     dnsmasq_match = re.match(r'^server=/([a-z0-9\u00a1-\uffff._-]+)/', line)
     if dnsmasq_match:
         domain = normalize_domain(dnsmasq_match.group(1))
@@ -261,11 +235,9 @@ def convert_to_adguard(line):
             return f"||{domain}^"
         return None
 
-    # ── 12. Regex patterns (تجاهل - مش مدعوم في AdGuard Android) ─────────
     if line.startswith("^"):
         return None
 
-    # ── 13. DNS RPZ: domain CNAME . ─────────────────────────────────────
     rpz_match = re.match(r'^(\*\.)?([a-z0-9\u00a1-\uffff._-]+)\s+CNAME\s+\.$', line, re.IGNORECASE)
     if rpz_match:
         star = rpz_match.group(1) or ""
@@ -274,7 +246,6 @@ def convert_to_adguard(line):
             return f"||{star}{domain}^"
         return None
 
-    # ── 14. Hosts with comments: domain #comment ──────────────────────────
     host_comment = re.match(r'^([a-z0-9\u00a1-\uffff._-]+)\s+#', line)
     if host_comment:
         domain = normalize_domain(host_comment.group(1))
@@ -282,12 +253,10 @@ def convert_to_adguard(line):
             return f"||{domain}^"
         return None
 
-    # ── 15. Plain URLs: http://domain.com/path ───────────────────────────
     url_domain = extract_domain_from_url(line)
     if url_domain:
         return f"||{url_domain}^"
 
-    # ── 16. قواعد AdGuard مع modifiers ────────────────────────────────────
     ag_mod = re.match(r'^(@@)?(\|\|)?(\*\.)?([a-z0-9\u00a1-\uffff._-]+)\^(\$[^\s]*)?$', line, re.IGNORECASE)
     if ag_mod:
         exc = ag_mod.group(1) or ""
@@ -298,7 +267,6 @@ def convert_to_adguard(line):
             return f"{exc}{prefix}{star}{domain}^"
         return None
 
-    # ── 17. قواعد AdGuard بدون ^ ─────────────────────────────────────────
     ag_plain = re.match(r'^(@@)?(\|\|)?(\*\.)?([a-z0-9\u00a1-\uffff._-]+)$', line, re.IGNORECASE)
     if ag_plain:
         exc = ag_plain.group(1) or ""
@@ -309,7 +277,6 @@ def convert_to_adguard(line):
             return f"{exc}{prefix}{star}{domain}^"
         return None
 
-    # ── 18. قواعد DNS / hosts ─────────────────────────────────────────────
     dns_match = re.match(r'^(?:0\.0\.0\.0|127\.0\.0\.1|::1|::|255\.255\.255\.255)\s+(.+)$', line, re.IGNORECASE)
     if dns_match:
         domain = normalize_domain(dns_match.group(1))
@@ -321,7 +288,6 @@ def convert_to_adguard(line):
             return f"||{domain}^"
         return None
 
-    # ── 19. قواعد استثناء DNS ─────────────────────────────────────────────
     exc_dns = re.match(r'^@@(?:0\.0\.0\.0|127\.0\.0\.1|::1|::)\s+(.+)$', line, re.IGNORECASE)
     if exc_dns:
         domain = normalize_domain(exc_dns.group(1))
@@ -329,24 +295,20 @@ def convert_to_adguard(line):
             return f"@@||{domain}^"
         return None
 
-    # ── 20. Wildcard domains ──────────────────────────────────────────────
     if line.startswith("*."):
         domain = line[2:]
         if is_valid_domain(domain):
             return f"||*.{normalize_domain(domain)}^"
         return None
 
-    # ── 21. نطاق صريح ─────────────────────────────────────────────────────
     if re.match(r'^([a-z0-9\u00a1-\uffff_-]+\.)+[a-zA-Z]{2,}$', line):
         if is_valid_domain(line):
             return f"||{normalize_domain(line)}^"
         return None
 
-    # ── 22. IP مباشرة ────────────────────────────────────────────────────
     if is_valid_ip(line):
         return f"||{line}^"
 
-    # ── 23. IP مع Port ────────────────────────────────────────────────────
     ip_port_match = re.match(r'^(?:https?://)?(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?::\d+)?', line)
     if ip_port_match:
         ip = ip_port_match.group(1)
@@ -354,7 +316,6 @@ def convert_to_adguard(line):
             return f"||{ip}^"
         return None
 
-    # ── 24. قواعد EasyList المتقدمة ──────────────────────────────────────
     easy_match = re.match(r'^(@@)?(\|\|)?(\*\.)?([^\s\$]+)\^(\$[^\s]*)?$', line)
     if easy_match:
         exc = easy_match.group(1) or ""
@@ -365,7 +326,6 @@ def convert_to_adguard(line):
             return f"{exc}{prefix}{star}{domain}^"
         return None
 
-    # ── 25. قواعد مسار (path rules) ──────────────────────────────────────
     path_match = re.match(r'^(@@)?(\|\|)?(\*\.)?([^/\s]+)(/[^\s]*)?$', line)
     if path_match:
         exc = path_match.group(1) or ""
@@ -376,7 +336,6 @@ def convert_to_adguard(line):
             return f"{exc}{prefix}{star}{domain}^"
         return None
 
-    # ── 26. قواعد استثناء مسار ───────────────────────────────────────────
     exc_plain = re.match(r'^@@(\|\|)?(\*\.)?([^\s\$]+)\^?$', line)
     if exc_plain:
         prefix = exc_plain.group(1) or "||"
@@ -386,7 +345,6 @@ def convert_to_adguard(line):
             return f"@@{prefix}{star}{domain}^"
         return None
 
-    # ── 27. قواعد نطاق مع نجمة ──────────────────────────────────────────
     star_match = re.match(r'^(@@)?(\|\|)?\*\.([a-z0-9\u00a1-\uffff._-]+)\^?$', line, re.IGNORECASE)
     if star_match:
         exc = star_match.group(1) or ""
@@ -396,7 +354,6 @@ def convert_to_adguard(line):
             return f"{exc}{prefix}*.{domain}^"
         return None
 
-    # ── 28. قواعد AdGuard مع مسار و modifiers ────────────────────────────
     ag_path_mod = re.match(r'^(@@)?(\|\|)?(\*\.)?([^/\s]+)/[^\s]*\^(\$[^\s]*)?$', line)
     if ag_path_mod:
         exc = ag_path_mod.group(1) or ""
@@ -413,48 +370,33 @@ def convert_to_adguard(line):
 def looks_like_filter(text):
     if not text or len(text) < 50:
         return False
-
     lines = text.split("\n")[:100]
-
-    # مؤشرات القواعد
     rule_indicators = ["||", "@@", "0.0.0.0", "127.0.0.1", "[Adblock", "! Title", "! Version", "##", "#@#", "CNAME .", "#Tracker", "#Malware", "DOMAIN-SUFFIX", "DOMAIN-KEYWORD", "DOMAIN-WILDCARD", "zone \"", "server=/", "host,"]
     rule_count = sum(1 for line in lines if any(ind in line for ind in rule_indicators))
-
-    # مؤشرات الفلتر
     filter_indicators = ["[Adblock", "! Title:", "! Version:", "! Expires:", "! Homepage:", "! Last modified:", "$TTL", "@ IN SOA"]
     meta_count = sum(1 for line in lines if any(ind in line for ind in filter_indicators))
-
-    # دومينات صريحة
     domain_count = sum(1 for line in lines if re.match(r'^([a-z0-9_-]+\.)+[a-z]{2,}$', line.strip()))
-
-    # URLs
     url_count = sum(1 for line in lines if line.strip().startswith(("http://", "https://")))
-
     return rule_count >= 2 or meta_count >= 1 or domain_count >= 3 or url_count >= 3 or len(text) > 5000
 
-# ─── Advanced Download ───────────────────────────────────────────────────────
+# ─── Advanced Download with Hard Timeout ───────────────────────────────────
 def download_filter(url, session, attempt=0):
     parsed = urlparse(url)
     domain = parsed.netloc
 
     strategies = []
-
-    # 1. الرابط الأصلي
     strategies.append({"url": url, "headers": {}})
 
-    # 2. GitHub blob → raw
     if "github.com" in domain and "/blob/" in url:
         raw_url = url.replace("github.com", "raw.githubusercontent.com").replace("/blob/", "/")
         strategies.insert(0, {"url": raw_url, "headers": {}})
 
-    # 3. GitLab blob → raw
     if "gitlab.com" in domain and "-" in url and "/raw/" not in url:
         parts = url.split("/blob/")
         if len(parts) == 2:
             raw_url = f"{parts[0]}/raw/{parts[1]}"
             strategies.insert(0, {"url": raw_url, "headers": {}})
 
-    # 4. HTTP fallback
     if url.startswith("https://"):
         strategies.append({"url": url.replace("https://", "http://", 1), "headers": {}})
 
@@ -468,20 +410,19 @@ def download_filter(url, session, attempt=0):
             time.sleep(delay)
 
             session.headers['User-Agent'] = random.choice(USER_AGENTS)
-
             headers = dict(session.headers)
             headers.update(strategy.get("headers", {}))
 
             response = session.get(
                 strategy["url"],
                 headers=headers,
-                timeout=REQUEST_TIMEOUT,
+                timeout=(10, REQUEST_TIMEOUT),  # (connect timeout, read timeout)
                 verify=False,
                 allow_redirects=True
             )
 
             if response.status_code == 429:
-                retry_after = int(response.headers.get('Retry-After', 10))
+                retry_after = int(response.headers.get('Retry-After', 5))
                 print(f"⏳ Rate limit: {domain}, waiting {retry_after}s...")
                 time.sleep(retry_after)
                 if attempt < MAX_RETRIES:
@@ -521,7 +462,7 @@ def download_filter(url, session, attempt=0):
 
     return None
 
-# ─── Main Processing ─────────────────────────────────────────────────────────
+# ─── Main Processing with Force Close ────────────────────────────────────────
 def process_all_filters(urls):
     session = create_session()
     block_rules = set()
@@ -530,44 +471,68 @@ def process_all_filters(urls):
     failed_reasons = {}
 
     print(f"🔍 معالجة {len(urls)} مصدر...")
-    print(f"⚙️  Workers: {MAX_WORKERS} | Timeout: {REQUEST_TIMEOUT}s")
+    print(f"⚙️  Workers: {MAX_WORKERS} | Timeout: {REQUEST_TIMEOUT}s | Global: {GLOBAL_TIMEOUT}s")
     print("=" * 70)
 
     def process_one(url):
-        text = download_filter(url, session)
-        if text is None:
-            return url, [], False, "Download failed"
+        try:
+            text = download_filter(url, session)
+            if text is None:
+                return url, [], False, "Download failed"
 
-        if not looks_like_filter(text):
-            preview = text[:200].replace('\n', ' ')
-            return url, [], False, f"Not a filter (preview: {preview[:80]}...)"
+            if not looks_like_filter(text):
+                preview = text[:200].replace('\n', ' ')
+                return url, [], False, f"Not a filter (preview: {preview[:80]}...)"
 
-        rules = []
-        css_domains = set()
+            rules = []
+            css_domains = set()
 
-        for line in text.splitlines():
-            converted = convert_to_adguard(line)
-            if converted:
-                if line.strip().find('##') > 0 or line.strip().find('#@#') > 0:
-                    domain = extract_domain_from_css(line)
-                    if domain and domain not in css_domains:
-                        css_domains.add(domain)
+            for line in text.splitlines():
+                converted = convert_to_adguard(line)
+                if converted:
+                    if line.strip().find('##') > 0 or line.strip().find('#@#') > 0:
+                        domain = extract_domain_from_css(line)
+                        if domain and domain not in css_domains:
+                            css_domains.add(domain)
+                            rules.append(converted)
+                    else:
                         rules.append(converted)
-                else:
-                    rules.append(converted)
 
-        if not rules:
-            preview_lines = [l for l in text.splitlines()[:20] if l.strip() and not l.startswith('!') and not l.startswith('#')]
-            preview = ' | '.join(preview_lines[:5])
-            return url, [], False, f"No valid rules (sample: {preview[:100]}...)"
+            if not rules:
+                preview_lines = [l for l in text.splitlines()[:20] if l.strip() and not l.startswith('!') and not l.startswith('#')]
+                preview = ' | '.join(preview_lines[:5])
+                return url, [], False, f"No valid rules (sample: {preview[:100]}...)"
 
-        return url, rules, True, "OK"
+            return url, rules, True, "OK"
+        except Exception as e:
+            return url, [], False, f"Error: {str(e)[:50]}"
 
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
-        futures = {executor.submit(process_one, url): url for url in urls}
+        futures = {}
+        for url in urls:
+            check_timeout()
+            future = executor.submit(process_one, url)
+            futures[future] = url
 
-        for i, future in enumerate(as_completed(futures), 1):
-            url, rules, success, reason = future.result()
+        completed = 0
+        for future in as_completed(futures, timeout=GLOBAL_TIMEOUT):
+            check_timeout()
+            completed += 1
+            url = futures[future]
+
+            try:
+                url_result, rules, success, reason = future.result(timeout=GLOBAL_TIMEOUT)
+            except FutureTimeoutError:
+                print(f"⏰ [{completed:3d}/{len(urls)}] {urlparse(url).netloc[:35]:35s} | Global timeout")
+                failed_urls.append(url)
+                failed_reasons[url] = "Global timeout"
+                continue
+            except Exception as e:
+                print(f"💥 [{completed:3d}/{len(urls)}] {urlparse(url).netloc[:35]:35s} | Exception: {str(e)[:40]}")
+                failed_urls.append(url)
+                failed_reasons[url] = f"Exception: {str(e)[:50]}"
+                continue
+
             domain = urlparse(url).netloc[:35]
 
             if success and rules:
@@ -584,12 +549,17 @@ def process_all_filters(urls):
                             block_rules.add(rule)
                             new_block.append(rule)
 
-                print(f"✅ [{i:3d}/{len(urls)}] {domain:35s} | +{len(new_block):6d} block | +{len(new_allow):4d} allow")
+                print(f"✅ [{completed:3d}/{len(urls)}] {domain:35s} | +{len(new_block):6d} block | +{len(new_allow):4d} allow")
             else:
                 failed_urls.append(url)
                 failed_reasons[url] = reason
-                print(f"❌ [{i:3d}/{len(urls)}] {domain:35s} | {reason[:40]}")
+                print(f"❌ [{completed:3d}/{len(urls)}] {domain:35s} | {reason[:40]}")
                 print(f"   ↳ {url}")
+
+        # Force cancel any remaining futures
+        for future in futures:
+            if not future.done():
+                future.cancel()
 
     # ترتيب: استثناءات أولاً ثم حظر
     sorted_rules = sorted(allow_rules, key=lambda x: extract_domain_from_rule(x))
@@ -625,7 +595,6 @@ def save_filters(rules, output_dir="merged_filters", total_urls=0, failed_count=
 !
 """
 
-    # ملف واحد فقط
     main_file = os.path.join(output_dir, "adguard_android_filter.txt")
     with open(main_file, 'w', encoding='utf-8') as f:
         f.write(header)
@@ -652,7 +621,7 @@ def save_filters(rules, output_dir="merged_filters", total_urls=0, failed_count=
 # ─── Main ────────────────────────────────────────────────────────────────────
 def main():
     print("=" * 70)
-    print("   Filters.AdGuard.Android v10 - Universal Merger")
+    print("   Filters.AdGuard.Android v11 - Force Close Edition")
     print("   يدعم: Surge | Quantumult X | BIND | CSV | dnsmasq | DNS RPZ | Hosts | URLs | CSS | AdGuard")
     print("=" * 70)
 
@@ -661,7 +630,8 @@ def main():
         print("❌ لا توجد روابط في list.txt!")
         sys.exit(1)
 
-    print(f"📋 {len(urls)} رابط في list.txt\n")
+    print(f"📋 {len(urls)} رابط في list.txt")
+    print(f"⏰ الوقت الأقصى: {MAX_TOTAL_TIME//60} دقيقة\n")
 
     start = time.time()
     rules, failed = process_all_filters(urls)
@@ -672,7 +642,8 @@ def main():
 
     save_filters(rules, total_urls=len(urls), failed_count=len(failed))
 
-    print(f"\n⏱️  الوقت: {time.time()-start:.1f} ثانية")
+    elapsed = time.time() - start
+    print(f"\n⏱️  الوقت: {elapsed:.1f} ثانية ({elapsed//60:.0f}m {elapsed%60:.0f}s)")
     print(f"📊 الإجمالي: {len(rules):,} قاعدة")
     print("✅ تم بنجاح!")
 
