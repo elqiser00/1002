@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Filters.AdGuard.Android - Universal Filter Merger v19
+Filters.AdGuard.Android - Universal Filter Merger v22
 =======================================================
-- Single merged file (fast write for large sources)
-- Allow priority over block (@@ wins over ||)
-- Clean ALL rules: remove *. and . from domain start
-- Auto-extract source names from filter metadata
-- Support all hosts formats with inline comments
+- NO sorting (fast deduplication with sets)
+- NO per-source headers (domains only)
+- Single clean output file
+- Fast batch writes
 """
 
 import requests
@@ -137,39 +136,19 @@ def extract_domain_from_url(line):
     return None
 
 def clean_rule(rule):
-    """Remove ALL leading wildcards and dots from any rule domain.
-    Examples:
-      ||*.domain.com^  -> ||domain.com^
-      @@||*.domain.com^ -> @@||domain.com^
-      ||.domain.com^    -> ||domain.com^
-      ||*domain.com^    -> ||domain.com^
-    """
+    """Remove ALL leading wildcards and dots from any rule domain."""
     if not rule:
         return rule
-
     is_exc = rule.startswith("@@")
     prefix = "@@||" if is_exc else "||"
-
-    # Extract domain part between || and ^
     match = re.match(r'^(@@)?\|\|(.+)\^(\$[^\s]*)?$', rule)
     if not match:
         return rule
-
     domain = match.group(2)
-
-    # Aggressively remove ALL leading wildcards and dots
-    # Keep stripping until no more leading * or . remain
     while domain.startswith('*') or domain.startswith('.'):
         domain = domain.lstrip('*').lstrip('.')
-
-    # Remove any remaining * characters inside the domain (for clean rules)
-    # But keep *. prefix for wildcard subdomains (e.g., ||*.example.com^)
-    if '*' in domain:
-        # If domain has * in middle, remove it (e.g., *ad*domain.com -> addomain.com)
-        # But preserve *. at start for actual wildcard rules
-        if not domain.startswith('*.'):
-            domain = domain.replace('*', '')
-
+    if '*' in domain and not domain.startswith('*.'):
+        domain = domain.replace('*', '')
     suffix = match.group(3) or ""
     return f"{prefix}{domain}^{suffix}"
 
@@ -183,7 +162,6 @@ def extract_source_name(text, url):
     return domain
 
 def convert_to_adguard(line):
-    original_line = line
     line = line.strip()
     if not line or len(line) > MAX_LINE_LENGTH:
         return None
@@ -207,8 +185,7 @@ def convert_to_adguard(line):
         exc = ag_standard.group(1) or ""
         domain = normalize_domain(ag_standard.group(2))
         if is_valid_domain(domain):
-            result = f"{exc}||{domain}^"
-            return clean_rule(result)
+            return clean_rule(f"{exc}||{domain}^")
         return None
 
     surge_suffix = re.match(r'^DOMAIN-SUFFIX,([a-z0-9\u00a1-\uffff._-]+)', line, re.IGNORECASE)
@@ -355,8 +332,7 @@ def convert_to_adguard(line):
         star = ag_plain.group(3) or ""
         domain = normalize_domain(ag_plain.group(4))
         if is_valid_domain(domain):
-            result = f"{exc}{prefix}{star}{domain}^"
-            return clean_rule(result)
+            return clean_rule(f"{exc}{prefix}{star}{domain}^")
         return None
 
     exc_plain = re.match(r'^@@(\|\|)?(\*\.)?([a-z0-9\u00a1-\uffff._-]+)\^?$', line)
@@ -365,8 +341,7 @@ def convert_to_adguard(line):
         star = exc_plain.group(2) or ""
         domain = normalize_domain(exc_plain.group(3))
         if is_valid_domain(domain):
-            result = f"@@{prefix}{star}{domain}^"
-            return clean_rule(result)
+            return clean_rule(f"@@{prefix}{star}{domain}^")
         return None
 
     star_match = re.match(r'^(@@)?(\|\|)?\*\.([a-z0-9\u00a1-\uffff._-]+)\^?$', line, re.IGNORECASE)
@@ -375,8 +350,7 @@ def convert_to_adguard(line):
         prefix = star_match.group(2) or "||"
         domain = normalize_domain(star_match.group(3))
         if is_valid_domain(domain):
-            result = f"{exc}{prefix}*.{domain}^"
-            return clean_rule(result)
+            return clean_rule(f"{exc}{prefix}*.{domain}^")
         return None
 
     return None
@@ -592,7 +566,7 @@ def process_all_filters(urls):
     total_block = set()
     total_allow = set()
 
-    # Build fast lookup set for allow domains (O(1) lookup)
+    # Build fast lookup set for allow domains
     allow_domain_set = set()
     for source in source_data:
         if not source['success']:
@@ -601,7 +575,7 @@ def process_all_filters(urls):
             total_allow.add(rule)
             allow_domain_set.add(extract_domain_from_rule(rule))
 
-    # Now filter block rules using fast set lookup
+    # Filter block rules
     for source in source_data:
         if not source['success']:
             continue
@@ -613,8 +587,9 @@ def process_all_filters(urls):
     print(f"   ✅ قواعد استثناء نهائية: {len(total_allow):,}")
     print(f"   🚫 قواعد حظر نهائية: {len(total_block):,}")
 
-    sorted_allow = sorted(total_allow, key=lambda x: extract_domain_from_rule(x))
-    sorted_block = sorted(total_block, key=lambda x: extract_domain_from_rule(x))
+    # NO SORTING - just convert sets to lists (fast)
+    list_allow = list(total_allow)
+    list_block = list(total_block)
 
     print("=" * 70)
     print(f"📊 النتائج:")
@@ -629,80 +604,47 @@ def process_all_filters(urls):
         if len(failed_urls) > 20:
             print(f"   ... و {len(failed_urls) - 20} روابط أخرى")
 
-    return source_data, sorted_allow, sorted_block, failed_urls
+    return source_data, list_allow, list_block, failed_urls
 
 def save_filters(source_data, allow_rules, block_rules, output_dir="merged_filters", total_urls=0, failed_count=0):
     os.makedirs(output_dir, exist_ok=True)
 
     now = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
 
-    # Build source info comments
-    source_comments = []
-    source_idx = 1
+    # Build source info for header only
+    source_names = []
     for source in source_data:
-        if not source['success']:
-            continue
+        if source['success']:
+            source_names.append(source['name'][:40])
 
-        source_block = []
-        for rule in source['block_rules']:
-            rule_domain = extract_domain_from_rule(rule)
-            is_allowed = any(extract_domain_from_rule(a) == rule_domain for a in allow_rules)
-            if not is_allowed:
-                source_block.append(rule)
-
-        if not source_block:
-            continue
-
-        source_comments.append(
-            f"! [{source_idx:03d}] {source['name'][:50]} | "
-            f"Block: {len(source_block):,} | "
-            f"Allow: {len(source['allow_rules']):,} | "
-            f"URL: {source['url'][:60]}"
-        )
-        source_idx += 1
-
-    # Write single merged file using BATCH writes (no huge string join)
     main_file = os.path.join(output_dir, "adguard_android_filter.txt")
 
     print(f"\n💾 كتابة الملف الرئيسي ({len(allow_rules) + len(block_rules):,} قاعدة)...")
 
     with open(main_file, 'w', encoding='utf-8') as f:
-        # Header
+        # Single header only
         f.write(f"! Title: Merged Filters for AdGuard Android\n")
-        f.write(f"! Description: مجمع فلاتر متقدم لـ AdGuard Android\n")
         f.write(f"! Version: {now.replace(' ', '-').replace(':', '-')}\n")
         f.write(f"! Last Modified: {now}\n")
-        f.write(f"! Expires: 6 hours\n")
-        f.write(f"! Sources: {total_urls - failed_count} ناجح | {failed_count} فاشل | إجمالي: {total_urls}\n")
+        f.write(f"! Sources: {total_urls - failed_count} ناجح | {failed_count} فاشل\n")
         f.write(f"! Total Rules: {len(allow_rules) + len(block_rules):,}\n")
-        f.write(f"! Allow Rules: {len(allow_rules):,}\n")
-        f.write(f"! Block Rules: {len(block_rules):,}\n")
-        f.write(f"! Format: Single merged file (batch write mode)\n")
+        f.write(f"! Allow: {len(allow_rules):,} | Block: {len(block_rules):,}\n")
         f.write("!\n")
 
-        # Source info
-        f.write("! === Sources ===\n")
-        for comment in source_comments:
-            f.write(comment + "\n")
-        f.write("!\n")
+        # Write allow rules (NO sorting, NO extra headers)
+        if allow_rules:
+            f.write("\n".join(allow_rules))
+            f.write("\n")
 
-        # Allow rules first (for priority) - write in batches
-        f.write("! === Allow Rules (Exceptions) ===\n")
-        BATCH_SIZE = 10000
-        for i in range(0, len(allow_rules), BATCH_SIZE):
-            batch = allow_rules[i:i+BATCH_SIZE]
-            f.write("\n".join(batch) + "\n")
-        f.write("\n")
-
-        # Block rules - write in batches
-        f.write("! === Block Rules ===\n")
-        for i in range(0, len(block_rules), BATCH_SIZE):
-            batch = block_rules[i:i+BATCH_SIZE]
-            f.write("\n".join(batch) + "\n")
+        # Write block rules (NO sorting, NO extra headers)
+        if block_rules:
+            if allow_rules:
+                f.write("\n")
+            f.write("\n".join(block_rules))
+            f.write("\n")
 
     print(f"✅ تم الحفظ: {main_file}")
     print(f"   📊 إجمالي القواعد: {len(allow_rules) + len(block_rules):,}")
-    print(f"   📁 مصادر مسجلة: {len(source_comments)}")
 
     stats = {
         "generated_at": now,
@@ -711,9 +653,7 @@ def save_filters(source_data, allow_rules, block_rules, output_dir="merged_filte
         "block_rules": len(block_rules),
         "total_sources": total_urls,
         "successful_sources": total_urls - failed_count,
-        "failed_sources": failed_count,
-        "delta_update_enabled": False,
-        "single_file_mode": True
+        "failed_sources": failed_count
     }
     with open(os.path.join(output_dir, "stats.json"), 'w', encoding='utf-8') as f:
         json.dump(stats, f, indent=2, ensure_ascii=False)
@@ -722,8 +662,8 @@ def save_filters(source_data, allow_rules, block_rules, output_dir="merged_filte
 
 def main():
     print("=" * 70)
-    print("   Filters.AdGuard.Android v19 - Single File Mode")
-    print("   يدعم: Single file | Allow Priority | Clean Rules | Fast write")
+    print("   Filters.AdGuard.Android v22 - Fast Mode")
+    print("   NO sorting | NO per-source headers | Clean output")
     print("=" * 70)
 
     urls = load_filter_urls("list.txt")
