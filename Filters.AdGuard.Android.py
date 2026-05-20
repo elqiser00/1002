@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Filters.AdGuard.Android - Universal Filter Merger v11
-======================================================
+Filters.AdGuard.Android - Universal Filter Merger v12
+=======================================================
+- Domain-based rate limiting
+- Skip list للسيرفرات المشاكل
 - Force close للـ threads المعلقة
-- Global timeout على كل رابط
-- Kill switch لو الـ Action وقف
 """
 
 import requests
@@ -16,22 +16,32 @@ import re
 import json
 import gzip
 import random
-import signal
 from concurrent.futures import ThreadPoolExecutor, as_completed, TimeoutError as FutureTimeoutError
 from urllib.parse import urlparse
 import urllib3
 from datetime import datetime
+from collections import defaultdict
 
 # ─── Configuration ──────────────────────────────────────────────────────────
 MAX_LINE_LENGTH = 8192
-REQUEST_TIMEOUT = 30          # Timeout قصير على كل طلب
-GLOBAL_TIMEOUT = 45           # Global timeout على كل رابط
-MAX_TOTAL_TIME = 1500       # 25 دقيقة كحد أقصى للـ Action كله
-REQUEST_DELAY_MIN = 0.3
-REQUEST_DELAY_MAX = 1.5
-MAX_WORKERS = 5               # قللنا علشان مايتعلقش
-MAX_RETRIES = 3               # قللنا المحاولات
+REQUEST_TIMEOUT = 25
+GLOBAL_TIMEOUT = 40
+MAX_TOTAL_TIME = 1500
+REQUEST_DELAY_MIN = 0.5
+REQUEST_DELAY_MAX = 2.0
+MAX_WORKERS = 4
+MAX_RETRIES = 2
 BACKOFF_FACTOR = 1
+
+# سيرفرات بتعمل rate limit - نزود delay أكتر
+RATE_LIMITED_DOMAINS = {
+    'adguardteam.github.io': 8.0,
+    'filters.adtidy.org': 8.0,
+    'raw.githubusercontent.com': 3.0,
+    'github.com': 3.0,
+    'gitlab.com': 5.0,
+    'cdn.jsdelivr.net': 5.0,
+}
 
 USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
@@ -379,10 +389,24 @@ def looks_like_filter(text):
     url_count = sum(1 for line in lines if line.strip().startswith(("http://", "https://")))
     return rule_count >= 2 or meta_count >= 1 or domain_count >= 3 or url_count >= 3 or len(text) > 5000
 
-# ─── Advanced Download with Hard Timeout ───────────────────────────────────
+# ─── Advanced Download with Domain Rate Limiting ────────────────────────────
+# متغير global لتتبع آخر طلب لكل دومين
+last_request_time = defaultdict(float)
+
 def download_filter(url, session, attempt=0):
     parsed = urlparse(url)
     domain = parsed.netloc
+
+    # Domain-based rate limiting
+    now = time.time()
+    domain_delay = RATE_LIMITED_DOMAINS.get(domain, 0)
+    if domain_delay > 0:
+        elapsed = now - last_request_time[domain]
+        if elapsed < domain_delay:
+            wait = domain_delay - elapsed
+            print(f"⏳ [{domain}] waiting {wait:.1f}s (rate limit)...")
+            time.sleep(wait)
+    last_request_time[domain] = time.time()
 
     strategies = []
     strategies.append({"url": url, "headers": {}})
@@ -416,7 +440,7 @@ def download_filter(url, session, attempt=0):
             response = session.get(
                 strategy["url"],
                 headers=headers,
-                timeout=(10, REQUEST_TIMEOUT),  # (connect timeout, read timeout)
+                timeout=(8, REQUEST_TIMEOUT),
                 verify=False,
                 allow_redirects=True
             )
@@ -462,7 +486,7 @@ def download_filter(url, session, attempt=0):
 
     return None
 
-# ─── Main Processing with Force Close ────────────────────────────────────────
+# ─── Main Processing ─────────────────────────────────────────────────────────
 def process_all_filters(urls):
     session = create_session()
     block_rules = set()
@@ -621,7 +645,7 @@ def save_filters(rules, output_dir="merged_filters", total_urls=0, failed_count=
 # ─── Main ────────────────────────────────────────────────────────────────────
 def main():
     print("=" * 70)
-    print("   Filters.AdGuard.Android v11 - Force Close Edition")
+    print("   Filters.AdGuard.Android v12 - Domain Rate Limiting")
     print("   يدعم: Surge | Quantumult X | BIND | CSV | dnsmasq | DNS RPZ | Hosts | URLs | CSS | AdGuard")
     print("=" * 70)
 
