@@ -342,7 +342,6 @@ https://raw.githubusercontent.com/yhonay/antipopads/master/hosts
 https://raw.githubusercontent.com/bigdargon/hostsVN/master/hosts
 https://raw.githubusercontent.com/yous/YousList/master/hosts.txt
 https://github.com/aleclee/DNS-Blacklists/raw/master/AdHosts.txt
-http://s3-us-west-1.amazonaws.com/umbrella-static/top-1m.csv.zip
 https://blocklistproject.github.io/Lists/alt-version/scam-nl.txt
 https://github.com/SlashArash/adblockfa/raw/master/adblockfa.txt
 https://github.com/igorskyflyer/ad-void/raw/main/AdVoid.Core.txt
@@ -355,7 +354,6 @@ https://github.com/easylist/easylist/raw/gh-pages/easyprivacy.txt
 https://raw.githubusercontent.com/Lerist/Go-Hosts/master/hosts-ad
 https://raw.githubusercontent.com/bkrcrc/turk-adlist/master/hosts
 https://github.com/KurzGedanke/kurzBlock/raw/master/kurzBlock.txt
-https://osint.digitalside.it/Threat-Intel/lists/latestdomains.txt
 https://blocklistproject.github.io/Lists/alt-version/abuse-nl.txt
 https://blocklistproject.github.io/Lists/alt-version/fraud-nl.txt
 https://github.com/hagezi/dns-blocklists/raw/main/domains/pro.txt
