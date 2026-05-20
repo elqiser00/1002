@@ -264,7 +264,6 @@ https://pastebin.com/raw/UP3s7pEB
 http://abpvn.com/android/abpvn.txt
 https://www.zoso.ro/pages/rolist.txt
 https://www.zoso.ro/pages/rolist2.txt
-https://myxxdev.github.io/MYbloXX.pac
 http://winhelp2002.mvps.org/hosts.txt
 https://urlhaus.abuse.ch/downloads/csv/
 https://cybercrime-tracker.net/ccamgate.php
@@ -382,7 +381,6 @@ https://github.com/hell-sh/Evil-Domains/raw/master/evil-domains.txt
 https://github.com/blocklistproject/Lists/raw/master/ransomware.txt
 https://github.com/DBFVGit/FVEDL_BlOCKFQDN/raw/main/FVEDL_Block.txt
 https://blocklistproject.github.io/Lists/alt-version/malware-nl.txt
-https://github.com/npljy/npljy.github.io/raw/main/blocks/filter.txt
 https://github.com/NoGitHubForYou/yafp/raw/main/subdomains_adshield
 https://github.com/issueser/hosts/raw/main/Non-Essential/strict.txt
 https://github.com/SpitFire-666/ublock-filters/raw/main/filters.txt
@@ -393,8 +391,6 @@ https://github.com/monojp/hosts_merge/raw/master/hosts_blacklist.txt
 https://s3.amazonaws.com/lists.disconnect.me/simple_malvertising.txt
 https://blocklistproject.github.io/Lists/alt-version/phishing-nl.txt
 https://blocklistproject.github.io/Lists/alt-version/tracking-nl.txt
-https://github.com/xOS/Config/raw/Her/Surge/RuleSet/Advertising.list
-https://github.com/pengcu/AdguradHomeList/raw/master/AdguardHome.txt
 https://github.com/bogachenko/filterlist/raw/main/bogachenkoBL.hosts
 https://github.com/ph00lt0/blocklist/raw/master/pihole-blocklist.txt
 https://raw.githubusercontent.com/azet12/kadhosts/master/KADhosts.txt
@@ -416,7 +412,6 @@ https://raw.githubusercontent.com/Laicure/HostsY_hosts/master/shithosts
 https://github.com/svetlyobg/svet-custom-domains/raw/master/ads-domains
 https://github.com/zhouhanc/malware-discoverer/raw/master/blocklist.csv
 https://github.com/Yuki2718/adblock/raw/master/japanese/jp-paranoid.txt
-https://raw.githubusercontent.com/mmotti/pihole-regex/master/regex.list
 https://github.com/SukkaW/Surge/raw/master/Source/domainset/reject.conf
 https://github.com/xlimit91/xlimit91-block-list/raw/master/blacklist.txt
 https://github.com/tomzuu/blacklist-named/raw/master/phishing.sites.conf
@@ -444,7 +439,6 @@ https://github.com/uBlockOrigin/uAssets/raw/master/filters/filters-2023.txt
 https://github.com/uBlockOrigin/uAssets/raw/master/filters/filters-2024.txt
 https://github.com/uBlockOrigin/uAssets/raw/master/filters/filters-2025.txt
 https://github.com/DIGITALv7/MannyMan-AdBlock/raw/main/MannyMan-AdBlock.txt
-https://raw.githubusercontent.com/Perflyst/PiHoleBlocklist/master/regex.list
 https://raw.githubusercontent.com/Perflyst/PiHoleBlocklist/master/SmartTV.txt
 http://www.thedumbterminal.co.uk/files/services/squidblockedsites/blocked.txt
 https://www.github.developerdan.com/hosts/lists/ads-and-tracking-extended.txt
@@ -470,7 +464,6 @@ https://raw.githubusercontent.com/Yuki2718/adblock/master/japanese/jp-annoyances
 https://github.com/What-Zit-Tooya/Ad-Block/raw/main/Main-Blocklist/Ad-Block-HOSTS.txt
 https://github.com/ABPindo/indonesianadblockrules/raw/master/subscriptions/domain.txt
 https://github.com/migueldemoura/ublock-umatrix-rulesets/raw/master/Hosts/ads-tracking
-https://web.archive.org/web/20160221135711/http://adblock.gjtech.net/?format=unix-hosts
 https://raw.githubusercontent.com/MasterKia/PersianBlocker/main/PersianBlockerHosts.txt
 https://github.com/AdguardTeam/FiltersRegistry/raw/master/platforms/mac/filters/231.txt
 https://raw.githubusercontent.com/matomo-org/referrer-spam-blacklist/master/spammers.txt
