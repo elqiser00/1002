@@ -570,14 +570,22 @@ def process_all_filters(urls):
     total_block = set()
     total_allow = set()
 
+    # Build fast lookup set for allow domains (O(1) lookup)
+    allow_domain_set = set()
     for source in source_data:
         if not source['success']:
             continue
         for rule in source['allow_rules']:
             total_allow.add(rule)
+            allow_domain_set.add(extract_domain_from_rule(rule))
+
+    # Now filter block rules using fast set lookup
+    for source in source_data:
+        if not source['success']:
+            continue
         for rule in source['block_rules']:
             rule_domain = extract_domain_from_rule(rule)
-            if rule_domain not in all_allow_domains:
+            if rule_domain not in allow_domain_set:
                 total_block.add(rule)
 
     print(f"   ✅ قواعد استثناء نهائية: {len(total_allow):,}")
