@@ -137,17 +137,39 @@ def extract_domain_from_url(line):
     return None
 
 def clean_rule(rule):
+    """Remove ALL leading wildcards and dots from any rule domain.
+    Examples:
+      ||*.domain.com^  -> ||domain.com^
+      @@||*.domain.com^ -> @@||domain.com^
+      ||.domain.com^    -> ||domain.com^
+      ||*domain.com^    -> ||domain.com^
+    """
     if not rule:
         return rule
+
     is_exc = rule.startswith("@@")
     prefix = "@@||" if is_exc else "||"
+
+    # Extract domain part between || and ^
     match = re.match(r'^(@@)?\|\|(.+)\^(\$[^\s]*)?$', rule)
     if not match:
         return rule
+
     domain = match.group(2)
-    domain = domain.lstrip('*').lstrip('.')
-    if '*' in domain and not domain.startswith('*.'):
-        domain = domain.replace('*', '')
+
+    # Aggressively remove ALL leading wildcards and dots
+    # Keep stripping until no more leading * or . remain
+    while domain.startswith('*') or domain.startswith('.'):
+        domain = domain.lstrip('*').lstrip('.')
+
+    # Remove any remaining * characters inside the domain (for clean rules)
+    # But keep *. prefix for wildcard subdomains (e.g., ||*.example.com^)
+    if '*' in domain:
+        # If domain has * in middle, remove it (e.g., *ad*domain.com -> addomain.com)
+        # But preserve *. at start for actual wildcard rules
+        if not domain.startswith('*.'):
+            domain = domain.replace('*', '')
+
     suffix = match.group(3) or ""
     return f"{prefix}{domain}^{suffix}"
 
