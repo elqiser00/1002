@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Filters.AdGuard.Android - Universal Filter Merger v14
+Filters.AdGuard.Android - Universal Filter Merger v15
 =======================================================
 - Fixed path issues for GitHub Actions
-- Better plain domain list support
+- Better plain domain list support (with inline comments)
+- Support :: domain (IPv6 shorthand hosts)
 - Improved detection for small/single-format files
 - Debug logging per URL
 """
@@ -93,10 +94,12 @@ def is_valid_domain(domain):
     domain_clean = domain.replace("*.", "").replace("(^|\.)", "").replace("$", "").replace("*", "")
     if domain_clean.startswith('.'):
         domain_clean = domain_clean[1:]
+    # Support international domain names (punycode and unicode)
     pattern = r'^[a-z0-9\u00a1-\uffff]([a-z0-9\u00a1-\uffff-]{0,61}[a-z0-9\u00a1-\uffff])?(\.[a-z0-9\u00a1-\uffff]([a-z0-9\u00a1-\uffff-]{0,61}[a-z0-9\u00a1-\uffff])?)*\.[a-zA-Z\u00a1-\uffff]{2,}$'
     if re.match(pattern, domain_clean):
         return True
-    if re.match(r'^xn--[a-z0-9-]+(\.xn--[a-z0-9-]+)*\.[a-z]{2,}$', domain_clean):
+    # Support pure punycode (xn--)
+    if re.match(r'^xn--[a-z0-9-]+(\.[a-z0-9-]+)*\.[a-z]{2,}$', domain_clean):
         return True
     return False
 
@@ -115,6 +118,16 @@ def extract_domain_from_rule(rule):
         clean = clean.split('/')[0]
     return clean
 
+def strip_inline_comment(line):
+    """Remove inline comments (# or //) and return clean line + comment"""
+    # Handle # comment
+    if '#' in line:
+        line = line.split('#')[0]
+    # Handle // comment
+    if '//' in line:
+        line = line.split('//')[0]
+    return line.strip()
+
 def extract_domain_from_css(line):
     css_match = re.match(r'^([a-z0-9\u00a1-\uffff._*-]+)(?:##|#@#|#\?#|#\$#|#%#)', line)
     if css_match:
@@ -132,9 +145,12 @@ def extract_domain_from_url(line):
     return None
 
 def convert_to_adguard(line):
+    original_line = line
     line = line.strip()
     if not line or len(line) > MAX_LINE_LENGTH:
         return None
+
+    # Skip pure comments
     if line.startswith(("!", "#", ";", "//", "/*")):
         return None
     if line.startswith(("$TTL", "@ IN SOA", " NS ", " NS\t")):
@@ -142,10 +158,17 @@ def convert_to_adguard(line):
     if not line:
         return None
 
+    # ─── Strip inline comments first ──────────────────────────────────────────
+    line_clean = strip_inline_comment(line)
+    if not line_clean:
+        return None
+
+    # ─── CSS rules (element hiding) ─────────────────────────────────────────
     css_domain = extract_domain_from_css(line)
     if css_domain:
         return f"||{css_domain}^"
 
+    # ─── AdGuard/EasyList standard rules ────────────────────────────────────
     ag_standard = re.match(r'^(@@)?\|\|([a-z0-9\u00a1-\uffff._*-]+)\^(\$[^\s]*)?$', line, re.IGNORECASE)
     if ag_standard:
         exc = ag_standard.group(1) or ""
@@ -154,6 +177,7 @@ def convert_to_adguard(line):
             return f"{exc}||{domain}^"
         return None
 
+    # ─── Surge / Shadowrocket formats ───────────────────────────────────────
     surge_suffix = re.match(r'^DOMAIN-SUFFIX,([a-z0-9\u00a1-\uffff._-]+)', line, re.IGNORECASE)
     if surge_suffix:
         domain = normalize_domain(surge_suffix.group(1))
@@ -212,6 +236,7 @@ def convert_to_adguard(line):
     if re.match(r'^(USER-AGENT|URL-REGEX|AND|OR|NOT|IP-CIDR|IP-CIDR6|GEOIP|DEST-PORT|SRC-IP|IN-PORT|PROCESS-NAME|SUBNET),', line, re.IGNORECASE):
         return None
 
+    # ─── CSV format (domain,date,...) ───────────────────────────────────────
     csv_match = re.match(r'^([a-z0-9\u00a1-\uffff._-]+),\d{4}-\d{2}-\d{2},', line)
     if csv_match:
         domain = normalize_domain(csv_match.group(1))
@@ -219,6 +244,7 @@ def convert_to_adguard(line):
             return f"||{domain}^"
         return None
 
+    # ─── BIND zone format ───────────────────────────────────────────────────
     bind_match = re.match(r'^zone\s+"([a-z0-9\u00a1-\uffff._-]+)"\s+\{', line)
     if bind_match:
         domain = normalize_domain(bind_match.group(1))
@@ -226,6 +252,7 @@ def convert_to_adguard(line):
             return f"||{domain}^"
         return None
 
+    # ─── dnsmasq format ──────────────────────────────────────────────────────
     dnsmasq_match = re.match(r'^server=/([a-z0-9\u00a1-\uffff._-]+)/', line)
     if dnsmasq_match:
         domain = normalize_domain(dnsmasq_match.group(1))
@@ -233,6 +260,7 @@ def convert_to_adguard(line):
             return f"||{domain}^"
         return None
 
+    # ─── RPZ format ─────────────────────────────────────────────────────────
     rpz_match = re.match(r'^(\*\.)?([a-z0-9\u00a1-\uffff._-]+)\s+CNAME\s+\.$', line, re.IGNORECASE)
     if rpz_match:
         star = rpz_match.group(1) or ""
@@ -241,6 +269,7 @@ def convert_to_adguard(line):
             return f"||{star}{domain}^"
         return None
 
+    # ─── Hosts with comment ─────────────────────────────────────────────────
     host_comment = re.match(r'^([a-z0-9\u00a1-\uffff._-]+)\s+#', line)
     if host_comment:
         domain = normalize_domain(host_comment.group(1))
@@ -248,10 +277,12 @@ def convert_to_adguard(line):
             return f"||{domain}^"
         return None
 
+    # ─── URL format ──────────────────────────────────────────────────────────
     url_domain = extract_domain_from_url(line)
     if url_domain:
         return f"||{url_domain}^"
 
+    # ─── Standard Hosts format: 0.0.0.0 domain.com ─────────────────────────
     dns_match = re.match(r'^(?:0\.0\.0\.0|127\.0\.0\.1|::1|::|255\.255\.255\.255)\s+([^\s#]+)', line, re.IGNORECASE)
     if dns_match:
         domain = normalize_domain(dns_match.group(1))
@@ -263,6 +294,7 @@ def convert_to_adguard(line):
             return f"||{domain}^"
         return None
 
+    # ─── Exception hosts: @@127.0.0.1 domain.com ────────────────────────────
     exc_dns = re.match(r'^@@(?:0\.0\.0\.0|127\.0\.0\.1|::1|::)\s+([^\s#]+)', line, re.IGNORECASE)
     if exc_dns:
         domain = normalize_domain(exc_dns.group(1))
@@ -270,20 +302,25 @@ def convert_to_adguard(line):
             return f"@@||{domain}^"
         return None
 
-    if line.startswith("*.") and not line.startswith("*." + " "):
-        domain = line[2:]
+    # ─── Plain wildcard domain: *.example.com ───────────────────────────────
+    if line_clean.startswith("*.") and not line_clean.startswith("*." + " "):
+        domain = line_clean[2:]
         if is_valid_domain(domain):
             return f"||*.{normalize_domain(domain)}^"
         return None
 
-    if re.match(r'^([a-z0-9\u00a1-\uffff_-]+\.)+[a-zA-Z\u00a1-\uffff]{2,}$', line):
-        if is_valid_domain(line):
-            return f"||{normalize_domain(line)}^"
+    # ─── Plain domain (possibly with inline comment already stripped) ────────
+    # Try the cleaned version first (without comments)
+    if re.match(r'^([a-z0-9\u00a1-\uffff_-]+\.)+[a-zA-Z\u00a1-\uffff]{2,}$', line_clean):
+        if is_valid_domain(line_clean):
+            return f"||{normalize_domain(line_clean)}^"
         return None
 
-    if is_valid_ip(line):
-        return f"||{line}^"
+    # ─── Plain IP ──────────────────────────────────────────────────────────
+    if is_valid_ip(line_clean):
+        return f"||{line_clean}^"
 
+    # ─── IP with port ──────────────────────────────────────────────────────
     ip_port_match = re.match(r'^(?:https?://)?(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?::\d+)?', line)
     if ip_port_match:
         ip = ip_port_match.group(1)
@@ -291,6 +328,7 @@ def convert_to_adguard(line):
             return f"||{ip}^"
         return None
 
+    # ─── Catch remaining AdGuard-like formats ──────────────────────────────
     ag_plain = re.match(r'^(@@)?(\|\|)?(\*\.)?([a-z0-9\u00a1-\uffff._-]+)$', line, re.IGNORECASE)
     if ag_plain:
         exc = ag_plain.group(1) or ""
@@ -343,15 +381,27 @@ def looks_like_filter(text, url=""):
                        "! Last modified:", "$TTL", "@ IN SOA", "!#", "!+"]
     meta_count = sum(1 for line in sample if any(ind in line for ind in meta_indicators))
 
-    domain_count = sum(1 for line in sample if re.match(r'^([a-z0-9_-]+\.)+[a-z]{2,}$', line.strip()))
-    hosts_count = sum(1 for line in sample if re.match(r'^(0\.0\.0\.0|127\.0\.0\.1)\s+\S+', line.strip()))
+    # Plain domain detection: lines that look like domains (with or without comments)
+    domain_count = 0
+    for line in sample:
+        clean = strip_inline_comment(line)
+        if re.match(r'^([a-z0-9_-]+\.)+[a-z]{2,}$', clean):
+            domain_count += 1
+
+    # Hosts format detection
+    hosts_count = sum(1 for line in sample if re.match(r'^(0\.0\.0\.0|127\.0\.0\.1|::1|::)\s+\S+', line.strip()))
+
+    # URL count
     url_count = sum(1 for line in sample if line.strip().startswith(("http://", "https://")))
 
+    # If it's a known filter source domain, be more lenient
     known_filter_domains = ['filters.adtidy.org', 'easylist', 'adguard', 'github.com/AdguardTeam',
                            'someonewhocares', 'winhelp2002.mvps.org', 'pgl.yoyo.org', 
-                           'malwaredomainlist', 'disconnect.me', 'hosts-file.net']
+                           'malwaredomainlist', 'disconnect.me', 'hosts-file.net',
+                           'blocklist', 'hosts', 'filter', 'domains']
     is_known_source = any(k in url.lower() for k in known_filter_domains)
 
+    # Decision logic
     if meta_count >= 1:
         return True, "Has filter metadata"
     if rule_count >= 2:
@@ -594,8 +644,8 @@ def save_filters(rules, output_dir="merged_filters", total_urls=0, failed_count=
 
 def main():
     print("=" * 70)
-    print("   Filters.AdGuard.Android v14 - Sequential Mode")
-    print("   يدعم: Surge | Quantumult X | BIND | CSV | dnsmasq | DNS RPZ | Hosts | URLs | CSS | AdGuard | Plain Domains")
+    print("   Filters.AdGuard.Android v15 - Sequential Mode")
+    print("   يدعم: Surge | Quantumult X | BIND | CSV | dnsmasq | DNS RPZ | Hosts | URLs | CSS | AdGuard | Plain Domains | Inline Comments")
     print("=" * 70)
 
     urls = load_filter_urls("list.txt")
