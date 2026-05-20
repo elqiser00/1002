@@ -661,7 +661,7 @@ def save_filters(source_data, allow_rules, block_rules, output_dir="merged_filte
         )
         source_idx += 1
 
-    # Write single merged file
+    # Write single merged file using BATCH writes (no huge string join)
     main_file = os.path.join(output_dir, "adguard_android_filter.txt")
 
     print(f"\n💾 كتابة الملف الرئيسي ({len(allow_rules) + len(block_rules):,} قاعدة)...")
@@ -677,7 +677,7 @@ def save_filters(source_data, allow_rules, block_rules, output_dir="merged_filte
         f.write(f"! Total Rules: {len(allow_rules) + len(block_rules):,}\n")
         f.write(f"! Allow Rules: {len(allow_rules):,}\n")
         f.write(f"! Block Rules: {len(block_rules):,}\n")
-        f.write(f"! Format: Single merged file (fast write mode)\n")
+        f.write(f"! Format: Single merged file (batch write mode)\n")
         f.write("!\n")
 
         # Source info
@@ -686,15 +686,19 @@ def save_filters(source_data, allow_rules, block_rules, output_dir="merged_filte
             f.write(comment + "\n")
         f.write("!\n")
 
-        # Allow rules first (for priority)
+        # Allow rules first (for priority) - write in batches
         f.write("! === Allow Rules (Exceptions) ===\n")
-        f.write("\n".join(allow_rules))
-        f.write("\n\n")
-
-        # Block rules
-        f.write("! === Block Rules ===\n")
-        f.write("\n".join(block_rules))
+        BATCH_SIZE = 10000
+        for i in range(0, len(allow_rules), BATCH_SIZE):
+            batch = allow_rules[i:i+BATCH_SIZE]
+            f.write("\n".join(batch) + "\n")
         f.write("\n")
+
+        # Block rules - write in batches
+        f.write("! === Block Rules ===\n")
+        for i in range(0, len(block_rules), BATCH_SIZE):
+            batch = block_rules[i:i+BATCH_SIZE]
+            f.write("\n".join(batch) + "\n")
 
     print(f"✅ تم الحفظ: {main_file}")
     print(f"   📊 إجمالي القواعد: {len(allow_rules) + len(block_rules):,}")
