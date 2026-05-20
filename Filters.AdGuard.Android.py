@@ -3,11 +3,14 @@
 """
 Filters.AdGuard.Android - Universal Filter Merger v16
 =======================================================
-- Domain-level deduplication (keeps subdomains, removes exact duplicates)
-- Wildcard normalization (*.domain → domain)
-- Better plain domain / inline comment support
-- Improved download with anti-bot headers
-- HTML redirect extraction
+- Fixed path issues for GitHub Actions
+- Better plain domain list support (with inline comments)
+- Support :: domain (IPv6 shorthand hosts)
+- HTML response handling (auto-convert GitHub/raw URLs)
+- Allow priority over block (@@ wins over ||)
+- Strip *. from exceptions for cleaner rules
+- Improved detection for small/single-format files
+- Debug logging per URL
 """
 
 import requests
@@ -18,13 +21,13 @@ import re
 import json
 import gzip
 import random
-from urllib.parse import urlparse, urljoin
+from urllib.parse import urlparse
 import urllib3
 from datetime import datetime
 
 # ─── Configuration ──────────────────────────────────────────────────────────
 MAX_LINE_LENGTH = 8192
-REQUEST_TIMEOUT = 30
+REQUEST_TIMEOUT = 25
 MAX_TOTAL_TIME = 1800
 REQUEST_DELAY = 0.3
 MAX_RETRIES = 3
@@ -69,11 +72,6 @@ def create_session():
         'Accept-Language': 'en-US,en;q=0.9',
         'Accept-Encoding': 'gzip, deflate',
         'Connection': 'keep-alive',
-        'Upgrade-Insecure-Requests': '1',
-        'Sec-Fetch-Dest': 'document',
-        'Sec-Fetch-Mode': 'navigate',
-        'Sec-Fetch-Site': 'none',
-        'Cache-Control': 'max-age=0',
     })
     return session
 
@@ -99,9 +97,11 @@ def is_valid_domain(domain):
     domain_clean = domain.replace("*.", "").replace("(^|\.)", "").replace("$", "").replace("*", "")
     if domain_clean.startswith('.'):
         domain_clean = domain_clean[1:]
+    # Support international domain names (punycode and unicode)
     pattern = r'^[a-z0-9\u00a1-\uffff]([a-z0-9\u00a1-\uffff-]{0,61}[a-z0-9\u00a1-\uffff])?(\.[a-z0-9\u00a1-\uffff]([a-z0-9\u00a1-\uffff-]{0,61}[a-z0-9\u00a1-\uffff])?)*\.[a-zA-Z\u00a1-\uffff]{2,}$'
     if re.match(pattern, domain_clean):
         return True
+    # Support pure punycode (xn--)
     if re.match(r'^xn--[a-z0-9-]+(\.[a-z0-9-]+)*\.[a-z]{2,}$', domain_clean):
         return True
     return False
@@ -113,6 +113,17 @@ def is_valid_ip(ip):
             return True
     return False
 
+def extract_domain_from_rule(rule):
+    """Extract clean domain from an AdGuard rule for deduplication comparison"""
+    clean = rule.lstrip("@").lstrip("|").rstrip("^")
+    if '$' in clean:
+        clean = clean.split('$')[0]
+    if '/' in clean:
+        clean = clean.split('/')[0]
+    # Remove wildcard prefix for comparison
+    clean = clean.lstrip("*.")
+    return clean
+
 def strip_inline_comment(line):
     """Remove inline comments (# or //) and return clean line"""
     if '#' in line:
@@ -120,31 +131,6 @@ def strip_inline_comment(line):
     if '//' in line:
         line = line.split('//')[0]
     return line.strip()
-
-def extract_domain_from_rule(rule):
-    """Extract clean domain from a rule for deduplication"""
-    clean = rule.lstrip("@").lstrip("|").rstrip("^")
-    if '$' in clean:
-        clean = clean.split('$')[0]
-    if '/' in clean:
-        clean = clean.split('/')[0]
-    # Remove leading wildcard
-    if clean.startswith('*.'):
-        clean = clean[2:]
-    return clean
-
-def normalize_rule(rule):
-    """Normalize rule: remove wildcard prefix from domain part"""
-    # If rule has ||*.domain^, convert to ||domain^
-    match = re.match(r'^(@@)?(\|\|)?(\*\.)?(.+)\^?(\$.*)?$', rule)
-    if match:
-        exc = match.group(1) or ""
-        prefix = match.group(2) or "||"
-        star = ""  # Remove wildcard
-        domain = match.group(4)
-        mod = match.group(5) or ""
-        return f"{exc}{prefix}{domain}^{mod}"
-    return rule
 
 def extract_domain_from_css(line):
     css_match = re.match(r'^([a-z0-9\u00a1-\uffff._*-]+)(?:##|#@#|#\?#|#\$#|#%#)', line)
@@ -162,6 +148,21 @@ def extract_domain_from_url(line):
             return domain
     return None
 
+def normalize_exception_rule(rule):
+    """Clean up exception rules: remove wildcards and leading dots from domain"""
+    if not rule.startswith("@@"):
+        return rule
+    # Extract domain part between @@|| and ^
+    match = re.match(r'^@@\|\|(.+)\^$', rule)
+    if not match:
+        return rule
+    domain = match.group(1)
+    # Remove all leading wildcards and dots
+    domain = domain.lstrip('*').lstrip('.')
+    # Remove any remaining * characters in the domain (for exceptions, we want clean domains)
+    domain = domain.replace('*', '')
+    return f"@@||{domain}^"
+
 def convert_to_adguard(line):
     original_line = line
     line = line.strip()
@@ -176,7 +177,7 @@ def convert_to_adguard(line):
     if not line:
         return None
 
-    # Strip inline comments FIRST
+    # ─── Strip inline comments first ──────────────────────────────────────────
     line_clean = strip_inline_comment(line)
     if not line_clean:
         return None
@@ -192,7 +193,8 @@ def convert_to_adguard(line):
         exc = ag_standard.group(1) or ""
         domain = normalize_domain(ag_standard.group(2))
         if is_valid_domain(domain):
-            return f"{exc}||{domain}^"
+            result = f"{exc}||{domain}^"
+            return normalize_exception_rule(result)
         return None
 
     # ─── Surge / Shadowrocket formats ───────────────────────────────────────
@@ -254,7 +256,7 @@ def convert_to_adguard(line):
     if re.match(r'^(USER-AGENT|URL-REGEX|AND|OR|NOT|IP-CIDR|IP-CIDR6|GEOIP|DEST-PORT|SRC-IP|IN-PORT|PROCESS-NAME|SUBNET),', line, re.IGNORECASE):
         return None
 
-    # ─── CSV format ───────────────────────────────────────────────────────
+    # ─── CSV format (domain,date,...) ───────────────────────────────────────
     csv_match = re.match(r'^([a-z0-9\u00a1-\uffff._-]+),\d{4}-\d{2}-\d{2},', line)
     if csv_match:
         domain = normalize_domain(csv_match.group(1))
@@ -262,7 +264,7 @@ def convert_to_adguard(line):
             return f"||{domain}^"
         return None
 
-    # ─── BIND zone format ─────────────────────────────────────────────────
+    # ─── BIND zone format ───────────────────────────────────────────────────
     bind_match = re.match(r'^zone\s+"([a-z0-9\u00a1-\uffff._-]+)"\s+\{', line)
     if bind_match:
         domain = normalize_domain(bind_match.group(1))
@@ -270,7 +272,7 @@ def convert_to_adguard(line):
             return f"||{domain}^"
         return None
 
-    # ─── dnsmasq format ───────────────────────────────────────────────────
+    # ─── dnsmasq format ──────────────────────────────────────────────────────
     dnsmasq_match = re.match(r'^server=/([a-z0-9\u00a1-\uffff._-]+)/', line)
     if dnsmasq_match:
         domain = normalize_domain(dnsmasq_match.group(1))
@@ -278,7 +280,7 @@ def convert_to_adguard(line):
             return f"||{domain}^"
         return None
 
-    # ─── RPZ format ───────────────────────────────────────────────────────
+    # ─── RPZ format ─────────────────────────────────────────────────────────
     rpz_match = re.match(r'^(\*\.)?([a-z0-9\u00a1-\uffff._-]+)\s+CNAME\s+\.$', line, re.IGNORECASE)
     if rpz_match:
         star = rpz_match.group(1) or ""
@@ -287,7 +289,7 @@ def convert_to_adguard(line):
             return f"||{star}{domain}^"
         return None
 
-    # ─── Hosts with comment ───────────────────────────────────────────────
+    # ─── Hosts with comment ─────────────────────────────────────────────────
     host_comment = re.match(r'^([a-z0-9\u00a1-\uffff._-]+)\s+#', line)
     if host_comment:
         domain = normalize_domain(host_comment.group(1))
@@ -295,14 +297,14 @@ def convert_to_adguard(line):
             return f"||{domain}^"
         return None
 
-    # ─── URL format ───────────────────────────────────────────────────────
+    # ─── URL format ──────────────────────────────────────────────────────────
     url_domain = extract_domain_from_url(line)
     if url_domain:
         return f"||{url_domain}^"
 
-    # ─── Standard Hosts format: IP domain.com ────────────────────────────
-    # Supports: 0.0.0.0, 127.0.0.1, ::1, ::, 255.255.255.255
-    dns_match = re.match(r'^(?:0\.0\.0\.0|127\.0\.0\.1|::1|::|255\.255\.255\.255)\s+([^\s#]+)', line, re.IGNORECASE)
+    # ─── Standard Hosts format: ANY_IP domain.com ─────────────────────────
+    # Support any IP format: 0.0.0.0, 127.0.0.1, ::, ::1, 255.255.255.255, or any IP
+    dns_match = re.match(r'^(?:[0-9a-fA-F:.]+)\s+([^\s#]+)', line)
     if dns_match:
         domain = normalize_domain(dns_match.group(1))
         if domain in ('localhost', 'localhost.localdomain', 'broadcasthost', 'local'):
@@ -313,32 +315,32 @@ def convert_to_adguard(line):
             return f"||{domain}^"
         return None
 
-    # ─── Exception hosts ──────────────────────────────────────────────────
-    exc_dns = re.match(r'^@@(?:0\.0\.0\.0|127\.0\.0\.1|::1|::)\s+([^\s#]+)', line, re.IGNORECASE)
+    # ─── Exception hosts: @@127.0.0.1 domain.com ────────────────────────────
+    exc_dns = re.match(r'^@@(?:[0-9a-fA-F:.]+)\s+([^\s#]+)', line, re.IGNORECASE)
     if exc_dns:
         domain = normalize_domain(exc_dns.group(1))
         if is_valid_domain(domain):
             return f"@@||{domain}^"
         return None
 
-    # ─── Plain wildcard domain: *.example.com ─────────────────────────────
+    # ─── Plain wildcard domain: *.example.com ───────────────────────────────
     if line_clean.startswith("*.") and not line_clean.startswith("*." + " "):
         domain = line_clean[2:]
         if is_valid_domain(domain):
             return f"||*.{normalize_domain(domain)}^"
         return None
 
-    # ─── Plain domain (with inline comments stripped) ──────────────────────
+    # ─── Plain domain (possibly with inline comment already stripped) ────────
     if re.match(r'^([a-z0-9\u00a1-\uffff_-]+\.)+[a-zA-Z\u00a1-\uffff]{2,}$', line_clean):
         if is_valid_domain(line_clean):
             return f"||{normalize_domain(line_clean)}^"
         return None
 
-    # ─── Plain IP ─────────────────────────────────────────────────────────
+    # ─── Plain IP ──────────────────────────────────────────────────────────
     if is_valid_ip(line_clean):
         return f"||{line_clean}^"
 
-    # ─── IP with port ───────────────────────────────────────────────────────
+    # ─── IP with port ──────────────────────────────────────────────────────
     ip_port_match = re.match(r'^(?:https?://)?(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?::\d+)?', line)
     if ip_port_match:
         ip = ip_port_match.group(1)
@@ -346,22 +348,26 @@ def convert_to_adguard(line):
             return f"||{ip}^"
         return None
 
-    # ─── Catch remaining AdGuard-like formats ─────────────────────────────
+    # ─── Catch remaining AdGuard-like formats ──────────────────────────────
     ag_plain = re.match(r'^(@@)?(\|\|)?(\*\.)?([a-z0-9\u00a1-\uffff._-]+)$', line, re.IGNORECASE)
     if ag_plain:
         exc = ag_plain.group(1) or ""
         prefix = ag_plain.group(2) or "||"
+        star = ag_plain.group(3) or ""
         domain = normalize_domain(ag_plain.group(4))
         if is_valid_domain(domain):
-            return f"{exc}{prefix}{domain}^"
+            result = f"{exc}{prefix}{star}{domain}^"
+            return normalize_exception_rule(result)
         return None
 
     exc_plain = re.match(r'^@@(\|\|)?(\*\.)?([a-z0-9\u00a1-\uffff._-]+)\^?$', line)
     if exc_plain:
         prefix = exc_plain.group(1) or "||"
+        star = exc_plain.group(2) or ""
         domain = normalize_domain(exc_plain.group(3))
         if is_valid_domain(domain):
-            return f"@@{prefix}{domain}^"
+            result = f"@@{prefix}{star}{domain}^"
+            return normalize_exception_rule(result)
         return None
 
     star_match = re.match(r'^(@@)?(\|\|)?\*\.([a-z0-9\u00a1-\uffff._-]+)\^?$', line, re.IGNORECASE)
@@ -370,7 +376,8 @@ def convert_to_adguard(line):
         prefix = star_match.group(2) or "||"
         domain = normalize_domain(star_match.group(3))
         if is_valid_domain(domain):
-            return f"{exc}{prefix}{domain}^"
+            result = f"{exc}{prefix}*.{domain}^"
+            return normalize_exception_rule(result)
         return None
 
     return None
@@ -385,6 +392,17 @@ def looks_like_filter(text, url=""):
     if not non_empty:
         return False, "No non-empty lines"
 
+    # Check if it's HTML
+    if any(tag in text[:500].lower() for tag in ['<!doctype html', '<html', '<head', '<body']):
+        # If it's HTML but contains pre/code tags with filter content, it might be a display page
+        if '<pre' in text.lower() or '<code' in text.lower():
+            # Try to extract content from pre tags
+            return True, "HTML page with code block (will attempt extraction)"
+        # Check if it's a GitHub page that needs raw conversion
+        if 'github.com' in url.lower() and '/blob/' in url.lower():
+            return False, "GitHub HTML page (use raw URL)"
+        return False, "HTML response (not a filter file)"
+
     sample = non_empty[:200]
 
     rule_indicators = ["||", "@@", "0.0.0.0", "127.0.0.1", "[Adblock", "! Title", "! Version", 
@@ -397,25 +415,24 @@ def looks_like_filter(text, url=""):
                        "! Last modified:", "$TTL", "@ IN SOA", "!#", "!+"]
     meta_count = sum(1 for line in sample if any(ind in line for ind in meta_indicators))
 
-    # Plain domain detection (with comments stripped)
+    # Plain domain detection: lines that look like domains (with or without comments)
     domain_count = 0
     for line in sample:
         clean = strip_inline_comment(line)
         if re.match(r'^([a-z0-9_-]+\.)+[a-z]{2,}$', clean):
             domain_count += 1
 
-    # Hosts format detection
-    hosts_count = sum(1 for line in sample if re.match(r'^(0\.0\.0\.0|127\.0\.0\.1|::1|::)\s+\S+', line.strip()))
+    # Hosts format detection (any IP + domain)
+    hosts_count = sum(1 for line in sample if re.match(r'^[0-9a-fA-F:.]+\s+\S+', line.strip()))
 
     # URL count
     url_count = sum(1 for line in sample if line.strip().startswith(("http://", "https://")))
 
-    # Known filter source domains
+    # If it's a known filter source domain, be more lenient
     known_filter_domains = ['filters.adtidy.org', 'easylist', 'adguard', 'github.com/AdguardTeam',
                            'someonewhocares', 'winhelp2002.mvps.org', 'pgl.yoyo.org', 
                            'malwaredomainlist', 'disconnect.me', 'hosts-file.net',
-                           'blocklist', 'hosts', 'filter', 'domains', 'phishing.army',
-                           'abp', 'ublock', 'oisd', 'hblock', '1hosts', 'blocklistproject']
+                           'blocklist', 'hosts', 'filter', 'domains', 'phishing', 'malware']
     is_known_source = any(k in url.lower() for k in known_filter_domains)
 
     # Decision logic
@@ -423,37 +440,19 @@ def looks_like_filter(text, url=""):
         return True, "Has filter metadata"
     if rule_count >= 2:
         return True, f"Has {rule_count} rule indicators"
-    if hosts_count >= 1:
+    if hosts_count >= 2:
         return True, f"Has {hosts_count} hosts entries"
-    if domain_count >= 1:
+    if domain_count >= 3:
         return True, f"Has {domain_count} plain domains"
     if url_count >= 3:
         return True, f"Has {url_count} URLs"
-    if is_known_source and len(non_empty) > 3:
+    if is_known_source and len(non_empty) > 5:
         return True, "Known filter source with content"
-    if len(text) > 5000 and (domain_count > 0 or hosts_count > 0):
+    if len(text) > 10000 and (domain_count > 0 or hosts_count > 0):
         return True, "Large file with domain-like content"
 
     preview = ' | '.join(non_empty[:5])
     return False, f"Indicators: rules={rule_count}, hosts={hosts_count}, domains={domain_count}, meta={meta_count}. Preview: {preview[:80]}"
-
-def try_extract_raw_from_html(text, original_url):
-    """Try to find a raw/download link in HTML page"""
-    # Look for raw text file links
-    raw_patterns = [
-        r'href="([^"]+\.txt)"',
-        r'href="([^"]+/download[^"]*)"',
-        r'href="([^"]+/raw[^"]*)"',
-        r'content="([^"]+\.txt)"',
-    ]
-    for pattern in raw_patterns:
-        match = re.search(pattern, text, re.IGNORECASE)
-        if match:
-            found = match.group(1)
-            if not found.startswith('http'):
-                found = urljoin(original_url, found)
-            return found
-    return None
 
 def download_filter(url, session, attempt=0):
     parsed = urlparse(url)
@@ -461,19 +460,16 @@ def download_filter(url, session, attempt=0):
 
     strategies = [{"url": url, "headers": {}}]
 
-    # GitHub blob → raw
     if "github.com" in domain and "/blob/" in url:
         raw_url = url.replace("github.com", "raw.githubusercontent.com").replace("/blob/", "/")
         strategies.insert(0, {"url": raw_url, "headers": {}})
 
-    # GitLab blob → raw
     if "gitlab.com" in domain and "/blob/" in url and "/raw/" not in url:
         parts = url.split("/blob/")
         if len(parts) == 2:
             raw_url = f"{parts[0]}/raw/{parts[1]}"
             strategies.insert(0, {"url": raw_url, "headers": {}})
 
-    # HTTP fallback
     if url.startswith("https://"):
         strategies.append({"url": url.replace("https://", "http://", 1), "headers": {}})
 
@@ -488,7 +484,7 @@ def download_filter(url, session, attempt=0):
             response = session.get(
                 strategy["url"],
                 headers=headers,
-                timeout=(10, REQUEST_TIMEOUT),
+                timeout=(8, REQUEST_TIMEOUT),
                 verify=False,
                 allow_redirects=True
             )
@@ -518,16 +514,6 @@ def download_filter(url, session, attempt=0):
             else:
                 text = content.decode('utf-8', errors='replace')
 
-            # If we got HTML instead of text, try to extract raw link
-            if text.strip().startswith('<!DOCTYPE html>') or text.strip().startswith('<html'):
-                raw_link = try_extract_raw_from_html(text, strategy["url"])
-                if raw_link and raw_link != strategy["url"]:
-                    print(f"   🔍 HTML detected, trying raw link: {raw_link[:80]}")
-                    return download_filter(raw_link, session, attempt)
-                # If it's HTML and no raw link found, check if it contains filter data in body
-                if not looks_like_filter(text, url)[0]:
-                    return None
-
             return text
 
         except requests.exceptions.Timeout:
@@ -547,13 +533,9 @@ def download_filter(url, session, attempt=0):
 
 def process_all_filters(urls):
     session = create_session()
-
-    # Domain-level deduplication: domain_clean → rule
-    # Keeps subdomains (anlyz.google.com ≠ ads.google.com)
-    # Removes exact duplicates (||google.com^ and ||*.google.com^ → one)
-    block_domains = {}   # domain_clean → rule
-    allow_domains = {}   # domain_clean → rule
-
+    block_rules = set()
+    allow_rules = set()
+    allow_domains = set()  # Track allow domains for priority
     failed_urls = []
     failed_reasons = {}
 
@@ -618,29 +600,30 @@ def process_all_filters(urls):
                 print(f"   ↳ Preview: {preview[:60]}")
                 continue
 
-            new_block = 0
-            new_allow = 0
-            dup_block = 0
-            dup_allow = 0
+            new_block = []
+            new_allow = []
 
             for rule in rules:
-                # Normalize: remove *. prefix for dedup
-                domain_key = extract_domain_from_rule(rule)
+                # Normalize exception rules
+                rule = normalize_exception_rule(rule)
 
                 if rule.startswith("@@"):
-                    if domain_key not in allow_domains:
-                        allow_domains[domain_key] = rule
-                        new_allow += 1
-                    else:
-                        dup_allow += 1
+                    if rule not in allow_rules:
+                        allow_rules.add(rule)
+                        new_allow.append(rule)
+                        # Track the domain for priority checking
+                        allow_domains.add(extract_domain_from_rule(rule))
                 else:
-                    if domain_key not in block_domains:
-                        block_domains[domain_key] = rule
-                        new_block += 1
-                    else:
-                        dup_block += 1
+                    # Check if this domain is already allowed (allow priority)
+                    rule_domain = extract_domain_from_rule(rule)
+                    if rule_domain in allow_domains:
+                        # Skip this block rule - the domain is already allowed
+                        continue
+                    if rule not in block_rules:
+                        block_rules.add(rule)
+                        new_block.append(rule)
 
-            print(f"✅ [{i:3d}/{len(urls)}] {domain:40s} | +{new_block:6d} block | +{new_allow:4d} allow | ({lines_converted}/{lines_processed} lines) | dup:{dup_block+dup_allow}")
+            print(f"✅ [{i:3d}/{len(urls)}] {domain:40s} | +{len(new_block):6d} block | +{len(new_allow):4d} allow | ({lines_converted}/{lines_processed} lines)")
 
         except Exception as e:
             failed_urls.append(url)
@@ -649,16 +632,16 @@ def process_all_filters(urls):
             print(f"   ↳ {url[:80]}...")
 
     # Sort: exceptions first, then blocks
-    sorted_rules = sorted(allow_domains.values(), key=lambda x: extract_domain_from_rule(x))
-    sorted_rules.extend(sorted(block_domains.values(), key=lambda x: extract_domain_from_rule(x)))
+    sorted_rules = sorted(allow_rules, key=lambda x: extract_domain_from_rule(x))
+    sorted_rules.extend(sorted(block_rules, key=lambda x: extract_domain_from_rule(x)))
 
     print("=" * 70)
     print(f"📊 النتائج:")
     print(f"   ✅ ناجح: {len(urls) - len(failed_urls)}/{len(urls)}")
     print(f"   ❌ فاشل: {len(failed_urls)}/{len(urls)}")
-    print(f"   🚫 قواعد حظر فريدة: {len(block_domains):,}")
-    print(f"   ✅ قواعد استثناء فريدة: {len(allow_domains):,}")
-    print(f"   📊 إجمالي قواعد فريدة: {len(sorted_rules):,}")
+    print(f"   🚫 قواعد حظر: {len(block_rules):,}")
+    print(f"   ✅ قواعد استثناء: {len(allow_rules):,}")
+    print(f"   🛡️  دومينات مستثناة (أولوية): {len(allow_domains):,}")
 
     if failed_urls:
         print(f"\n🔗 الروابط الفاشلة ({len(failed_urls)}):")
@@ -690,7 +673,7 @@ def save_filters(rules, output_dir="merged_filters", total_urls=0, failed_count=
         f.write("\n".join(rules))
 
     print(f"\n✅ تم الحفظ: {main_file}")
-    print(f"   📊 إجمالي القواعد الفريدة: {len(rules):,}")
+    print(f"   📊 إجمالي القواعد: {len(rules):,}")
 
     stats = {
         "generated_at": now,
@@ -709,8 +692,7 @@ def save_filters(rules, output_dir="merged_filters", total_urls=0, failed_count=
 def main():
     print("=" * 70)
     print("   Filters.AdGuard.Android v16 - Sequential Mode")
-    print("   يدعم: Surge | Quantumult X | BIND | CSV | dnsmasq | DNS RPZ | Hosts | URLs | CSS | AdGuard | Plain Domains | Inline Comments")
-    print("   مميزات: dedup على مستوى الدومين | إزالة wildcard تكرار | دعم HTML redirect")
+    print("   يدعم: Surge | Quantumult X | BIND | CSV | dnsmasq | DNS RPZ | Hosts | URLs | CSS | AdGuard | Plain Domains | Inline Comments | Allow Priority")
     print("=" * 70)
 
     urls = load_filter_urls("list.txt")
@@ -732,7 +714,7 @@ def main():
 
     elapsed = time.time() - start
     print(f"\n⏱️  الوقت: {elapsed:.1f} ثانية ({elapsed//60:.0f}m {elapsed%60:.0f}s)")
-    print(f"📊 الإجمالي: {len(rules):,} قاعدة فريدة")
+    print(f"📊 الإجمالي: {len(rules):,} قاعدة")
     print("✅ تم بنجاح!")
 
 if __name__ == "__main__":
