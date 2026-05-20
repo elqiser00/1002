@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Filters.AdGuard.Android - Universal Filter Merger v22
+Filters.AdGuard.Android - Universal Filter Merger v24
 =======================================================
-- NO sorting (fast deduplication with sets)
-- NO per-source headers (domains only)
-- Single clean output file
-- Fast batch writes
+- AdGuard official format (NO [Adblock Plus 2.0])
+- Simple ! Title / ! Version / ! Description header
+- Domains only, no extra section headers
+- Compatible with @adguard/hostlist-compiler style
 """
 
 import requests
@@ -136,7 +136,6 @@ def extract_domain_from_url(line):
     return None
 
 def clean_rule(rule):
-    """Remove ALL leading wildcards and dots from any rule domain."""
     if not rule:
         return rule
     is_exc = rule.startswith("@@")
@@ -566,7 +565,6 @@ def process_all_filters(urls):
     total_block = set()
     total_allow = set()
 
-    # Build fast lookup set for allow domains
     allow_domain_set = set()
     for source in source_data:
         if not source['success']:
@@ -575,7 +573,6 @@ def process_all_filters(urls):
             total_allow.add(rule)
             allow_domain_set.add(extract_domain_from_rule(rule))
 
-    # Filter block rules
     for source in source_data:
         if not source['success']:
             continue
@@ -587,7 +584,6 @@ def process_all_filters(urls):
     print(f"   ✅ قواعد استثناء نهائية: {len(total_allow):,}")
     print(f"   🚫 قواعد حظر نهائية: {len(total_block):,}")
 
-    # NO SORTING - just convert sets to lists (fast)
     list_allow = list(total_allow)
     list_block = list(total_block)
 
@@ -610,8 +606,9 @@ def save_filters(source_data, allow_rules, block_rules, output_dir="merged_filte
     os.makedirs(output_dir, exist_ok=True)
 
     now = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
+    version = now.replace(' ', '-').replace(':', '-')
 
-    # Build source info for header only
+    # Build source list for header
     source_names = []
     for source in source_data:
         if source['success']:
@@ -622,29 +619,33 @@ def save_filters(source_data, allow_rules, block_rules, output_dir="merged_filte
     print(f"\n💾 كتابة الملف الرئيسي ({len(allow_rules) + len(block_rules):,} قاعدة)...")
 
     with open(main_file, 'w', encoding='utf-8') as f:
-        # Single header only
+        # AdGuard official format (NO [Adblock Plus 2.0])
+        f.write("!\n")
         f.write(f"! Title: Merged Filters for AdGuard Android\n")
-        f.write(f"! Version: {now.replace(' ', '-').replace(':', '-')}\n")
-        f.write(f"! Last Modified: {now}\n")
-        f.write(f"! Sources: {total_urls - failed_count} ناجح | {failed_count} فاشل\n")
-        f.write(f"! Total Rules: {len(allow_rules) + len(block_rules):,}\n")
-        f.write(f"! Allow: {len(allow_rules):,} | Block: {len(block_rules):,}\n")
+        f.write(f"! Description: Auto-merged filters for AdGuard Android\n")
+        f.write(f"! Version: {version}\n")
+        f.write(f"! Homepage: https://github.com/elqiser00/1002\n")
+        f.write(f"! Last modified: {now}\n")
+        f.write(f"! Expires: 6 hours\n")
+        f.write("!\n")
+        f.write("! Compiled by Filters.AdGuard.Android v24\n")
         f.write("!\n")
 
-        # Write allow rules (NO sorting, NO extra headers)
+        # Write allow rules first (exceptions have priority)
         if allow_rules:
-            f.write("\n".join(allow_rules))
-            f.write("\n")
+            for rule in allow_rules:
+                f.write(rule + "\n")
 
-        # Write block rules (NO sorting, NO extra headers)
+        # Write block rules
         if block_rules:
             if allow_rules:
                 f.write("\n")
-            f.write("\n".join(block_rules))
-            f.write("\n")
+            for rule in block_rules:
+                f.write(rule + "\n")
 
     print(f"✅ تم الحفظ: {main_file}")
     print(f"   📊 إجمالي القواعد: {len(allow_rules) + len(block_rules):,}")
+    print(f"   📁 حجم الملف: {os.path.getsize(main_file) / (1024*1024):.1f} MB")
 
     stats = {
         "generated_at": now,
@@ -662,8 +663,8 @@ def save_filters(source_data, allow_rules, block_rules, output_dir="merged_filte
 
 def main():
     print("=" * 70)
-    print("   Filters.AdGuard.Android v22 - Fast Mode")
-    print("   NO sorting | NO per-source headers | Clean output")
+    print("   Filters.AdGuard.Android v24 - AdGuard Official Format")
+    print("   NO [Adblock Plus 2.0] | Simple ! headers | AG compatible")
     print("=" * 70)
 
     urls = load_filter_urls("list.txt")
