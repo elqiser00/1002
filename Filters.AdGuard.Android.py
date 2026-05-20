@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Filters.AdGuard.Android - Universal Filter Merger v24
+Filters.AdGuard.Android - Universal Filter Merger v25
 =======================================================
-- AdGuard official format (NO [Adblock Plus 2.0])
-- Simple ! Title / ! Version / ! Description header
-- Domains only, no extra section headers
-- Compatible with @adguard/hostlist-compiler style
+- Exact AdGuard official format (like Peter Lowe's Blocklist)
+- NO stats.json
+- Simple header + domains only
+- 100% compatible with AdGuard Android
 """
 
 import requests
@@ -14,7 +14,6 @@ import os
 import sys
 import time
 import re
-import json
 import gzip
 import random
 from urllib.parse import urlparse
@@ -608,27 +607,20 @@ def save_filters(source_data, allow_rules, block_rules, output_dir="merged_filte
     now = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
     version = now.replace(' ', '-').replace(':', '-')
 
-    # Build source list for header
-    source_names = []
-    for source in source_data:
-        if source['success']:
-            source_names.append(source['name'][:40])
-
     main_file = os.path.join(output_dir, "adguard_android_filter.txt")
 
     print(f"\n💾 كتابة الملف الرئيسي ({len(allow_rules) + len(block_rules):,} قاعدة)...")
 
     with open(main_file, 'w', encoding='utf-8') as f:
-        # AdGuard official format (NO [Adblock Plus 2.0])
+        # Exact AdGuard official format (like Peter Lowe's Blocklist)
         f.write("!\n")
-        f.write(f"! Title: Merged Filters for AdGuard Android\n")
-        f.write(f"! Description: Auto-merged filters for AdGuard Android\n")
+        f.write("! Title: Merged Filters for AdGuard Android\n")
+        f.write("! Description: Auto-merged blocklist for AdGuard Android\n")
         f.write(f"! Version: {version}\n")
-        f.write(f"! Homepage: https://github.com/elqiser00/1002\n")
+        f.write("! Homepage: https://github.com/elqiser00/1002\n")
         f.write(f"! Last modified: {now}\n")
-        f.write(f"! Expires: 6 hours\n")
         f.write("!\n")
-        f.write("! Compiled by Filters.AdGuard.Android v24\n")
+        f.write("! Compiled by Filters.AdGuard.Android v25\n")
         f.write("!\n")
 
         # Write allow rules first (exceptions have priority)
@@ -647,24 +639,12 @@ def save_filters(source_data, allow_rules, block_rules, output_dir="merged_filte
     print(f"   📊 إجمالي القواعد: {len(allow_rules) + len(block_rules):,}")
     print(f"   📁 حجم الملف: {os.path.getsize(main_file) / (1024*1024):.1f} MB")
 
-    stats = {
-        "generated_at": now,
-        "total_rules": len(allow_rules) + len(block_rules),
-        "allow_rules": len(allow_rules),
-        "block_rules": len(block_rules),
-        "total_sources": total_urls,
-        "successful_sources": total_urls - failed_count,
-        "failed_sources": failed_count
-    }
-    with open(os.path.join(output_dir, "stats.json"), 'w', encoding='utf-8') as f:
-        json.dump(stats, f, indent=2, ensure_ascii=False)
-
     return main_file
 
 def main():
     print("=" * 70)
-    print("   Filters.AdGuard.Android v24 - AdGuard Official Format")
-    print("   NO [Adblock Plus 2.0] | Simple ! headers | AG compatible")
+    print("   Filters.AdGuard.Android v25 - Exact AG Format")
+    print("   NO stats.json | Simple header | 100% AG compatible")
     print("=" * 70)
 
     urls = load_filter_urls("list.txt")
