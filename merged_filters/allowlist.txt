@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.05.20
-! Total rules: 15919
+! Total rules: 15925
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -2572,6 +2572,7 @@
 @@||cash4files.com^
 @@||cash4links.co^
 @@||cashback.ru^
+@@||cashbackmonitor.com^
 @@||cashier.dmm^
 @@||cashyo.co.il^
 @@||casino-mining.com^
@@ -2947,6 +2948,7 @@
 @@||cdnads.com^
 @@||cdnb.4strokemedia.com^
 @@||cdnboligkanalen.azureedge.net^
+@@||cdncmk.com^
 @@||cdncontent.wakanim.tv^
 @@||cdndm5.com^
 @@||cdnformanga.net^
@@ -7911,6 +7913,7 @@
 @@||lecourrier-du-soir.com^
 @@||lecrabeinfo.net^
 @@||lecteurvideo.com^
+@@||lector.nartag.com^
 @@||lecturel.com^
 @@||ledevoir.com^
 @@||leechall.com^
@@ -9840,6 +9843,7 @@
 @@||obiroto.com^
 @@||obituaries.therecord.com^
 @@||obituaries.thestar.com^
+@@||obituaries.toacorn.com^
 @@||objavlenija.respublika.cz^
 @@||objectivequiz.com^
 @@||oboi-pmr.ru^
@@ -9924,6 +9928,7 @@
 @@||olx.ua^
 @@||olympine.com^
 @@||om-apis.sk-pay.co^
+@@||om-ssl.consorsbank.de^
 @@||omahasteaks.com^
 @@||omappapi.com^
 @@||omara.cdn-cnj.si^
@@ -10030,6 +10035,7 @@
 @@||ooyala.com^
 @@||op.gg^
 @@||op.yandex.ru^
+@@||opatil.com^
 @@||opel-omega.ru^
 @@||open.bytedanceapi.com^
 @@||open.fm^
