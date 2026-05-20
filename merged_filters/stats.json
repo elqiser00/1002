@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-05-20 19:58:40 UTC",
-  "total_rules": 4069369,
-  "allow_rules": 7693,
-  "block_rules": 4061676,
-  "total_sources": 503,
-  "successful_sources": 500,
-  "failed_sources": 3
+  "generated_at": "2026-05-20 20:19:55 UTC",
+  "total_rules": 3639154,
+  "allow_rules": 7692,
+  "block_rules": 3631462,
+  "total_sources": 501,
+  "successful_sources": 501,
+  "failed_sources": 0
 }
