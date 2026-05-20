@@ -1,10 +1,17 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Filters.AdGuard.Android - Universal Filter Merger v8
-=====================================================
-- يستخرج الدومينات من CSS rules ويحولها لـ ||domain^
-- يدعم جميع صيغ الفلاتر
+Filters.AdGuard.Android - Universal Filter Merger v10
+======================================================
+- يدعم Surge/Quantumult X (DOMAIN-SUFFIX, DOMAIN-KEYWORD, DOMAIN-WILDCARD)
+- يدعم BIND zone files
+- يدعم CSV format
+- يدعم dnsmasq server=/
+- يدعم Surge host rules
+- يستخرج الدومينات من CSS rules
+- يدعم DNS RPZ
+- يدعم Hosts with comments
+- يدعم Plain URLs
 """
 
 import requests
@@ -86,7 +93,7 @@ def normalize_domain(domain):
 def is_valid_domain(domain):
     if not domain or len(domain) > 253:
         return False
-    domain_clean = domain.replace("*.", "")
+    domain_clean = domain.replace("*.", "").replace("(^|\.)", "").replace("$", "")
     if re.match(r'^[a-z0-9\u00a1-\uffff]([a-z0-9\u00a1-\uffff-]{0,61}[a-z0-9\u00a1-\uffff])?(\.[a-z0-9\u00a1-\uffff]([a-z0-9\u00a1-\uffff-]{0,61}[a-z0-9\u00a1-\uffff])?)*\.[a-zA-Z]{2,}$', domain_clean):
         return True
     return False
@@ -108,15 +115,20 @@ def extract_domain_from_rule(rule):
 
 # ─── Extract Domain from CSS Rule ────────────────────────────────────────────
 def extract_domain_from_css(line):
-    """
-    استخراج الدومين من CSS rule
-    zoomit.ir##div → zoomit.ir
-    www.google.com##span → www.google.com
-    """
-    # نمط: domain##... أو domain#@#...
     css_match = re.match(r'^([a-z0-9\u00a1-\uffff._-]+)(?:##|#@#|#\?#)', line)
     if css_match:
         domain = normalize_domain(css_match.group(1))
+        if is_valid_domain(domain):
+            return domain
+    return None
+
+# ─── Extract Domain from URL ─────────────────────────────────────────────────
+def extract_domain_from_url(line):
+    url_match = re.match(r'^(?:https?://)([^/\s]+)', line)
+    if url_match:
+        domain = normalize_domain(url_match.group(1))
+        if domain.startswith('www.'):
+            domain = domain[4:]
         if is_valid_domain(domain):
             return domain
     return None
@@ -137,7 +149,8 @@ def convert_to_adguard(line):
     if line.startswith("!"):
         return None
 
-    if line.startswith("#"):
+    # ── تجاهل أسطر DNS zone metadata ─────────────────────────────────────
+    if line.startswith(("$TTL", "@ IN SOA", " NS ", " NS\t", ";")):
         return None
 
     # ── تجاهل الأسطر الفارغة ─────────────────────────────────────────────
@@ -146,12 +159,135 @@ def convert_to_adguard(line):
         return None
 
     # ── 0. استخراج دومين من CSS rules ────────────────────────────────────
-    # zoomit.ir##div → ||zoomit.ir^
     css_domain = extract_domain_from_css(line)
     if css_domain:
         return f"||{css_domain}^"
 
-    # ── 1. قواعد AdGuard مع modifiers ────────────────────────────────────
+    # ── 1. Surge/Quantumult X: DOMAIN-SUFFIX ─────────────────────────────
+    # DOMAIN-SUFFIX,example.com,Reject → ||example.com^
+    surge_suffix = re.match(r'^DOMAIN-SUFFIX,([a-z0-9\u00a1-\uffff._-]+)', line, re.IGNORECASE)
+    if surge_suffix:
+        domain = normalize_domain(surge_suffix.group(1))
+        if is_valid_domain(domain):
+            return f"||{domain}^"
+        return None
+
+    # ── 2. Surge/Quantumult X: DOMAIN-KEYWORD ────────────────────────────
+    # DOMAIN-KEYWORD,adash,reject → ||*adash*
+    surge_keyword = re.match(r'^DOMAIN-KEYWORD,([a-z0-9\u00a1-\uffff._-]+)', line, re.IGNORECASE)
+    if surge_keyword:
+        keyword = surge_keyword.group(1).strip()
+        if keyword:
+            return f"||*{keyword}*"
+        return None
+
+    # ── 3. Surge/Quantumult X: DOMAIN-WILDCARD ───────────────────────────
+    # DOMAIN-WILDCARD,*.domain.com → ||*.domain.com^
+    surge_wildcard = re.match(r'^DOMAIN-WILDCARD,([a-z0-9\u00a1-\uffff._*-]+)', line, re.IGNORECASE)
+    if surge_wildcard:
+        pattern = surge_wildcard.group(1).strip()
+        if pattern.startswith("*."):
+            domain = pattern[2:]
+            if is_valid_domain(domain):
+                return f"||*.{normalize_domain(domain)}^"
+        elif "*." in pattern:
+            parts = pattern.split("*.")
+            if len(parts) == 2 and is_valid_domain(parts[1]):
+                return f"||*.{normalize_domain(parts[1])}^"
+        return None
+
+    # ── 4. Surge/Quantumult X: DOMAIN ────────────────────────────────────
+    # DOMAIN,example.com,proxy → ||example.com^
+    surge_domain = re.match(r'^DOMAIN,([a-z0-9\u00a1-\uffff._-]+)', line, re.IGNORECASE)
+    if surge_domain:
+        domain = normalize_domain(surge_domain.group(1))
+        if is_valid_domain(domain):
+            return f"||{domain}^"
+        return None
+
+    # ── 5. Surge: host rules ─────────────────────────────────────────────
+    # host, domain.com, reject → ||domain.com^
+    surge_host = re.match(r'^host,\s*([a-z0-9\u00a1-\uffff._-]+)', line, re.IGNORECASE)
+    if surge_host:
+        domain = normalize_domain(surge_host.group(1))
+        if is_valid_domain(domain):
+            return f"||{domain}^"
+        return None
+
+    # ── 6. Surge: host-suffix ────────────────────────────────────────────
+    # host-suffix, domain.com, proxy → ||domain.com^
+    surge_host_suffix = re.match(r'^host-suffix,\s*([a-z0-9\u00a1-\uffff._-]+)', line, re.IGNORECASE)
+    if surge_host_suffix:
+        domain = normalize_domain(surge_host_suffix.group(1))
+        if is_valid_domain(domain):
+            return f"||{domain}^"
+        return None
+
+    # ── 7. Surge: host-keyword ───────────────────────────────────────────
+    # host-keyword, adash, reject → ||*adash*
+    surge_host_kw = re.match(r'^host-keyword,\s*([a-z0-9\u00a1-\uffff._-]+)', line, re.IGNORECASE)
+    if surge_host_kw:
+        keyword = surge_host_kw.group(1).strip()
+        if keyword:
+            return f"||*{keyword}*"
+        return None
+
+    # ── 8. Surge: user-agent / URL-REGEX (تجاهل) ──────────────────────────
+    if re.match(r'^(USER-AGENT|URL-REGEX|AND|OR|NOT),', line, re.IGNORECASE):
+        return None
+
+    # ── 9. CSV format: domain,last_seen,ip,... ───────────────────────────
+    # domain.com,2022-04-15,103.224.182.207,... → ||domain.com^
+    csv_match = re.match(r'^([a-z0-9\u00a1-\uffff._-]+),\d{4}-\d{2}-\d{2},', line)
+    if csv_match:
+        domain = normalize_domain(csv_match.group(1))
+        if is_valid_domain(domain):
+            return f"||{domain}^"
+        return None
+
+    # ── 10. BIND zone: zone "domain.com" { ... } ──────────────────────────
+    bind_match = re.match(r'^zone\s+"([a-z0-9\u00a1-\uffff._-]+)"\s+\{', line)
+    if bind_match:
+        domain = normalize_domain(bind_match.group(1))
+        if is_valid_domain(domain):
+            return f"||{domain}^"
+        return None
+
+    # ── 11. dnsmasq: server=/domain.com/ ─────────────────────────────────
+    dnsmasq_match = re.match(r'^server=/([a-z0-9\u00a1-\uffff._-]+)/', line)
+    if dnsmasq_match:
+        domain = normalize_domain(dnsmasq_match.group(1))
+        if is_valid_domain(domain):
+            return f"||{domain}^"
+        return None
+
+    # ── 12. Regex patterns (تجاهل - مش مدعوم في AdGuard Android) ─────────
+    if line.startswith("^"):
+        return None
+
+    # ── 13. DNS RPZ: domain CNAME . ─────────────────────────────────────
+    rpz_match = re.match(r'^(\*\.)?([a-z0-9\u00a1-\uffff._-]+)\s+CNAME\s+\.$', line, re.IGNORECASE)
+    if rpz_match:
+        star = rpz_match.group(1) or ""
+        domain = normalize_domain(rpz_match.group(2))
+        if is_valid_domain(domain):
+            return f"||{star}{domain}^"
+        return None
+
+    # ── 14. Hosts with comments: domain #comment ──────────────────────────
+    host_comment = re.match(r'^([a-z0-9\u00a1-\uffff._-]+)\s+#', line)
+    if host_comment:
+        domain = normalize_domain(host_comment.group(1))
+        if is_valid_domain(domain):
+            return f"||{domain}^"
+        return None
+
+    # ── 15. Plain URLs: http://domain.com/path ───────────────────────────
+    url_domain = extract_domain_from_url(line)
+    if url_domain:
+        return f"||{url_domain}^"
+
+    # ── 16. قواعد AdGuard مع modifiers ────────────────────────────────────
     ag_mod = re.match(r'^(@@)?(\|\|)?(\*\.)?([a-z0-9\u00a1-\uffff._-]+)\^(\$[^\s]*)?$', line, re.IGNORECASE)
     if ag_mod:
         exc = ag_mod.group(1) or ""
@@ -162,7 +298,7 @@ def convert_to_adguard(line):
             return f"{exc}{prefix}{star}{domain}^"
         return None
 
-    # ── 2. قواعد AdGuard بدون ^ ─────────────────────────────────────────
+    # ── 17. قواعد AdGuard بدون ^ ─────────────────────────────────────────
     ag_plain = re.match(r'^(@@)?(\|\|)?(\*\.)?([a-z0-9\u00a1-\uffff._-]+)$', line, re.IGNORECASE)
     if ag_plain:
         exc = ag_plain.group(1) or ""
@@ -173,7 +309,7 @@ def convert_to_adguard(line):
             return f"{exc}{prefix}{star}{domain}^"
         return None
 
-    # ── 3. قواعد DNS / hosts ─────────────────────────────────────────────
+    # ── 18. قواعد DNS / hosts ─────────────────────────────────────────────
     dns_match = re.match(r'^(?:0\.0\.0\.0|127\.0\.0\.1|::1|::|255\.255\.255\.255)\s+(.+)$', line, re.IGNORECASE)
     if dns_match:
         domain = normalize_domain(dns_match.group(1))
@@ -185,7 +321,7 @@ def convert_to_adguard(line):
             return f"||{domain}^"
         return None
 
-    # ── 4. قواعد استثناء DNS ─────────────────────────────────────────────
+    # ── 19. قواعد استثناء DNS ─────────────────────────────────────────────
     exc_dns = re.match(r'^@@(?:0\.0\.0\.0|127\.0\.0\.1|::1|::)\s+(.+)$', line, re.IGNORECASE)
     if exc_dns:
         domain = normalize_domain(exc_dns.group(1))
@@ -193,24 +329,24 @@ def convert_to_adguard(line):
             return f"@@||{domain}^"
         return None
 
-    # ── 5. Wildcard domains ──────────────────────────────────────────────
+    # ── 20. Wildcard domains ──────────────────────────────────────────────
     if line.startswith("*."):
         domain = line[2:]
         if is_valid_domain(domain):
             return f"||*.{normalize_domain(domain)}^"
         return None
 
-    # ── 6. نطاق صريح ─────────────────────────────────────────────────────
+    # ── 21. نطاق صريح ─────────────────────────────────────────────────────
     if re.match(r'^([a-z0-9\u00a1-\uffff_-]+\.)+[a-zA-Z]{2,}$', line):
         if is_valid_domain(line):
             return f"||{normalize_domain(line)}^"
         return None
 
-    # ── 7. IP مباشرة ─────────────────────────────────────────────────────
+    # ── 22. IP مباشرة ────────────────────────────────────────────────────
     if is_valid_ip(line):
         return f"||{line}^"
 
-    # ── 8. IP مع Port ────────────────────────────────────────────────────
+    # ── 23. IP مع Port ────────────────────────────────────────────────────
     ip_port_match = re.match(r'^(?:https?://)?(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?::\d+)?', line)
     if ip_port_match:
         ip = ip_port_match.group(1)
@@ -218,7 +354,7 @@ def convert_to_adguard(line):
             return f"||{ip}^"
         return None
 
-    # ── 9. قواعد EasyList المتقدمة ──────────────────────────────────────
+    # ── 24. قواعد EasyList المتقدمة ──────────────────────────────────────
     easy_match = re.match(r'^(@@)?(\|\|)?(\*\.)?([^\s\$]+)\^(\$[^\s]*)?$', line)
     if easy_match:
         exc = easy_match.group(1) or ""
@@ -229,7 +365,7 @@ def convert_to_adguard(line):
             return f"{exc}{prefix}{star}{domain}^"
         return None
 
-    # ── 10. قواعد مسار (path rules) ──────────────────────────────────────
+    # ── 25. قواعد مسار (path rules) ──────────────────────────────────────
     path_match = re.match(r'^(@@)?(\|\|)?(\*\.)?([^/\s]+)(/[^\s]*)?$', line)
     if path_match:
         exc = path_match.group(1) or ""
@@ -240,7 +376,7 @@ def convert_to_adguard(line):
             return f"{exc}{prefix}{star}{domain}^"
         return None
 
-    # ── 11. قواعد استثناء مسار ───────────────────────────────────────────
+    # ── 26. قواعد استثناء مسار ───────────────────────────────────────────
     exc_plain = re.match(r'^@@(\|\|)?(\*\.)?([^\s\$]+)\^?$', line)
     if exc_plain:
         prefix = exc_plain.group(1) or "||"
@@ -250,7 +386,7 @@ def convert_to_adguard(line):
             return f"@@{prefix}{star}{domain}^"
         return None
 
-    # ── 12. قواعد نطاق مع نجمة ──────────────────────────────────────────
+    # ── 27. قواعد نطاق مع نجمة ──────────────────────────────────────────
     star_match = re.match(r'^(@@)?(\|\|)?\*\.([a-z0-9\u00a1-\uffff._-]+)\^?$', line, re.IGNORECASE)
     if star_match:
         exc = star_match.group(1) or ""
@@ -260,7 +396,7 @@ def convert_to_adguard(line):
             return f"{exc}{prefix}*.{domain}^"
         return None
 
-    # ── 13. قواعد AdGuard مع مسار و modifiers ────────────────────────────
+    # ── 28. قواعد AdGuard مع مسار و modifiers ────────────────────────────
     ag_path_mod = re.match(r'^(@@)?(\|\|)?(\*\.)?([^/\s]+)/[^\s]*\^(\$[^\s]*)?$', line)
     if ag_path_mod:
         exc = ag_path_mod.group(1) or ""
@@ -281,17 +417,20 @@ def looks_like_filter(text):
     lines = text.split("\n")[:100]
 
     # مؤشرات القواعد
-    rule_indicators = ["||", "@@", "0.0.0.0", "127.0.0.1", "[Adblock", "! Title", "! Version", "##", "#@#"]
+    rule_indicators = ["||", "@@", "0.0.0.0", "127.0.0.1", "[Adblock", "! Title", "! Version", "##", "#@#", "CNAME .", "#Tracker", "#Malware", "DOMAIN-SUFFIX", "DOMAIN-KEYWORD", "DOMAIN-WILDCARD", "zone \"", "server=/", "host,"]
     rule_count = sum(1 for line in lines if any(ind in line for ind in rule_indicators))
 
     # مؤشرات الفلتر
-    filter_indicators = ["[Adblock", "! Title:", "! Version:", "! Expires:", "! Homepage:", "! Last modified:"]
+    filter_indicators = ["[Adblock", "! Title:", "! Version:", "! Expires:", "! Homepage:", "! Last modified:", "$TTL", "@ IN SOA"]
     meta_count = sum(1 for line in lines if any(ind in line for ind in filter_indicators))
 
     # دومينات صريحة
     domain_count = sum(1 for line in lines if re.match(r'^([a-z0-9_-]+\.)+[a-z]{2,}$', line.strip()))
 
-    return rule_count >= 2 or meta_count >= 1 or domain_count >= 3 or len(text) > 5000
+    # URLs
+    url_count = sum(1 for line in lines if line.strip().startswith(("http://", "https://")))
+
+    return rule_count >= 2 or meta_count >= 1 or domain_count >= 3 or url_count >= 3 or len(text) > 5000
 
 # ─── Advanced Download ───────────────────────────────────────────────────────
 def download_filter(url, session, attempt=0):
@@ -404,12 +543,11 @@ def process_all_filters(urls):
             return url, [], False, f"Not a filter (preview: {preview[:80]}...)"
 
         rules = []
-        css_domains = set()  # لتجنب تكرار الدومينات من CSS
+        css_domains = set()
 
         for line in text.splitlines():
             converted = convert_to_adguard(line)
             if converted:
-                # لو جاي من CSS rule، نتأكد إن الدومين مش متكرر
                 if line.strip().find('##') > 0 or line.strip().find('#@#') > 0:
                     domain = extract_domain_from_css(line)
                     if domain and domain not in css_domains:
@@ -514,7 +652,8 @@ def save_filters(rules, output_dir="merged_filters", total_urls=0, failed_count=
 # ─── Main ────────────────────────────────────────────────────────────────────
 def main():
     print("=" * 70)
-    print("   Filters.AdGuard.Android v8 - CSS Domain Extractor")
+    print("   Filters.AdGuard.Android v10 - Universal Merger")
+    print("   يدعم: Surge | Quantumult X | BIND | CSV | dnsmasq | DNS RPZ | Hosts | URLs | CSS | AdGuard")
     print("=" * 70)
 
     urls = load_filter_urls("list.txt")
