@@ -2,15 +2,14 @@ name: Auto-update AdGuard Android Filters
 
 on:
   schedule:
-    - cron: '0 */6 * * *'  # كل 6 ساعات
-  workflow_dispatch:       # تشغيل يدوي
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
   push:
     branches: [main, master]
     paths:
       - 'list.txt'
       - 'Filters.AdGuard.Android.py'
 
-# منع تشغيل متوازي
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -28,7 +27,6 @@ jobs:
     timeout-minutes: 30
 
     steps:
-      # ─── 1. Checkout ────────────────────────────────────────────────────
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
@@ -36,30 +34,17 @@ jobs:
           fetch-depth: 1
           persist-credentials: true
 
-      # ─── 2. Setup Python ────────────────────────────────────────────────
-      - name: Setup Python ${{ env.PYTHON_VERSION }}
+      - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
-      # ─── 3. Cache pip ───────────────────────────────────────────────────
-      - name: Cache pip packages
-        uses: actions/cache@v4
-        id: pip-cache
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt', '**/pyproject.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
-
-      # ─── 4. Install dependencies ────────────────────────────────────────
-      - name: Install Python dependencies
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install requests urllib3
 
-      # ─── 5. Verify list.txt exists ──────────────────────────────────────
-      - name: Verify list.txt exists
+      - name: Verify list.txt
         run: |
           if [ ! -f "list.txt" ]; then
             echo "❌ ملف list.txt غير موجود!"
@@ -68,8 +53,7 @@ jobs:
           echo "✅ list.txt موجود"
           echo "📋 عدد الروابط: $(grep -c '^http' list.txt || echo 0)"
 
-      # ─── 6. Run Filter Merger ───────────────────────────────────────────
-      - name: Run Filters.AdGuard.Android
+      - name: Run Filter Merger
         id: merger
         run: |
           echo "🚀 بدء عملية دمج الفلاتر..."
@@ -79,8 +63,7 @@ jobs:
           PYTHONUNBUFFERED: "1"
           PYTHONDONTWRITEBYTECODE: "1"
 
-      # ─── 7. Verify output ───────────────────────────────────────────────
-      - name: Verify output files
+      - name: Verify output
         id: verify
         run: |
           if [ ! -d "${{ env.OUTPUT_DIR }}" ]; then
@@ -104,13 +87,7 @@ jobs:
           echo "file_size=$FILE_SIZE" >> $GITHUB_OUTPUT
           echo "line_count=$LINE_COUNT" >> $GITHUB_OUTPUT
 
-          # عرض أول 5 أسطر
-          echo ""
-          echo "🔍 عينة من القواعد:"
-          head -n 15 "$MAIN_FILE" | grep -v "^!" | head -n 5
-
-      # ─── 8. Read stats ──────────────────────────────────────────────────
-      - name: Read statistics
+      - name: Read stats
         id: stats
         run: |
           STATS_FILE="${{ env.OUTPUT_DIR }}/stats.json"
@@ -127,15 +104,16 @@ jobs:
             echo "allow_rules=unknown" >> $GITHUB_OUTPUT
           fi
 
-      # ─── 9. Commit and push ─────────────────────────────────────────────
-      - name: Commit and push changes
+      - name: Commit and push
         id: commit
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          git add -A
+          # Add only the output directory (faster than git add -A)
+          git add ${{ env.OUTPUT_DIR }}/
 
+          # Check if there are changes
           if git diff --cached --quiet; then
             echo "✅ لا يوجد تغييرات جديدة"
             echo "changed=false" >> $GITHUB_OUTPUT
@@ -147,9 +125,10 @@ jobs:
           ALLOW="${{ steps.stats.outputs.allow_rules }}"
           DATE=$(date -u '+%Y-%m-%d %H:%M UTC')
 
-          git commit -m "🔄 Auto-update: ${TOTAL} rules (${BLOCK} block, ${ALLOW} allow) | ${DATE}"
+          # Commit with --no-verify to skip hooks
+          git commit --no-verify -m "🔄 Auto-update: ${TOTAL} rules (${BLOCK} block, ${ALLOW} allow) | ${DATE}"
 
-          # محاولة الرفع مع retry
+          # Push with retry
           for i in 1 2 3; do
             if git push "https://${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }}.git" "HEAD:${{ github.ref_name }}"; then
               echo "✅ تم الرفع بنجاح!"
@@ -162,7 +141,6 @@ jobs:
             fi
           done
 
-      # ─── 10. Summary ────────────────────────────────────────────────────
       - name: Job Summary
         if: always()
         run: |
