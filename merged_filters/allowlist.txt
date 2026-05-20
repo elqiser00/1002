@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.05.20
-! Total rules: 15925
+! Total rules: 15919
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -1995,7 +1995,6 @@
 @@||bestlistofporn.com^
 @@||bestreamsports.org^
 @@||bestru.ru^
-@@||bestuniversities.eu^
 @@||bet365.com^
 @@||beta.affiliates.adsterra^
 @@||beta.bugly.qq^
@@ -11949,7 +11948,6 @@
 @@||scriptsoup.nx.tc^
 @@||sctrack.sendcloud.net^
 @@||scubidu.eu^
-@@||scuolamaternamaffei.it^
 @@||scw.cloud^
 @@||scyts.com^
 @@||sdamgia.ru^
@@ -13898,9 +13896,6 @@
 @@||top10newgames.com^
 @@||top4top.io^
 @@||topaz.viacomcbs.digital^
-@@||topcities.eu^
-@@||topcountries.eu^
-@@||topcountry.eu^
 @@||topembed.pw^
 @@||topfilmiki.pl^
 @@||topflix.tv^
@@ -13913,8 +13908,6 @@
 @@||topperpoint.com^
 @@||toppng.com^
 @@||topschool.pl^
-@@||topsong.eu^
-@@||topsongs.eu^
 @@||topspeed.sk^
 @@||topsport.bg^
 @@||topsporter.net^
@@ -15339,6 +15332,7 @@
 @@||windows7forum.pl^
 @@||windowsbulletin.com^
 @@||windowscentral.com^
+@@||windowsforum.kr^
 @@||windowslite.net^
 @@||windowspro.de^
 @@||windstream.com^
