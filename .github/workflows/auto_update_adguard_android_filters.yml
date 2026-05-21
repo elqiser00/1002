@@ -24,7 +24,7 @@ permissions:
 jobs:
   merge-and-deploy:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 45
 
     steps:
       - name: Checkout repository
@@ -97,11 +97,10 @@ jobs:
           fi
           echo "   ✅ Header صحيح [Adblock Plus 2.0]"
 
-          # 2. NO $important modifier (AdGuard Home only)
+          # 2. NO $important modifier
           IMPORTANT_COUNT=$(grep -c '\$important' "$MAIN_FILE" || true)
           if [ "$IMPORTANT_COUNT" -gt 0 ]; then
             echo "❌ خطأ: وجدت $IMPORTANT_COUNT قاعدة بـ \$important — ده لـ AdGuard Home مش Android"
-            echo "   مثال: $(grep -m1 '\$important' "$MAIN_FILE" || true)"
             exit 1
           fi
           echo "   ✅ مفيش \$important (Android compatible)"
@@ -109,8 +108,7 @@ jobs:
           # 3. Block rules must use || (double pipe)
           SINGLE_PIPE_BLOCK=$(grep -cE '^\|[a-zA-Z0-9]' "$MAIN_FILE" || true)
           if [ "$SINGLE_PIPE_BLOCK" -gt 0 ]; then
-            echo "❌ خطأ: وجدت $SINGLE_PIPE_BLOCK قاعدة حظر بصيغة |domain^ (pipe واحد) - المفروض ||domain^"
-            echo "   مثال: $(grep -m1E '^\|[a-zA-Z0-9]' "$MAIN_FILE" || true)"
+            echo "❌ خطأ: وجدت $SINGLE_PIPE_BLOCK قاعدة حظر بصيغة |domain^ (pipe واحد)"
             exit 1
           fi
           echo "   ✅ كل الحظر بـ || (double pipe)"
@@ -118,18 +116,15 @@ jobs:
           # 4. Allow rules must use @@|| (double pipe)
           SINGLE_PIPE_ALLOW=$(grep -cE '^@@\|[a-zA-Z0-9]' "$MAIN_FILE" || true)
           if [ "$SINGLE_PIPE_ALLOW" -gt 0 ]; then
-            echo "❌ خطأ: وجدت $SINGLE_PIPE_ALLOW قاعدة سماح بصيغة @@|domain^ - المفروض @@||domain^"
-            echo "   مثال: $(grep -m1E '^@@\|[a-zA-Z0-9]' "$MAIN_FILE" || true)"
+            echo "❌ خطأ: وجدت $SINGLE_PIPE_ALLOW قاعدة سماح بصيغة @@|domain^"
             exit 1
           fi
           echo "   ✅ كل الاستثناءات بـ @@|| (double pipe)"
 
-          # 5. Check for duplicate domains (basic check)
-          DUP_DOMAINS=$(grep -oE '^\|\|[^\^]+' "$MAIN_FILE" | sort | uniq -d | wc -l)
-          if [ "$DUP_DOMAINS" -gt 0 ]; then
-            echo "⚠️  تحذير: وجدت $DUP_DOMAINS دومين متكرر في قواعد الحظر"
-          else
-            echo "   ✅ مفيش دومينات متكررة"
+          # 5. Check file size warning (GitHub raw has ~100MB limit)
+          if [ "$FILE_SIZE" -gt 104857600 ]; then
+            echo "⚠️  تحذير: الملف أكبر من 100MB — ممكن GitHub يقطع الاتصال بالـ raw URL"
+            echo "   الحل: استخدم GitHub Pages أو Git LFS"
           fi
 
           # 6. Sample output
