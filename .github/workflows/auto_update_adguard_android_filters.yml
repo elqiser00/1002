@@ -63,7 +63,7 @@ jobs:
           PYTHONUNBUFFERED: "1"
           PYTHONDONTWRITEBYTECODE: "1"
 
-      - name: Verify output
+      - name: Verify output format
         id: verify
         run: |
           if [ ! -d "${{ env.OUTPUT_DIR }}" ]; then
@@ -84,15 +84,61 @@ jobs:
           echo "📊 الحجم: $(numfmt --to=iec $FILE_SIZE)"
           echo "📊 الأسطر: $LINE_COUNT"
 
+          # ─── CRITICAL CHECKS for AdGuard Android compatibility ───
+          echo "🔍 فحص صحة الصيغة..."
+
+          # 1. Check for single-pipe bug (@@| instead of @@||)
+          SINGLE_PIPE_BUG=$(grep -c '^@@|' "$MAIN_FILE" || true)
+          if [ "$SINGLE_PIPE_BUG" -gt 0 ]; then
+            echo "❌ خطأ: وجدت $SINGLE_PIPE_BUG قاعدة بصيغة @@| (pipe واحد) - المفروض @@||"
+            echo "   مثال: $(grep -m1 '^@@|' "$MAIN_FILE" || true)"
+            exit 1
+          fi
+          echo "   ✅ لا يوجد @@| (pipe واحد)"
+
+          # 2. Check for |domain^ without || (single pipe block rules)
+          SINGLE_PIPE_BLOCK=$(grep -cE '^\|[a-zA-Z0-9]' "$MAIN_FILE" || true)
+          if [ "$SINGLE_PIPE_BLOCK" -gt 0 ]; then
+            echo "❌ خطأ: وجدت $SINGLE_PIPE_BLOCK قاعدة حظر بصيغة |domain^ (pipe واحد) - المفروض ||domain^"
+            echo "   مثال: $(grep -m1E '^\|[a-zA-Z0-9]' "$MAIN_FILE" || true)"
+            exit 1
+          fi
+          echo "   ✅ لا يوجد |domain^ (pipe واحد)"
+
+          # 3. Check that block rules have $important
+          BLOCK_RULES=$(grep -cE '^\|\|' "$MAIN_FILE" || true)
+          IMPORTANT_RULES=$(grep -c '\$important' "$MAIN_FILE" || true)
+          if [ "$BLOCK_RULES" -gt 0 ] && [ "$IMPORTANT_RULES" -eq 0 ]; then
+            echo "⚠️  تحذير: $BLOCK_RULES قواعد حظر لكن مفيش فيها $important modifier"
+            echo "   ده ممكن يخلي AdGuard Android مايفهمش القواعد صح"
+          else
+            echo "   ✅ قواعد الحظر: $BLOCK_RULES | بـ \$important: $IMPORTANT_RULES"
+          fi
+
+          # 4. Check header has [Adblock Plus 2.0]
+          if ! head -1 "$MAIN_FILE" | grep -q '\[Adblock Plus 2.0\]'; then
+            echo "⚠️  تحذير: الـ Header مفيش [Adblock Plus 2.0] - ده بيساعد AdGuard في التعرف"
+          else
+            echo "   ✅ Header صحيح [Adblock Plus 2.0]"
+          fi
+
+          # 5. Sample check - first 5 block rules
+          echo "   📋 عينة من القواعد:"
+          grep -m5 '^||' "$MAIN_FILE" | while read rule; do
+            echo "      $rule"
+          done
+
           echo "file_size=$FILE_SIZE" >> $GITHUB_OUTPUT
           echo "line_count=$LINE_COUNT" >> $GITHUB_OUTPUT
+          echo "block_rules=$BLOCK_RULES" >> $GITHUB_OUTPUT
+          echo "important_rules=$IMPORTANT_RULES" >> $GITHUB_OUTPUT
 
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          # Add ONLY the main file (no stats.json or other files)
+          # Add ONLY the main file
           git add merged_filters/adguard_android_filter.txt
 
           if git diff --cached --quiet; then
@@ -114,5 +160,7 @@ jobs:
           echo "| 📁 الملف الرئيسي | adguard_android_filter.txt |" >> $GITHUB_STEP_SUMMARY
           echo "| 📏 عدد الأسطر | ${{ steps.verify.outputs.line_count }} |" >> $GITHUB_STEP_SUMMARY
           echo "| 📊 حجم الملف | $(numfmt --to=iec ${{ steps.verify.outputs.file_size }}) |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🚫 قواعد الحظر | ${{ steps.verify.outputs.block_rules }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| ⚡ بـ \$important | ${{ steps.verify.outputs.important_rules }} |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "🔧 [عرض الملف](https://github.com/${{ github.repository }}/tree/${{ github.ref_name }}/merged_filters)" >> $GITHUB_STEP_SUMMARY
