@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.05.21
-! Total rules: 15919
+! Total rules: 15918
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -6141,7 +6141,6 @@
 @@||googleads4.g.doubleclick^
 @@||googleadservices.com^
 @@||googleapis.com^
-@@||googleapiscdn.com^
 @@||googledrive.com^
 @@||googledrivelinks.com^
 @@||googleoptimize.com^
@@ -13087,6 +13086,7 @@
 @@||stream.co.jp^
 @@||stream.cz^
 @@||stream.freedisc.pl^
+@@||stream.googleapiscdn.com^
 @@||stream.nbcsports.com^
 @@||stream.pladform.ru^
 @@||stream.tv41.ru^
@@ -15332,7 +15332,6 @@
 @@||windows7forum.pl^
 @@||windowsbulletin.com^
 @@||windowscentral.com^
-@@||windowsforum.kr^
 @@||windowslite.net^
 @@||windowspro.de^
 @@||windstream.com^
