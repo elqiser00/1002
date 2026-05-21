@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.05.21
-! Total rules: 15918
+! Total rules: 15920
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -3277,6 +3277,7 @@
 @@||clicks.aweber.com^
 @@||clicks.pipaffiliates.com^
 @@||clicks.trx-hub.com^
+@@||clicksbuster.com^
 @@||clickserv.sitescout.com^
 @@||clickserve.dartsearch.net^
 @@||clickskeks.at^
@@ -4251,6 +4252,7 @@
 @@||didascaleion.it^
 @@||dieblaue24.com^
 @@||diedit.com^
+@@||diehard.yandex.ru^
 @@||dienmayxanh.com^
 @@||dietnavi.com^
 @@||dieutri.vn^
