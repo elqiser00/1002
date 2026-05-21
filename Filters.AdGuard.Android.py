@@ -631,7 +631,7 @@ def process_all_filters(urls):
             for rule in source_info["allow_rules"]:
                 all_allow_domains.add(extract_domain_from_rule(rule))
 
-            print(f"✅ [{i:3d}/{len(urls)}] {domain:40s} | +{len(source_info["block_rules"]):6d} block | +{len(source_info["allow_rules"]):4d} allow | ({lines_converted}/{lines_processed} lines) | [{source_info["name"][:30]}]")
+            print(f"✅ [{i:3d}/{len(urls)}] {domain:40s} | +{len(source_info['block_rules']):6d} block | +{len(source_info['allow_rules']):4d} allow | ({lines_converted}/{lines_processed} lines) | [{source_info['name'][:30]}]")
 
         except Exception as e:
             failed_urls.append(url)
@@ -668,7 +668,7 @@ def process_all_filters(urls):
 
     print("=" * 70)
     print(f"📊 النتائج:")
-    print(f"   ✅ ناجح: {sum(1 for s in source_data if s["success"])}/{len(urls)}")
+    print(f"   ✅ ناجح: {sum(1 for s in source_data if s['success'])}/{len(urls)}")
     print(f"   ❌ فاشل: {len(failed_urls)}/{len(urls)}")
 
     if failed_urls:
