@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.05.22
-! Total rules: 15922
+! Total rules: 15924
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -7944,6 +7944,7 @@
 @@||lenovo.com^
 @@||lensfrontend-pa.clients6.google^
 @@||lensprice.co.kr^
+@@||lenta.ru^
 @@||lentille.co.jp^
 @@||leo.org^
 @@||leoconnacht.com^
@@ -9389,6 +9390,7 @@
 @@||mytotalconnectcomfort.com^
 @@||mytour.vn^
 @@||mytuner-radio.com^
+@@||mytvsuper.com^
 @@||myuploadedpremium.de^
 @@||myvessel.cn^
 @@||myvi.ru^
