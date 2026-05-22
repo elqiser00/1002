@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.05.22
-! Total rules: 15920
+! Total rules: 15922
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -920,6 +920,7 @@
 @@||amcdn.vn^
 @@||amcplus.com^
 @@||amebame.com^
+@@||amenrecorder.com^
 @@||america.cgtn.com^
 @@||amgload.net^
 @@||amhcdn.net^
@@ -1533,6 +1534,7 @@
 @@||ashesofcreation.com^
 @@||asia-.inside-graph.com^
 @@||asianbookie.com^
+@@||asiangayporn.tv^
 @@||asianporn.li^
 @@||asirkichijoji.tokyo^
 @@||ask.antalis^
