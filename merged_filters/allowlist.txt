@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.05.23
-! Total rules: 15924
+! Total rules: 15926
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -4306,6 +4306,7 @@
 @@||discoveryplus.com^
 @@||discoveryplus.in^
 @@||discretemath.org^
+@@||dishtv.in^
 @@||disney.aicdn.live^
 @@||disneyplus.bn5x.net^
 @@||disneyplus.com^
@@ -6511,6 +6512,7 @@
 @@||hidabroot.org^
 @@||hideandseek.world^
 @@||hideip.me^
+@@||hidencloud.com^
 @@||hidive.com^
 @@||hifi-forum.de^
 @@||hifi.de^
