@@ -53,6 +53,7 @@
 @@||a7.org^
 @@||a8.net^
 @@||a8cv.amiami.jp^
+@@||a9.com^
 @@||aa.com^
 @@||aa.tweakers.nl^
 @@||aachener-nachrichten.de^
@@ -4820,6 +4821,7 @@
 @@||elektrotanya.com^
 @@||elhiwarnet.com^
 @@||elife-cloud.blogspot.com^
+@@||elitesuppsproduction15fy12zem.org.coveo^
 @@||elitetunnel.com^
 @@||elkjop.no.edgekey^
 @@||elmueble.com^
@@ -10284,7 +10286,6 @@
 @@||partner.zattoo.com^
 @@||partner1.cashback.zen^
 @@||partnerads.ysm.yahoo^
-@@||partnerlinks.io^
 @@||partners.adsterra.com^
 @@||partners.designmynight.com^
 @@||partners.doctolib.fr^
@@ -10292,7 +10293,6 @@
 @@||partners.pekao.com^
 @@||partners.spaceti.net^
 @@||partners.travel.meetch^
-@@||partners.webmasterplan.com^
 @@||partners2.das-onlinespiel.de^
 @@||parzibyte.me^
 @@||pas-rahav.com^
