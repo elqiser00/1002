@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.05.24
-! Total rules: 15926
+! Total rules: 15928
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -10286,6 +10286,7 @@
 @@||partner.zattoo.com^
 @@||partner1.cashback.zen^
 @@||partnerads.ysm.yahoo^
+@@||partnerlinks.io^
 @@||partners.adsterra.com^
 @@||partners.designmynight.com^
 @@||partners.doctolib.fr^
@@ -10293,6 +10294,7 @@
 @@||partners.pekao.com^
 @@||partners.spaceti.net^
 @@||partners.travel.meetch^
+@@||partners.webmasterplan.com^
 @@||partners2.das-onlinespiel.de^
 @@||parzibyte.me^
 @@||pas-rahav.com^
