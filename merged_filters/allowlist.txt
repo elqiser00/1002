@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.05.25
-! Total rules: 15928
+! Total rules: 15931
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -8047,6 +8047,7 @@
 @@||lightning.cnn.com^
 @@||lightningmaps.org^
 @@||lihatgambar.my.id^
+@@||like.mgread.io^
 @@||likefb.pl^
 @@||likemag.com^
 @@||lilian-sapporo.com^
@@ -11554,6 +11555,7 @@
 @@||rl0.ru^
 @@||rlptoday.de^
 @@||rm-motors.pl^
+@@||rm-script.dotmetrics.net^
 @@||rm.freex2line.online^
 @@||rm.sina.com^
 @@||rmbooru.org^
@@ -14458,6 +14460,7 @@
 @@||ujigamisama.jp^
 @@||ujinbi.com^
 @@||ujjivansfb.in^
+@@||uk-script.dotmetrics.net^
 @@||ukbride.co.uk^
 @@||ukc2.com^
 @@||ukr.ai^
