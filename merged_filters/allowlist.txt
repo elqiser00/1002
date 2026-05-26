@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.05.26
-! Total rules: 15930
+! Total rules: 15933
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -4582,6 +4582,7 @@
 @@||dslr-forum.de^
 @@||dstw.adgear.com^
 @@||dsvplay.com^
+@@||dt.adsafeprotected.com^
 @@||dt51.net^
 @@||dtdc.com^
 @@||dtdc.in^
@@ -7787,6 +7788,7 @@
 @@||kumo.network-n.com^
 @@||kumospace.com^
 @@||kun.uz^
+@@||kunde-s.ergo.de^
 @@||kupongid.ru^
 @@||kupujemprodajem.com^
 @@||kuramu.net^
@@ -8636,6 +8638,7 @@
 @@||matlab.mathworks.com^
 @@||matomo.miraheze.org^
 @@||matomo.moeci.com^
+@@||matprat.no^
 @@||matrix.redditspace.com^
 @@||matrix.ynet.co^
 @@||matsukiyo.co.jp^
@@ -10027,6 +10030,7 @@
 @@||onlinemarketing.de^
 @@||onlinemschool.com^
 @@||onlineservice.ewr-gmbh.de^
+@@||onlinestarten.net^
 @@||onlinestudentseva.com^
 @@||onlinetermine-agentur.allianz.de^
 @@||onlinetutorium.com^
@@ -14210,7 +14214,6 @@
 @@||trustarc.mgr.consensu^
 @@||trustcommander.net^
 @@||trustprofile.com^
-@@||truthsocial.com^
 @@||truyenaudiocv.com^
 @@||truyenaudiocv.info^
 @@||truyenaudiocv.net^
