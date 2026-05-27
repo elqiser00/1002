@@ -1,5 +1,5 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
-! Version: 2026.05.26
+! Version: 2026.05.27
 ! Total rules: 15933
 
 @@||a-adq.mediation.unity^
