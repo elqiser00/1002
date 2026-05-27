@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.05.27
-! Total rules: 15933
+! Total rules: 15926
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -5142,7 +5142,6 @@
 @@||fakt.pl^
 @@||fakty.com.ua^
 @@||faktykaliskie.pl^
-@@||fakyu.net^
 @@||famfonts.com^
 @@||fami-geki.com^
 @@||familie.de^
@@ -7189,7 +7188,6 @@
 @@||iosvpn.top^
 @@||iosys.heteml.net^
 @@||ip-.net^
-@@||ip.nuggad.net^
 @@||ip2location.com^
 @@||ipalibrary.me^
 @@||ipapi.co^
@@ -8318,7 +8316,6 @@
 @@||lotzon.com^
 @@||loucasporcabelos.com.br^
 @@||loudersound.com^
-@@||love-stoorey210.net^
 @@||loveawake.com^
 @@||lovegardenbirds.co.uk^
 @@||loveradio.ru^
@@ -9787,7 +9784,6 @@
 @@||nu.nl^
 @@||nu6i-bg-net.com^
 @@||nuevos-mu.ucoz.com^
-@@||nuggad.net^
 @@||nuipogoda.ru^
 @@||nulledteam.com^
 @@||nullforums.net^
@@ -10391,7 +10387,6 @@
 @@||penducado.com^
 @@||pengantartidurkuh.blogspot.com^
 @@||penta.a.one^
-@@||peperonity.net^
 @@||pepperjamnetwork.com^
 @@||per.segmentify.com^
 @@||performant.com^
@@ -11521,7 +11516,6 @@
 @@||reutersmedia.net^
 @@||rev.evrensel.net^
 @@||revdepo.com^
-@@||revdownload.com^
 @@||reversing.cc^
 @@||reviersport.de^
 @@||revive.adsession.com^
@@ -15890,7 +15884,6 @@
 @@||zjjcxy.cn^
 @@||zlavomat.sk^
 @@||zmdownload.zoho.com^
-@@||zmovs.com^
 @@||znanija.com^
 @@||zog.link^
 @@||zohopublic.com^
