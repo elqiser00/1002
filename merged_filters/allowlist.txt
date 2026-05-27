@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.05.27
-! Total rules: 15927
+! Total rules: 15926
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -98,7 +98,6 @@
 @@||abendzeitung-muenchen.de^
 @@||ableitungsrechner.net^
 @@||ablink.email.etsy^
-@@||ablink.mail.parkmobile^
 @@||abnews24bd.com^
 @@||abo.ua^
 @@||aboluowang.com^
@@ -108,7 +107,6 @@
 @@||abovetopsecret.com^
 @@||abp-profile-service.adobe.io^
 @@||abqjournal.com^
-@@||abr.ge^
 @@||absciss.algonoew.online^
 @@||absolut-groups.ru^
 @@||abstream.to^
@@ -2621,6 +2619,7 @@
 @@||cdek.ru^
 @@||cdi.ofiii.com^
 @@||cdn-.convertexperiments.com^
+@@||cdn-.pixel-sus-4k-image.com^
 @@||cdn-a.yieldlove.com^
 @@||cdn-aitg.widerplanet.com^
 @@||cdn-apple.com^
