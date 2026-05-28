@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.05.28
-! Total rules: 15925
+! Total rules: 15922
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -2491,7 +2491,6 @@
 @@||camsclips.com^
 @@||camsclips.org^
 @@||camsecure.co^
-@@||camsexvideo.net^
 @@||camsoda.com^
 @@||camspacelive.com^
 @@||camvideoshub.com^
@@ -6330,7 +6329,6 @@
 @@||hach.de^
 @@||hack-life.net^
 @@||hack-master.ru^
-@@||hackbloxfruit.pro^
 @@||hackingwithswift.com^
 @@||hackintosh.computer^
 @@||hackintosh.zone^
@@ -15173,7 +15171,6 @@
 @@||webgozar.com^
 @@||webgozar.ir^
 @@||webhook.frontapp.com^
-@@||webii.ir^
 @@||webkul.com^
 @@||weblet.square-enix.com^
 @@||webmail.smartlinkcorp.com^
