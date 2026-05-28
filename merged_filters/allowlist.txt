@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.05.28
-! Total rules: 15922
+! Total rules: 15918
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -728,6 +728,7 @@
 @@||afreesms.com^
 @@||aftonbladet.se^
 @@||ag.innovid.com^
+@@||agahinet.com^
 @@||agar.io^
 @@||agatabud.com.ua^
 @@||agazeta.com.br^
@@ -4183,7 +4184,6 @@
 @@||designoptimal.com^
 @@||designtaxi.com^
 @@||desirecourse.com^
-@@||desirecourse.net^
 @@||desktophut.com^
 @@||desktophut.ru^
 @@||despegar.com^
@@ -7063,7 +7063,6 @@
 @@||indianrailways.info^
 @@||indiansgetfucked.com^
 @@||indiatimes.com^
-@@||indiatoday.intoday.in^
 @@||indiegogo.com^
 @@||indokontraktor.com^
 @@||indostarmedia.com^
@@ -8302,7 +8301,6 @@
 @@||lookmovie.ag^
 @@||looopings.nl^
 @@||looptorrent.net^
-@@||loot.tv^
 @@||lootup.me^
 @@||lordz.io^
 @@||loskatchorros.com.br^
@@ -9952,7 +9950,6 @@
 @@||omtrdc.net^
 @@||omutulove.blog.fc^
 @@||omutulove.seesaa.net^
-@@||omuzaani.me^
 @@||on-web-cdn.gviet.vn^
 @@||on.orf.at^
 @@||onasider.top^
@@ -15887,7 +15884,6 @@
 @@||zol-img.com.cn^
 @@||zombicide.com^
 @@||zona.mobi^
-@@||zonatmo.com^
 @@||zone-telechargement1.com^
 @@||zone-telechargement1.org^
 @@||zone.msn.com^
