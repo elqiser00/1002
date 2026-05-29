@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.05.29
-! Total rules: 15920
+! Total rules: 15913
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -1595,7 +1595,6 @@
 @@||assiste.com^
 @@||assistenza.sky.it^
 @@||assistir-tv.online^
-@@||assistir.biz^
 @@||assoc-amazon.com^
 @@||assoc-redirect.amazon.co^
 @@||assoc-redirect.amazon.com^
@@ -2086,7 +2085,6 @@
 @@||bingfeng.tw^
 @@||biochemden.com^
 @@||biopills.net^
-@@||bioskopkaca21.com^
 @@||bipbip.co.il^
 @@||birdflock.unipus.cn^
 @@||bis.net^
@@ -8487,7 +8485,6 @@
 @@||mailchimp.com^
 @@||mailgen.biz^
 @@||mailingtechnology.com^
-@@||mailocal2.xyz^
 @@||mailoptin.io^
 @@||maimemo.oss-cn-hangzhou.aliyuncs^
 @@||main-echo.de^
@@ -9559,7 +9556,6 @@
 @@||newpharma.net^
 @@||newrelic.com^
 @@||news-app.abumedia.yql^
-@@||news-tech.xyz^
 @@||news-und-nachrichten.de^
 @@||news.at^
 @@||news.bg^
@@ -9724,7 +9720,6 @@
 @@||novelgo.id^
 @@||novelmultiverse.com^
 @@||novelpia.com^
-@@||noviello.it^
 @@||novinky.cz^
 @@||noviny.sk^
 @@||now.com.au^
@@ -10362,7 +10357,6 @@
 @@||pclab.pl^
 @@||pcoptimizedsettings.com^
 @@||pcprogramasymas.net^
-@@||pcso-lottoresults.com^
 @@||pcva.manifest.auditude^
 @@||pcwelt.de^
 @@||pcworld.pl^
@@ -15909,7 +15903,6 @@
 @@||zserials.me^
 @@||zsp1.luzdelsur.com^
 @@||zstatic.net^
-@@||zt-protect.com^
 @@||zu.gnomicmaness.com^
 @@||zviazda.by^
 @@||zvip.net^
