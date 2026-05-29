@@ -3283,7 +3283,6 @@
 @@||clickskeks.at^
 @@||clickswin.tvchoicemagazine.co^
 @@||clicktale.net^
-@@||clicktracker.getblue.io^
 @@||client.aps.amazon^
 @@||client.axept.io^
 @@||client.crisp.chat^
@@ -4126,7 +4125,6 @@
 @@||decrypt.day^
 @@||deep-vision.cloud^
 @@||deepbrid.com^
-@@||deeplink.page^
 @@||deezer.com^
 @@||defconlevel.com^
 @@||defensa.gob.es^
@@ -8143,6 +8141,7 @@
 @@||live.b8b8.tv^
 @@||live.bbc.co^
 @@||live.cgtn.com^
+@@||live.com^
 @@||live.indiatimes.com^
 @@||live.lequipe.fr^
 @@||live.mrf.io^
@@ -9873,6 +9872,7 @@
 @@||ofeminin.pl^
 @@||ofertasahora.com^
 @@||offgamers.com^
+@@||office.com^
 @@||officeapps.live.com^
 @@||officeworks.com.au^
 @@||official-blog.line.me^
