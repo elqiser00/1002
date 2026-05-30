@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
-! Version: 2026.05.29
-! Total rules: 15913
+! Version: 2026.05.30
+! Total rules: 15914
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -2127,6 +2127,7 @@
 @@||bjfesdk.douyucdn.cn^
 @@||bjjhq.com^
 @@||bknewstoday.com^
+@@||blackbaud.net^
 @@||blackboard.hillsdale.edu^
 @@||blackcircles.ca^
 @@||blackmod.net^
