@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.06.01
-! Total rules: 15914
+! Total rules: 15916
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -4036,6 +4036,7 @@
 @@||data.gov.hk^
 @@||data.mistat.intl^
 @@||data.mistat.xiaomi^
+@@||data.notify.macys^
 @@||data.orders.costco^
 @@||data.pendo.io^
 @@||data.reactandshare.com^
@@ -6557,6 +6558,7 @@
 @@||hlok.qertewrt.com^
 @@||hls-igi.cdnvideo.ru^
 @@||hls-live.bdstatic.com^
+@@||hls.burntburst.store^
 @@||hls.exmarketplace.com^
 @@||hls.goodgame.ru^
 @@||hls.live-video.net^
