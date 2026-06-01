@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.06.01
-! Total rules: 15917
+! Total rules: 15915
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -11832,6 +11832,7 @@
 @@||sams.11freunde.de^
 @@||sams.spiegel.de^
 @@||samsclub.com^
+@@||samsonite.ru.com^
 @@||samsung.com^
 @@||samsunhaber.com^
 @@||san-kikaku.jp^
@@ -12110,7 +12111,6 @@
 @@||serve.popads.net^
 @@||servedby-us.flashtalking.com^
 @@||servedby.flashtalking.com^
-@@||servedby.o2.co^
 @@||servedbyadbutler.com^
 @@||server.cpmstar.com^
 @@||server1.affiz.net^
@@ -14680,7 +14680,6 @@
 @@||vcomic.net^
 @@||vcs-quality.zijieapi.com^
 @@||vcs.zijieapi.com^
-@@||vd.l.qq^
 @@||vdapp.nend.net^
 @@||vdncloud.org^
 @@||vdv-info.ru^
@@ -15705,7 +15704,6 @@
 @@||ye.c.lencr^
 @@||yeeach.com^
 @@||yektanet.com^
-@@||yellowbook.com^
 @@||yellowbridge.com^
 @@||yellowmap.de^
 @@||yelp.com^
