@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.06.01
-! Total rules: 15916
+! Total rules: 15917
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -5509,6 +5509,7 @@
 @@||fotor.com.cn^
 @@||fotovramku.ru^
 @@||foundation.youdao.com^
+@@||fourfourtwo.com^
 @@||fourhoi.com^
 @@||fourseasons.com^
 @@||fox-url.com^
