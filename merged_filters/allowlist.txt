@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.06.02
-! Total rules: 15916
+! Total rules: 15917
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -7968,6 +7968,7 @@
 @@||letocard.fr^
 @@||letras2.com^
 @@||letrasyfuentes.com^
+@@||letsgocdn.shop^
 @@||letskorail.com^
 @@||letyshops.com^
 @@||levante-emv.com^
