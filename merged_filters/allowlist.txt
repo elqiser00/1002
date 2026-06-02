@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.06.02
-! Total rules: 15917
+! Total rules: 15920
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -12113,6 +12113,7 @@
 @@||serve.popads.net^
 @@||servedby-us.flashtalking.com^
 @@||servedby.flashtalking.com^
+@@||servedby.o2.co^
 @@||servedbyadbutler.com^
 @@||server.cpmstar.com^
 @@||server1.affiz.net^
@@ -14682,6 +14683,7 @@
 @@||vcomic.net^
 @@||vcs-quality.zijieapi.com^
 @@||vcs.zijieapi.com^
+@@||vd.l.qq^
 @@||vdapp.nend.net^
 @@||vdncloud.org^
 @@||vdv-info.ru^
@@ -15706,6 +15708,7 @@
 @@||ye.c.lencr^
 @@||yeeach.com^
 @@||yektanet.com^
+@@||yellowbook.com^
 @@||yellowbridge.com^
 @@||yellowmap.de^
 @@||yelp.com^
