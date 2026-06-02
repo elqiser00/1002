@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.06.02
-! Total rules: 15915
+! Total rules: 15916
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -6340,6 +6340,7 @@
 @@||haiwai.com^
 @@||hakanayas.blogspot.com^
 @@||hakie.net^
+@@||hakunaymatata.com^
 @@||hala-tube.net^
 @@||halamadrid.pl^
 @@||halktv.com.tr^
