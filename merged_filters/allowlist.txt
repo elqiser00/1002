@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.06.03
-! Total rules: 15920
+! Total rules: 15921
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -7675,6 +7675,7 @@
 @@||klcheck.com^
 @@||kledgeb.blogspot.com^
 @@||kledgeb.github.io^
+@@||kledo.com^
 @@||kleinanzeigen.de^
 @@||klientboost.com^
 @@||klimv.xyz^
