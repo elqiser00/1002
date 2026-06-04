@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
-! Version: 2026.06.03
-! Total rules: 15921
+! Version: 2026.06.04
+! Total rules: 15920
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -2533,7 +2533,6 @@
 @@||carambatv.ru^
 @@||carandclassic.co.uk^
 @@||carapraktis.info^
-@@||caratulasparacuadernos.com^
 @@||caravaning.de^
 @@||carbuzz.com^
 @@||carcle.jp^
@@ -7482,6 +7481,7 @@
 @@||jstatic.3.cn^
 @@||jsv3.recruitics.com^
 @@||jswenhui.com^
+@@||jsxx.gds.edu^
 @@||judge.me^
 @@||judicialcaselaw.com^
 @@||juduo.cc^
@@ -14141,7 +14141,6 @@
 @@||treebitcoin.com^
 @@||tremormedia.com^
 @@||trend.at^
-@@||trenddify.com^
 @@||trendiqq.com^
 @@||trf.greatviews.de^
 @@||trib.com^
