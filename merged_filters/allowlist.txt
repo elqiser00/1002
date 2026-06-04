@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.06.04
-! Total rules: 15920
+! Total rules: 15921
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -6608,6 +6608,7 @@
 @@||honoku.com^
 @@||hood.de^
 @@||hopetech.com^
+@@||hopphim.online^
 @@||hopto.org^
 @@||horipro.co.jp^
 @@||horlover.com^
