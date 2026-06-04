@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.06.04
-! Total rules: 15921
+! Total rules: 15925
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -475,6 +475,7 @@
 @@||ads.netinsight.co^
 @@||ads.nextday.media^
 @@||ads.nicovideo.jp^
+@@||ads.openai.com^
 @@||ads.orbi.kr^
 @@||ads.patris.gr^
 @@||ads.pinterest.com^
@@ -3040,6 +3041,7 @@
 @@||chasecdn.com^
 @@||chat-webim.rsb.ru^
 @@||chat.d-id.com^
+@@||chat.dbo-dengi.online^
 @@||chat.deepseek.com^
 @@||chat.kuki.ai^
 @@||chat.nrj.fr^
@@ -6289,6 +6291,7 @@
 @@||guzei.com^
 @@||gv.com.sg^
 @@||gva.et-gv.fr^
+@@||gvci.com^
 @@||gvideo.io^
 @@||gvmp.de^
 @@||gvnvh.net^
@@ -6339,7 +6342,6 @@
 @@||haiwai.com^
 @@||hakanayas.blogspot.com^
 @@||hakie.net^
-@@||hakunaymatata.com^
 @@||hala-tube.net^
 @@||halamadrid.pl^
 @@||halktv.com.tr^
@@ -11146,6 +11148,7 @@
 @@||qoo10.co.id^
 @@||qooqlevideo.com^
 @@||qpython.club^
+@@||qq.baggerspaces.com^
 @@||qq.com^
 @@||qqc.co^
 @@||qqwebplay.xyz^
@@ -12707,6 +12710,7 @@
 @@||srvto.com^
 @@||srvtrck.com^
 @@||ss.phncdn.com^
+@@||ss.tuffoonaskant.com^
 @@||ssai.aniview.com^
 @@||ssante.com^
 @@||sscc.edu.ec^
