@@ -8385,7 +8385,6 @@
 @@||m-shizuoka.com^
 @@||m.addthisedge.com^
 @@||m.azonline.de^
-@@||m.baidu.com^
 @@||m.beautypageants.in^
 @@||m.chenzhongtech.com^
 @@||m.cn^
@@ -12463,6 +12462,7 @@
 @@||sme.sk^
 @@||smetiz.ru^
 @@||smetrics.aa.com^
+@@||smetrics.airmiles.ca^
 @@||smetrics.atresplayer.com^
 @@||smetrics.blackberry.com^
 @@||smetrics.nintendo.com^
