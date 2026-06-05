@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
-! Version: 2026.06.04
-! Total rules: 15925
+! Version: 2026.06.05
+! Total rules: 15922
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -5107,7 +5107,6 @@
 @@||ezodn.com^
 @@||ezoic.net^
 @@||ezsoftwarestorage.com^
-@@||eztv.io^
 @@||f-cashloan.snssdk.com^
 @@||f-cdn.com^
 @@||f-cpay.snssdk.com^
@@ -7341,7 +7340,6 @@
 @@||javcl.com^
 @@||javedit.com^
 @@||javfinder.id^
-@@||javhdx.tv^
 @@||javhoho.com^
 @@||javnow.net^
 @@||javpee.com^
@@ -9786,7 +9784,6 @@
 @@||nuipogoda.ru^
 @@||nulledteam.com^
 @@||nullforums.net^
-@@||nullpress.net^
 @@||nullscripts.net^
 @@||num-link.ru^
 @@||numbeo.com^
