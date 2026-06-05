@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.06.05
-! Total rules: 15923
+! Total rules: 15922
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -12115,7 +12115,6 @@
 @@||serve.popads.net^
 @@||servedby-us.flashtalking.com^
 @@||servedby.flashtalking.com^
-@@||servedby.o2.co^
 @@||servedbyadbutler.com^
 @@||server.cpmstar.com^
 @@||server1.affiz.net^
