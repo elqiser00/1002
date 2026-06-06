@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.06.06
-! Total rules: 15924
+! Total rules: 15921
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -53,7 +53,6 @@
 @@||a7.org^
 @@||a8.net^
 @@||a8cv.amiami.jp^
-@@||a9.com^
 @@||aa.com^
 @@||aa.tweakers.nl^
 @@||aachener-nachrichten.de^
@@ -1145,7 +1144,6 @@
 @@||api-auth-mobile.hootsuite.com^
 @@||api-b2b.backenster.com^
 @@||api-edge.cognitive.microsofttranslator^
-@@||api-global.netflix.com^
 @@||api-gtm.grubhub.com^
 @@||api-gw.spot.im^
 @@||api-js.datadome.co^
@@ -1421,7 +1419,6 @@
 @@||app2.putgate.org^
 @@||appapi.inspsearchapi.com^
 @@||apparelresource.asia^
-@@||appboot.netflix.com^
 @@||appdn.net^
 @@||appewa.com^
 @@||appex-rf.msn.com^
@@ -12116,6 +12113,7 @@
 @@||serve.popads.net^
 @@||servedby-us.flashtalking.com^
 @@||servedby.flashtalking.com^
+@@||servedby.o2.co^
 @@||servedbyadbutler.com^
 @@||server.cpmstar.com^
 @@||server1.affiz.net^
@@ -14991,7 +14989,6 @@
 @@||vs.cdn.tvime^
 @@||vs6.cdn.mrf^
 @@||vsadu.ru^
-@@||vsassets.io^
 @@||vscode-sync.trafficmanager.net^
 @@||vse.kz^
 @@||vse24.by^
