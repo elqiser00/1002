@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.06.07
-! Total rules: 15922
+! Total rules: 15923
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -53,6 +53,7 @@
 @@||a7.org^
 @@||a8.net^
 @@||a8cv.amiami.jp^
+@@||a9.com^
 @@||aa.com^
 @@||aa.tweakers.nl^
 @@||aachener-nachrichten.de^
