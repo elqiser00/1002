@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.06.07
-! Total rules: 15924
+! Total rules: 15922
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -3128,7 +3128,6 @@
 @@||cic.ch^
 @@||cicero.de^
 @@||cid.yandex.net^
-@@||cidaas.de^
 @@||cidian.ru^
 @@||cimanow.cc^
 @@||cindyholbrook.lpages.co^
@@ -13486,7 +13485,6 @@
 @@||teamos.xyz^
 @@||teams.live.com^
 @@||teams.microsoft.com^
-@@||teasers.gs-media.de^
 @@||teatras.lt^
 @@||tech-platform.info^
 @@||tech-zealots.com^
