@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.06.09
-! Total rules: 15925
+! Total rules: 15927
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -4075,6 +4075,7 @@
 @@||dbz-fantasy.com^
 @@||dbzog.de^
 @@||dc.ads.linkedin^
+@@||dc.services.visualstudio^
 @@||dc.tbnbaltia.eu^
 @@||dcbbwymp1bhlf.cloudfront.net^
 @@||dcdirtylaundry.com^
@@ -11275,6 +11276,7 @@
 @@||rangdhanu.live^
 @@||rangerboard.com^
 @@||rankc1.apserver.net^
+@@||ranker.com^
 @@||raphsonbd.com^
 @@||rapidgrab.pl^
 @@||rapidrar.com^
