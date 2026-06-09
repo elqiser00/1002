@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.06.09
-! Total rules: 15924
+! Total rules: 15925
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -12338,6 +12338,7 @@
 @@||simg.doubanio.com^
 @@||similarweb.com^
 @@||simkl.com^
+@@||simpforselti.com^
 @@||simple.ripley.cl^
 @@||simpleanalyticsexternal.com^
 @@||simplebits.io^
