@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.06.09
-! Total rules: 15927
+! Total rules: 15928
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -3696,6 +3696,7 @@
 @@||coubsecureassets-a.akamaihd.net^
 @@||count-server.sharethis.com^
 @@||count.net^
+@@||count.shopping^
 @@||count.taobao.com^
 @@||count.video.sina^
 @@||counter-strike.net^
@@ -4840,7 +4841,6 @@
 @@||email.awscloud.com^
 @@||email.elitedangerous.com^
 @@||email.it^
-@@||email.namebase.io^
 @@||email.office.com^
 @@||email.procook.co^
 @@||email.streamhub.tech^
@@ -13672,6 +13672,7 @@
 @@||thecompany.pl^
 @@||thedailybeast.com^
 @@||thedelimagazine.com^
+@@||theeburgerdude.com^
 @@||theexplorersmedia.streaming.mediaservices^
 @@||theexplorersmediastorage.blob.core^
 @@||thefastlaneforum.com^
