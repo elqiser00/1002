@@ -4672,7 +4672,6 @@
 @@||easternbank.com^
 @@||easy-ads.com^
 @@||easy-firmware.com^
-@@||easy.worldthunder.net^
 @@||easyfun.gg^
 @@||easylife.tw^
 @@||easymc.io^
@@ -5056,6 +5055,7 @@
 @@||evowars.io^
 @@||evro-telecom.ru^
 @@||ew3.io^
+@@||ewybory.eu^
 @@||exacttarget.com^
 @@||exali.de^
 @@||exambd.net^
