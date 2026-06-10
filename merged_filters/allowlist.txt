@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.06.10
-! Total rules: 15928
+! Total rules: 15930
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -7855,6 +7855,8 @@
 @@||languagecloud.sdl.com^
 @@||lanka4.com^
 @@||lankadaily.com^
+@@||laosu.cf^
+@@||laosu.tech^
 @@||laotiesao.vip^
 @@||lapatilla.com^
 @@||lapresse.ca^
