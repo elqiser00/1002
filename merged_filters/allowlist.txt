@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.06.11
-! Total rules: 15929
+! Total rules: 15928
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -3398,7 +3398,6 @@
 @@||cnki.com.cn^
 @@||cnlogin.cainiao.com^
 @@||cnn.com^
-@@||cnnamador.com^
 @@||cnnturk.com^
 @@||cnpack.org^
 @@||cnprint.org^
