@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.06.11
-! Total rules: 15930
+! Total rules: 15931
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -145,6 +145,7 @@
 @@||accueil.banque-france.fr^
 @@||accuweather.com^
 @@||acdn.adnxs.com^
+@@||acemlnb.com^
 @@||acgbenzi.com^
 @@||acgdraw.com^
 @@||acgvideo.com^
