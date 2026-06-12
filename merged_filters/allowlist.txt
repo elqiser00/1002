@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.06.12
-! Total rules: 15928
+! Total rules: 15930
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -1401,6 +1401,7 @@
 @@||app.kino.no^
 @@||app.link.nba^
 @@||app.link^
+@@||app.lyrebirdhealth.com^
 @@||app.medyanetads.com^
 @@||app.message.sonicwall^
 @@||app.metricsverse.com^
@@ -6478,6 +6479,7 @@
 @@||help.twilio.com^
 @@||helpsupport.blog.fc^
 @@||hengame.club^
+@@||henread.xyz^
 @@||hentai-online.pl^
 @@||hentaicdn.com^
 @@||hentaihaven.com^
