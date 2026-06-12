@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
-! Version: 2026.06.11
-! Total rules: 15931
+! Version: 2026.06.12
+! Total rules: 15928
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -4321,7 +4321,6 @@
 @@||divendo.ru^
 @@||diyanet.gov.tr^
 @@||diymediahome.org^
-@@||diysideas.com^
 @@||dizhi99.com^
 @@||dizifilmevreni.xyz^
 @@||dizipal.com^
@@ -6090,7 +6089,6 @@
 @@||goalad.com^
 @@||goalpro-demo.blogspot.com^
 @@||goalsarena.org^
-@@||goalsport.info^
 @@||gobits.io^
 @@||gocmod.com^
 @@||gocolumbialions.com^
@@ -13626,7 +13624,6 @@
 @@||tet.tv^
 @@||tetris.com^
 @@||texasroadhouse.com^
-@@||textbin.net^
 @@||texte.work^
 @@||textfree.us^
 @@||textmechanic.com^
