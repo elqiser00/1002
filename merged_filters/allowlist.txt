@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.06.12
-! Total rules: 15930
+! Total rules: 15928
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -3627,7 +3627,6 @@
 @@||contineljs.com^
 @@||contra.gr^
 @@||contract-miner.com^
-@@||control.kochava.com^
 @@||controlc.com^
 @@||convallariaslibrary.com^
 @@||convergeict.com^
@@ -14693,7 +14692,6 @@
 @@||vcomic.net^
 @@||vcs-quality.zijieapi.com^
 @@||vcs.zijieapi.com^
-@@||vd.l.qq^
 @@||vdapp.nend.net^
 @@||vdncloud.org^
 @@||vdv-info.ru^
