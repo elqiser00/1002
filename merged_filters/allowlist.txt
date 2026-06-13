@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.06.13
-! Total rules: 15928
+! Total rules: 15929
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -10938,6 +10938,7 @@
 @@||privacyportal-de.onetrust.com^
 @@||privacyportal-eu-cdn.onetrust.com^
 @@||privacyportal-eu.onetrust.com^
+@@||privacyportal-uk-cdn.onetrust.com^
 @@||privacyportal.cookiepro.com^
 @@||privacyportal.onetrust.com^
 @@||privat24.privatbank.ua^
