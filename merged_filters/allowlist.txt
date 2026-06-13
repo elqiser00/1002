@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.06.13
-! Total rules: 15929
+! Total rules: 15949
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -912,8 +912,28 @@
 @@||am730.com.hk^
 @@||amasake.jp^
 @@||amazon-adsystem.com^
+@@||amazon.ae^
+@@||amazon.ca^
+@@||amazon.cn^
+@@||amazon.co.jp^
+@@||amazon.co.uk^
+@@||amazon.com.au^
+@@||amazon.com.br^
+@@||amazon.com.mx^
+@@||amazon.com.tr^
 @@||amazon.com^
+@@||amazon.de^
+@@||amazon.eg^
+@@||amazon.es^
+@@||amazon.fr^
+@@||amazon.in^
+@@||amazon.it^
+@@||amazon.nl^
 @@||amazon.partners.tremorhub^
+@@||amazon.pl^
+@@||amazon.sa^
+@@||amazon.se^
+@@||amazon.sg^
 @@||amazonaws.com^
 @@||amazoncustomerservice.d2.sc^
 @@||amazontrust.com^
