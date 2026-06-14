@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.06.14
-! Total rules: 15951
+! Total rules: 15952
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -11980,6 +11980,7 @@
 @@||scripts.demandmedia.com^
 @@||scripts.opti-digital.com^
 @@||scriptsoup.nx.tc^
+@@||sctrack.sendcloud.net^
 @@||scubidu.eu^
 @@||scw.cloud^
 @@||scyts.com^
