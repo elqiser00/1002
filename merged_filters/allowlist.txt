@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.06.14
-! Total rules: 15950
+! Total rules: 15951
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -7041,6 +7041,7 @@
 @@||imhonet.ru^
 @@||imk.neweggimages.com^
 @@||imleagues.com^
+@@||immobilise.com^
 @@||imobiliare.ro^
 @@||imore.com^
 @@||imp-adedge.i-mobile.co^
