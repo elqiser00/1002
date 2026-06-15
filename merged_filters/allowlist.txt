@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.06.15
-! Total rules: 15952
+! Total rules: 15953
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -8290,6 +8290,7 @@
 @@||login.mobywatel.gov^
 @@||login.nvgs.nvidia^
 @@||login.nvidia.com^
+@@||login.olx^
 @@||login.php^
 @@||login.sendpulse.com^
 @@||login.swissid.ch^
@@ -11237,7 +11238,6 @@
 @@||r25.jp^
 @@||r34anim.com^
 @@||r3owners.net^
-@@||r3sub.com^
 @@||racedepartment.com^
 @@||racevpn.com^
 @@||racingsportscars.com^
@@ -11508,6 +11508,7 @@
 @@||res.wx.qq^
 @@||research.de.com^
 @@||research.hchs.hc^
+@@||researchgate.net^
 @@||researchintel.com^
 @@||reseau.ovation.ca^
 @@||reseauforum.org^
