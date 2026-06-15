@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.06.15
-! Total rules: 15953
+! Total rules: 15935
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -62,26 +62,7 @@
 @@||aargauerzeitung.ch^
 @@||aasarchitecture.com^
 @@||aax-eu.amazon-adsystem.com^
-@@||aax-eu.amazon.ae^
-@@||aax-eu.amazon.co^
-@@||aax-eu.amazon.com^
-@@||aax-eu.amazon.de^
-@@||aax-eu.amazon.eg^
-@@||aax-eu.amazon.es^
-@@||aax-eu.amazon.fr^
-@@||aax-eu.amazon.in^
-@@||aax-eu.amazon.it^
-@@||aax-eu.amazon.nl^
-@@||aax-eu.amazon.pl^
-@@||aax-eu.amazon.sa^
-@@||aax-eu.amazon.se^
-@@||aax-fe.amazon.co^
-@@||aax-fe.amazon.com^
-@@||aax-fe.amazon.sg^
-@@||aax-us-east-retail-direct.amazon-adsystem.com^
-@@||aax-us-east-retail-direct.amazon.com^
 @@||aax-us-east.amazon-adsystem.com^
-@@||aax-us-iad.amazon.com^
 @@||aax.amazon-adsystem.com^
 @@||ab.9xbud.com^
 @@||ab.blogs.es^
@@ -11641,6 +11622,7 @@
 @@||rp5.ua^
 @@||rpc.meituan.com^
 @@||rqq.co^
+@@||rr4farmtrof.com^
 @@||rs.mail.ru^
 @@||rsc.cdn77.org^
 @@||rscaptcha.com^
