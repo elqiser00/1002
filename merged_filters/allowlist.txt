@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.06.16
-! Total rules: 15928
+! Total rules: 15955
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -62,7 +62,26 @@
 @@||aargauerzeitung.ch^
 @@||aasarchitecture.com^
 @@||aax-eu.amazon-adsystem.com^
+@@||aax-eu.amazon.ae^
+@@||aax-eu.amazon.co^
+@@||aax-eu.amazon.com^
+@@||aax-eu.amazon.de^
+@@||aax-eu.amazon.eg^
+@@||aax-eu.amazon.es^
+@@||aax-eu.amazon.fr^
+@@||aax-eu.amazon.in^
+@@||aax-eu.amazon.it^
+@@||aax-eu.amazon.nl^
+@@||aax-eu.amazon.pl^
+@@||aax-eu.amazon.sa^
+@@||aax-eu.amazon.se^
+@@||aax-fe.amazon.co^
+@@||aax-fe.amazon.com^
+@@||aax-fe.amazon.sg^
+@@||aax-us-east-retail-direct.amazon-adsystem.com^
+@@||aax-us-east-retail-direct.amazon.com^
 @@||aax-us-east.amazon-adsystem.com^
+@@||aax-us-iad.amazon.com^
 @@||aax.amazon-adsystem.com^
 @@||ab.9xbud.com^
 @@||ab.blogs.es^
@@ -538,6 +557,7 @@
 @@||adserver.juicyads.com^
 @@||adserver.kresy.pl^
 @@||adserver.rhombusads.com^
+@@||adserver.rockwell.kakao^
 @@||adserver.skiresort-service.com^
 @@||adservex.media.net^
 @@||adservice.google.co^
@@ -2982,6 +3002,7 @@
 @@||cdnyauction.buyee.jp^
 @@||cdp.cloud.unity^
 @@||cdp.pl^
+@@||cdp.yna.co^
 @@||cdpn.io^
 @@||cdromance.com^
 @@||cds.connatix.com^
@@ -6757,6 +6778,7 @@
 @@||i.y.qq^
 @@||i.ytimg.com^
 @@||i0.wp.com^
+@@||i18n-pglstatp.com^
 @@||i2.bahamut.com^
 @@||i2.y.qq^
 @@||i2i.jp^
@@ -8394,6 +8416,7 @@
 @@||m.beautypageants.in^
 @@||m.chenzhongtech.com^
 @@||m.cn^
+@@||m.comic.naver^
 @@||m.ctrip.com^
 @@||m.da.mgtv^
 @@||m.dbzstatic.com^
@@ -10377,6 +10400,8 @@
 @@||pdk.video.snidigital^
 @@||pdn.adingo.jp^
 @@||pdrs.dp.ua^
+@@||pds.gmarket.co^
+@@||pdsssl.gmarket.co^
 @@||pe.com^
 @@||peacocktv.com^
 @@||peers.tv^
@@ -10567,6 +10592,7 @@
 @@||play.geforcenow.com^
 @@||play.google.com^
 @@||play.history.com^
+@@||play.kakao.com^
 @@||play.moviehd.cfd^
 @@||play.mylifetime.com^
 @@||play.nova.bg^
@@ -13635,6 +13661,7 @@
 @@||tf1.fr^
 @@||tf1info.fr^
 @@||tff.tf^
+@@||tg.kakao.com^
 @@||tg1.aniview.com^
 @@||tgc1.ru^
 @@||tgcom24.mediaset.it^
