@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.06.16
-! Total rules: 15936
+! Total rules: 15928
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -538,7 +538,6 @@
 @@||adserver.juicyads.com^
 @@||adserver.kresy.pl^
 @@||adserver.rhombusads.com^
-@@||adserver.rockwell.kakao^
 @@||adserver.skiresort-service.com^
 @@||adservex.media.net^
 @@||adservice.google.co^
@@ -2983,7 +2982,6 @@
 @@||cdnyauction.buyee.jp^
 @@||cdp.cloud.unity^
 @@||cdp.pl^
-@@||cdp.yna.co^
 @@||cdpn.io^
 @@||cdromance.com^
 @@||cds.connatix.com^
@@ -6759,7 +6757,6 @@
 @@||i.y.qq^
 @@||i.ytimg.com^
 @@||i0.wp.com^
-@@||i18n-pglstatp.com^
 @@||i2.bahamut.com^
 @@||i2.y.qq^
 @@||i2i.jp^
@@ -8397,7 +8394,6 @@
 @@||m.beautypageants.in^
 @@||m.chenzhongtech.com^
 @@||m.cn^
-@@||m.comic.naver^
 @@||m.ctrip.com^
 @@||m.da.mgtv^
 @@||m.dbzstatic.com^
@@ -10381,8 +10377,6 @@
 @@||pdk.video.snidigital^
 @@||pdn.adingo.jp^
 @@||pdrs.dp.ua^
-@@||pds.gmarket.co^
-@@||pdsssl.gmarket.co^
 @@||pe.com^
 @@||peacocktv.com^
 @@||peers.tv^
@@ -10573,7 +10567,6 @@
 @@||play.geforcenow.com^
 @@||play.google.com^
 @@||play.history.com^
-@@||play.kakao.com^
 @@||play.moviehd.cfd^
 @@||play.mylifetime.com^
 @@||play.nova.bg^
@@ -13642,7 +13635,6 @@
 @@||tf1.fr^
 @@||tf1info.fr^
 @@||tff.tf^
-@@||tg.kakao.com^
 @@||tg1.aniview.com^
 @@||tgc1.ru^
 @@||tgcom24.mediaset.it^
