@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.06.17
-! Total rules: 15954
+! Total rules: 15958
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -61,6 +61,12 @@
 @@||aamulehti.fi^
 @@||aargauerzeitung.ch^
 @@||aasarchitecture.com^
+@@||aax-eu-zaz.amazon.co^
+@@||aax-eu-zaz.amazon.com^
+@@||aax-eu-zaz.amazon.es^
+@@||aax-eu-zaz.amazon.fr^
+@@||aax-eu-zaz.amazon.in^
+@@||aax-eu-zaz.amazon.it^
 @@||aax-eu.amazon-adsystem.com^
 @@||aax-eu.amazon.ae^
 @@||aax-eu.amazon.co^
@@ -10027,12 +10033,10 @@
 @@||online-stars.org^
 @@||online-tv.pl^
 @@||online.a1.by^
-@@||online.adservicemedia.dk^
 @@||online.americanexpress.com^
 @@||online.bcs.ru^
 @@||online.citi.com^
 @@||online.cosmosbank.in^
-@@||online.digital-advisor.com^
 @@||online.mbank.pl^
 @@||online.rshb.ru^
 @@||online.translate.ua^
