@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.06.17
-! Total rules: 15956
+! Total rules: 15954
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -4141,7 +4141,6 @@
 @@||debijenkorf.de^
 @@||debilizator.tv^
 @@||debrid-file.com^
-@@||debridup.com^
 @@||decko.ceskatelevize.cz^
 @@||decomaniacos.es^
 @@||decorardicas.com.br^
@@ -6909,7 +6908,6 @@
 @@||imaeil.com^
 @@||image.capital.de^
 @@||image.coolapk.com^
-@@||image.edm.cba^
 @@||image.ias.rakuten^
 @@||image.mp3.zdn^
 @@||image.shutterstock.com^
