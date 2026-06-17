@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.06.17
-! Total rules: 15955
+! Total rules: 15956
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -1471,7 +1471,6 @@
 @@||apptoko.com^
 @@||apptractor.ru^
 @@||appvn.com^
-@@||appzdam.net^
 @@||aps-web.adobe.io^
 @@||aptal.pro^
 @@||aptekalab.com^
@@ -6910,6 +6909,7 @@
 @@||imaeil.com^
 @@||image.capital.de^
 @@||image.coolapk.com^
+@@||image.edm.cba^
 @@||image.ias.rakuten^
 @@||image.mp3.zdn^
 @@||image.shutterstock.com^
@@ -12578,6 +12578,7 @@
 @@||sohu.com^
 @@||soins-infirmiers.com^
 @@||soisk-me.pl^
+@@||sol-online.ru^
 @@||sol.dk^
 @@||solitarios-online.com^
 @@||solncesvet.ru^
