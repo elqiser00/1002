@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.06.18
-! Total rules: 15959
+! Total rules: 15960
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -2209,7 +2209,6 @@
 @@||blueconic.net^
 @@||bluedollar.net^
 @@||bluekai.com^
-@@||bluems.com^
 @@||bluesnews.no^
 @@||bluesystem.me^
 @@||bluphoria.cms.tecreation^
@@ -10033,10 +10032,12 @@
 @@||online-stars.org^
 @@||online-tv.pl^
 @@||online.a1.by^
+@@||online.adservicemedia.dk^
 @@||online.americanexpress.com^
 @@||online.bcs.ru^
 @@||online.citi.com^
 @@||online.cosmosbank.in^
+@@||online.digital-advisor.com^
 @@||online.mbank.pl^
 @@||online.rshb.ru^
 @@||online.translate.ua^
@@ -11572,6 +11573,7 @@
 @@||ringcentral.com^
 @@||ringo-no-mori.jp^
 @@||ringside24.com^
+@@||ritsatv.ru^
 @@||riverlink.etcchosted.com^
 @@||riverside.fm^
 @@||riwal.com^
@@ -14722,7 +14724,6 @@
 @@||vcomic.net^
 @@||vcs-quality.zijieapi.com^
 @@||vcs.zijieapi.com^
-@@||vd.l.qq^
 @@||vdapp.nend.net^
 @@||vdncloud.org^
 @@||vdv-info.ru^
