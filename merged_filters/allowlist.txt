@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.06.18
-! Total rules: 15958
+! Total rules: 15959
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -7650,7 +7650,6 @@
 @@||kickass.com.se^
 @@||kickasssubtitles.com^
 @@||kickcharm.com^
-@@||kickedface.com^
 @@||kieblog.vn^
 @@||kiemlua.com^
 @@||kienthuc.net.vn^
@@ -7787,6 +7786,7 @@
 @@||krzysztofwojczal.pl^
 @@||ks-bueromoebel.shop^
 @@||ksapisrv.com^
+@@||ksdpictures.site^
 @@||ksiegarnia.karta.org^
 @@||ksl.com^
 @@||ksn-crypto-whocalls-geo.kaspersky-labs.com^
@@ -12743,6 +12743,7 @@
 @@||srvto.com^
 @@||srvtrck.com^
 @@||ss.phncdn.com^
+@@||ss.sport-express.ru^
 @@||ss.tuffoonaskant.com^
 @@||ssai.aniview.com^
 @@||ssante.com^
