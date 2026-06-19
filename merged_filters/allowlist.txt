@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.06.19
-! Total rules: 15963
+! Total rules: 15962
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -10416,7 +10416,6 @@
 @@||penta.a.one^
 @@||pepperjamnetwork.com^
 @@||per.segmentify.com^
-@@||performant.com^
 @@||perlas.lt^
 @@||permission-proxy-gmxnet.uimserv.net^
 @@||permutive.app^
