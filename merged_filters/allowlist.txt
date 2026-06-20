@@ -10416,6 +10416,7 @@
 @@||penta.a.one^
 @@||pepperjamnetwork.com^
 @@||per.segmentify.com^
+@@||performant.com^
 @@||perlas.lt^
 @@||permission-proxy-gmxnet.uimserv.net^
 @@||permutive.app^
@@ -14299,7 +14300,6 @@
 @@||tuborstb.co^
 @@||tucinehd.com^
 @@||tucson.com^
-@@||tuhu.cn^
 @@||tui.click^
 @@||tuma.jp^
 @@||tumadouga.jp^
