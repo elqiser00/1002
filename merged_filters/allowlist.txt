@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.06.22
-! Total rules: 15964
+! Total rules: 15966
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -10498,6 +10498,7 @@
 @@||pictasty.com^
 @@||pictogo.net^
 @@||picture.mactechnews.de^
+@@||pictures.spordunyasi.site^
 @@||picusha.pw^
 @@||pietsmiet.de^
 @@||piguiqproxy.com^
@@ -14872,6 +14873,7 @@
 @@||vidload.lol^
 @@||vidload.site^
 @@||vidmoly.to^
+@@||vidnest-.workers.dev^
 @@||vidnest.io^
 @@||vidomo.xyz^
 @@||vidorg.net^
