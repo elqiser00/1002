@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.06.22
-! Total rules: 15966
+! Total rules: 15969
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -49,6 +49,7 @@
 @@||a1.itc.cn^
 @@||a10.com^
 @@||a2zapk.com^
+@@||a2zapk.dev^
 @@||a2zupload.com^
 @@||a7.org^
 @@||a8.net^
@@ -133,6 +134,7 @@
 @@||accaii.com^
 @@||accelcdn.com^
 @@||acceptable.a-ads.com^
+@@||access.worldpay.com^
 @@||accesstrade.net^
 @@||account.adguard^
 @@||account.adobe.com^
@@ -13476,6 +13478,7 @@
 @@||targetimg1.com^
 @@||tarnkappe.info^
 @@||tarteaucitron.io^
+@@||tas-cas.org^
 @@||tas-ix.net^
 @@||tashikani.jp^
 @@||tatacliq.com^
