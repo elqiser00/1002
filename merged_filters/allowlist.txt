@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.06.23
-! Total rules: 15969
+! Total rules: 15972
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -3161,6 +3161,7 @@
 @@||cindyholbrook.lpages.co^
 @@||cineframes.com^
 @@||cinehax.com^
+@@||cinehd.app^
 @@||cinema.de^
 @@||cinema.pia.co^
 @@||cinemaclock.com^
@@ -5863,6 +5864,7 @@
 @@||gdeslon.ru^
 @@||gdh.postcodeloterij.nl^
 @@||gdi-sh.de^
+@@||gdl.freegogpcgames.xyz^
 @@||gdpr-wrapper.privacymanager.io^
 @@||gdpr.internetbrands.com^
 @@||gdpr.privacymanager.io^
@@ -14983,6 +14985,7 @@
 @@||vnadigital.com^
 @@||vnecdn.net^
 @@||vnhax.com^
+@@||vnjpclub.com^
 @@||vnsc.vn^
 @@||vntsm.com^
 @@||vo.msecnd.net^
