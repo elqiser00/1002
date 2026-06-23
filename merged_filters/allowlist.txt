@@ -776,6 +776,7 @@
 @@||aircanada.com^
 @@||airchina.com.cn^
 @@||airevue.net^
+@@||airfind.com^
 @@||airindia.com^
 @@||airliners.de^
 @@||airplaydirect.com^
@@ -1400,7 +1401,6 @@
 @@||app.adjust.io^
 @@||app.adjust.net^
 @@||app.adjust.world^
-@@||app.adjust^
 @@||app.appsflyer.com^
 @@||app.arizonawildcats.com^
 @@||app.axenthost.com^
