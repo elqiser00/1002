@@ -1707,6 +1707,7 @@
 @@||auth.okko.tv^
 @@||auth.openai.com^
 @@||auth.opera.com^
+@@||auth.pingone.com^
 @@||auth.schale.network^
 @@||auth.ticketmaster.com^
 @@||auth.vodafone.hu^
@@ -4756,7 +4757,6 @@
 @@||edge-enterprise.activity.windows^
 @@||edge.activity.windows^
 @@||edge.adobedc.net^
-@@||edge.cookiefirst.com^
 @@||edge.microsoft.com^
 @@||edge.permutive.app^
 @@||edge1.certona.net^
@@ -7720,6 +7720,7 @@
 @@||knigilub.ru^
 @@||knt-liner.co.jp^
 @@||ko-fi.com^
+@@||kobaiya.jp^
 @@||kobieta.wp.pl^
 @@||kocaelibarisgazetesi.com^
 @@||kochbar.de^
@@ -11438,7 +11439,6 @@
 @@||refpa.top^
 @@||regapi.37.com^
 @@||region1.analytics.google^
-@@||region1.google-analytics.com^
 @@||registrierung.gmx.net^
 @@||registrierung.web.de^
 @@||registro.pse.com^
