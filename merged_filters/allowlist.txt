@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.06.24
-! Total rules: 15973
+! Total rules: 15974
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -2709,6 +2709,7 @@
 @@||cdn.betrad.com^
 @@||cdn.bewab.co^
 @@||cdn.bg^
+@@||cdn.bigcrunch.com^
 @@||cdn.bluebillywig.com^
 @@||cdn.blueconic.net^
 @@||cdn.bmcdn3.com^
