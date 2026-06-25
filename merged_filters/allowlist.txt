@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.06.25
-! Total rules: 15974
+! Total rules: 15976
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -14206,6 +14206,7 @@
 @@||tripcdn.com^
 @@||tripcentral.ca^
 @@||tripit.com^
+@@||tripo-data.s-accelerate.amazonaws^
 @@||trisousa.ru^
 @@||tritinia.com^
 @@||trj.valuecommerce.com^
@@ -14538,6 +14539,7 @@
 @@||unicode.org^
 @@||uniconsent.com^
 @@||unicum.de^
+@@||unifiedapicommerce-ca.axs.com^
 @@||unimedsorocaba.coop.br^
 @@||uniquetutorialsnew.blogspot.com^
 @@||united.uimserv.net^
