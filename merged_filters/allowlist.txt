@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.06.25
-! Total rules: 15976
+! Total rules: 15979
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -1350,6 +1350,7 @@
 @@||api.vhx.com^
 @@||api.vhx.tv^
 @@||api.viddler.com^
+@@||api.videasy^
 @@||api.vk.com^
 @@||api.webengage.com^
 @@||api.workwise.io^
@@ -10087,6 +10088,7 @@
 @@||open.spotify.com^
 @@||open.spotifycdn.com^
 @@||open.video^
+@@||openads-cdn.adsrvr.org^
 @@||openai.com^
 @@||openapi-alpha-.ivideon.com^
 @@||openapi-alpha.ivideon.com^
@@ -14203,6 +14205,7 @@
 @@||triolan.com^
 @@||trip-jam.com^
 @@||trip.cmbchina.com^
+@@||trip.com^
 @@||tripcdn.com^
 @@||tripcentral.ca^
 @@||tripit.com^
