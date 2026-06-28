@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.06.28
-! Total rules: 15982
+! Total rules: 15983
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -1692,7 +1692,6 @@
 @@||audiotruyenfull.com^
 @@||auduki.bluette.info^
 @@||audycje.tokfm.pl^
-@@||aurl.io^
 @@||aurl.net^
 @@||auroravid.to^
 @@||ausbt.com.au^
@@ -7832,6 +7831,7 @@
 @@||kurs.com.ua^
 @@||kursjs.pl^
 @@||kusonime.com^
+@@||kuyhaa.me^
 @@||kvadratmetr.uz^
 @@||kvartplata.ru^
 @@||kvb.koeln^
@@ -14745,6 +14745,7 @@
 @@||vcomic.net^
 @@||vcs-quality.zijieapi.com^
 @@||vcs.zijieapi.com^
+@@||vd.l.qq^
 @@||vdapp.nend.net^
 @@||vdncloud.org^
 @@||vdv-info.ru^
