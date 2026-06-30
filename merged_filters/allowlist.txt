@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.06.30
-! Total rules: 15980
+! Total rules: 15984
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -85,12 +85,8 @@
 @@||aax-eu.amazon.sa^
 @@||aax-eu.amazon.se^
 @@||aax-fe.amazon.co^
-@@||aax-fe.amazon.com^
-@@||aax-fe.amazon.sg^
 @@||aax-us-east-retail-direct.amazon-adsystem.com^
-@@||aax-us-east-retail-direct.amazon.com^
 @@||aax-us-east.amazon-adsystem.com^
-@@||aax-us-iad.amazon.com^
 @@||aax.amazon-adsystem.com^
 @@||ab.9xbud.com^
 @@||ab.blogs.es^
@@ -1692,6 +1688,7 @@
 @@||audiotruyenfull.com^
 @@||auduki.bluette.info^
 @@||audycje.tokfm.pl^
+@@||aurl.io^
 @@||aurl.net^
 @@||auroravid.to^
 @@||ausbt.com.au^
@@ -2137,6 +2134,7 @@
 @@||bitdefender.com^
 @@||bitefaucet.com^
 @@||bitent.com^
+@@||bitepito.hu^
 @@||biters.io^
 @@||bitfly.io^
 @@||bitonplay.com^
@@ -2185,6 +2183,7 @@
 @@||blog.6ziz.com^
 @@||blog.foolsoft.ru^
 @@||blog.gouline.net^
+@@||blog.hu^
 @@||blog.krcesdev.com^
 @@||blog.kvb-koeln.de^
 @@||blog.malwarebytes.com^
@@ -5730,6 +5729,7 @@
 @@||galaxy.gala100.net^
 @@||galaxy.mobstudio.ru^
 @@||galaxy2.mobstudio.ru^
+@@||galaxypush.com^
 @@||galleries.bz^
 @@||gallerix.asia^
 @@||galt.hit.gemius^
@@ -6329,6 +6329,7 @@
 @@||gw2mists.com^
 @@||gws.unicredit.ru^
 @@||gwss.ru^
+@@||gyakorikerdesek.hu^
 @@||gymhuntr.com^
 @@||gymnasedeburier.ch^
 @@||gyutto.com^
@@ -7740,6 +7741,7 @@
 @@||koifaire.com^
 @@||koken.nicovideo.jp^
 @@||koldcast.tv^
+@@||kollegium-neriszentfulop.chemin-neuf.hu^
 @@||kollhong.com^
 @@||komarovskiy.net^
 @@||komas19.xyz^
@@ -8876,6 +8878,7 @@
 @@||messenger.com^
 @@||messenger.upservice.io^
 @@||messitv.net^
+@@||meszotar.hu^
 @@||met.bz^
 @@||meta.wikimedia.org^
 @@||metabase.com^
@@ -12942,6 +12945,7 @@
 @@||static.gazeta.ru^
 @@||static.gazetaprawna.pl^
 @@||static.go3.tv^
+@@||static.gyakorikerdesek.hu^
 @@||static.h-bid.com^
 @@||static.hdslb.com^
 @@||static.hentai.direct^
