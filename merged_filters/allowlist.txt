@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
-! Version: 2026.06.29
-! Total rules: 15983
+! Version: 2026.06.30
+! Total rules: 15985
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -2686,6 +2686,7 @@
 @@||cdn.adspirit.de^
 @@||cdn.adswizz.com^
 @@||cdn.advertserve.com^
+@@||cdn.adxcontent.com^
 @@||cdn.afp.ai^
 @@||cdn.almamedia.tech^
 @@||cdn.amplitude.com^
@@ -2952,6 +2953,7 @@
 @@||cdn.vidible.tv^
 @@||cdn.vidyomani.com^
 @@||cdn.viglink.com^
+@@||cdn.viously.com^
 @@||cdn.vox-cdn.com^
 @@||cdn.vuukle.com^
 @@||cdn.warface.ru^
@@ -5410,7 +5412,6 @@
 @@||fivethirtyeight.com^
 @@||fizi.ua^
 @@||fl.moveonjoy.com^
-@@||flacdownloader.com^
 @@||flag.lab.amplitude^
 @@||flagmanfishing.com^
 @@||flagpedia.net^
@@ -6986,7 +6987,6 @@
 @@||img.cf^
 @@||img.chefkoch-cdn.de^
 @@||img.classistatic.de^
-@@||img.com^
 @@||img.dladealera.pl^
 @@||img.dorzeczy.pl^
 @@||img.doubanio.com^
@@ -9538,6 +9538,7 @@
 @@||neko-miku.com^
 @@||neko-sama.fr^
 @@||nekomeowmeow.com^
+@@||nekostream.site^
 @@||nelo2-col.navercorp.com^
 @@||nelonenmedia.fi^
 @@||nemlog-in.dk^
@@ -9678,6 +9679,7 @@
 @@||nicoad.nicovideo.jp^
 @@||nicovideo.cdn.nimg^
 @@||nid.naver.com^
+@@||nieuwsvandedag.nl^
 @@||niezawodny.pl^
 @@||nifgashim.net^
 @@||nihasi.ru^
@@ -11761,7 +11763,6 @@
 @@||s.bstarstatic.com^
 @@||s.click.aliexpress^
 @@||s.click.taobao^
-@@||s.com^
 @@||s.confluency.site^
 @@||s.go-mpulse.net^
 @@||s.imgur.com^
@@ -12372,6 +12373,7 @@
 @@||signalshares.com^
 @@||significatocanzoni.it^
 @@||signin.aws.amazon^
+@@||signin.costco.com^
 @@||signin.rockstargames.com^
 @@||signin.verizon.com^
 @@||signs.pl^
@@ -13344,6 +13346,7 @@
 @@||sys000.ucoz.net^
 @@||sys000.uid.me^
 @@||sysc.biz^
+@@||system.promio-connect.com^
 @@||system360.inistrack.net^
 @@||systemed.fr^
 @@||systranbox.com^
@@ -14779,7 +14782,6 @@
 @@||verticalscope-com.videoplayerhub.com^
 @@||veryweb.jp^
 @@||vesmir.cz^
-@@||veta.naver.com^
 @@||veterinerhekimleri.com^
 @@||veuclips.com^
 @@||vfl.ru^
