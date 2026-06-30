@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.06.30
-! Total rules: 15985
+! Total rules: 15980
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -2137,7 +2137,6 @@
 @@||bitdefender.com^
 @@||bitefaucet.com^
 @@||bitent.com^
-@@||bitepito.hu^
 @@||biters.io^
 @@||bitfly.io^
 @@||bitonplay.com^
@@ -2186,7 +2185,6 @@
 @@||blog.6ziz.com^
 @@||blog.foolsoft.ru^
 @@||blog.gouline.net^
-@@||blog.hu^
 @@||blog.krcesdev.com^
 @@||blog.kvb-koeln.de^
 @@||blog.malwarebytes.com^
@@ -5732,7 +5730,6 @@
 @@||galaxy.gala100.net^
 @@||galaxy.mobstudio.ru^
 @@||galaxy2.mobstudio.ru^
-@@||galaxypush.com^
 @@||galleries.bz^
 @@||gallerix.asia^
 @@||galt.hit.gemius^
@@ -6100,6 +6097,7 @@
 @@||go.leadgid.ru^
 @@||go.link^
 @@||go.linkwi.se^
+@@||go.marzaent.com^
 @@||go.microsoft.com^
 @@||go.nextiva.com^
 @@||go.nordlocker.net^
@@ -6331,7 +6329,6 @@
 @@||gw2mists.com^
 @@||gws.unicredit.ru^
 @@||gwss.ru^
-@@||gyakorikerdesek.hu^
 @@||gymhuntr.com^
 @@||gymnasedeburier.ch^
 @@||gyutto.com^
@@ -7743,7 +7740,6 @@
 @@||koifaire.com^
 @@||koken.nicovideo.jp^
 @@||koldcast.tv^
-@@||kollegium-neriszentfulop.chemin-neuf.hu^
 @@||kollhong.com^
 @@||komarovskiy.net^
 @@||komas19.xyz^
@@ -8880,7 +8876,6 @@
 @@||messenger.com^
 @@||messenger.upservice.io^
 @@||messitv.net^
-@@||meszotar.hu^
 @@||met.bz^
 @@||meta.wikimedia.org^
 @@||metabase.com^
@@ -12947,7 +12942,6 @@
 @@||static.gazeta.ru^
 @@||static.gazetaprawna.pl^
 @@||static.go3.tv^
-@@||static.gyakorikerdesek.hu^
 @@||static.h-bid.com^
 @@||static.hdslb.com^
 @@||static.hentai.direct^
@@ -14159,7 +14153,6 @@
 @@||traffichaus.com^
 @@||trafficmanager.anyclip.com^
 @@||trafico.prensaiberica.es^
-@@||trafictube.ro^
 @@||trafmag.com^
 @@||trailrunnermag.com^
 @@||trainzland.ru^
@@ -14730,6 +14723,7 @@
 @@||vast.btrll.com^
 @@||vast.com^
 @@||vast.js^
+@@||vast.livejasmin.com^
 @@||vast.yashi.com^
 @@||vatanbilgisayar.com^
 @@||vattastic.com^
@@ -14841,6 +14835,7 @@
 @@||video.onnetwork.tv^
 @@||video.qq.com^
 @@||video.repubblica.it^
+@@||video.sacdnssedge.com^
 @@||video.showmeshowtv.ru^
 @@||video.snidigital.com^
 @@||video.tv-tokyo.co^
