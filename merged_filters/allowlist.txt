@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.07.01
-! Total rules: 15985
+! Total rules: 15983
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -136,6 +136,7 @@
 @@||accesstrade.net^
 @@||account.adguard^
 @@||account.adobe.com^
+@@||account.deezer.com^
 @@||account.mail.ru^
 @@||account.mcid.mynavi^
 @@||account.microsoft.com^
@@ -3772,7 +3773,6 @@
 @@||cqcounter.com^
 @@||cqshuda.com^
 @@||cr.acecounter.com^
-@@||crackedgameservers.com^
 @@||crackedresource.com^
 @@||crackedvst.com^
 @@||cracking.org^
@@ -8238,6 +8238,7 @@
 @@||ll-media.tmz.com^
 @@||lloydstsb.com^
 @@||lluban.by^
+@@||llvpn.com^
 @@||lmjvideocdn.-cdn.net^
 @@||lms.ev.org^
 @@||lncn.org^
@@ -13801,7 +13802,6 @@
 @@||thisiswaldo.com^
 @@||thizissam.in^
 @@||thn.ne.jp^
-@@||thoaimedia.com^
 @@||thomas.co^
 @@||thothd.com^
 @@||threatbook.cn^
@@ -14577,7 +14577,6 @@
 @@||up.net^
 @@||up4load.com^
 @@||upaiyun.com^
-@@||upbitcoin.com^
 @@||update.ayugram.one^
 @@||updatesmarugujarat.in^
 @@||upf.co.il^
@@ -15147,7 +15146,6 @@
 @@||watchdirty.to^
 @@||watchdoctorwhoonline.com^
 @@||watcheverybodylovesraymond.com^
-@@||watchhouseonline.net^
 @@||watchmalcolminthemiddle.com^
 @@||watchonlyfoolsandhorses.com^
 @@||watchparksandrecreation.net^
