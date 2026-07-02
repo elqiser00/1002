@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.07.02
-! Total rules: 15986
+! Total rules: 15977
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -359,7 +359,6 @@
 @@||admin.brightcove.com^
 @@||admin.corrata.com^
 @@||admin.dable.io^
-@@||admin.google.com^
 @@||admin.mailchimp.com^
 @@||admin.mdclinica.ru^
 @@||admin.memberspace.com^
@@ -1045,8 +1044,6 @@
 @@||androidtunado.com.br^
 @@||androidtvbox-.netdna-ssl.com^
 @@||androidvpn.top^
-@@||andromedarabbit.disqus.com^
-@@||andromedarabbit.net^
 @@||androplus.org^
 @@||anessa.shiseido.co^
 @@||anflat.ru^
@@ -1423,7 +1420,6 @@
 @@||app.freeinvoicebuilder.com^
 @@||app.getbeamer.com^
 @@||app.getresponse.com^
-@@||app.gitbook.com^
 @@||app.home^
 @@||app.hubspot.com^
 @@||app.humanornot.ai^
@@ -2294,7 +2290,6 @@
 @@||brainly.com^
 @@||brainly.lat^
 @@||bran-media.canalplus.pro^
-@@||branch.io^
 @@||brand.fujifilm.com^
 @@||brand.naver.com^
 @@||brandexperience-group.com^
@@ -4052,7 +4047,6 @@
 @@||dash.cloudflare.com^
 @@||dash.hyzen-cloud.com^
 @@||dash3.cashvib.com^
-@@||dashboard-01.moengage.com^
 @@||dashboard.jwplayer.com^
 @@||dashboard.mgid.com^
 @@||dashboard.tinypass.com^
@@ -6006,7 +6000,6 @@
 @@||giolandscaping.com^
 @@||gioxx.org^
 @@||gipfelbuch.ch^
-@@||giphy.com^
 @@||giraff.io^
 @@||gironde.fr^
 @@||gismeteo.ru^
@@ -7272,7 +7265,6 @@
 @@||israelsport.co.il^
 @@||isramedia.net^
 @@||istanbulsenin.istanbul^
-@@||istarbucks.co.kr^
 @@||isthischannelmonetized.com^
 @@||istoreil.co.il^
 @@||istotne.pl^
@@ -8279,6 +8271,7 @@
 @@||log.go.com^
 @@||log.mmstat.com^
 @@||log.onmas.kt^
+@@||log.strm.yandex^
 @@||log000.goo.ne^
 @@||logcg.content-delivery.top^
 @@||logentries.com^
@@ -8518,6 +8511,7 @@
 @@||magtv.top^
 @@||magyarhang.org^
 @@||mahimeta.com^
+@@||mahitimanch.in^
 @@||mahjong.com^
 @@||maidenhead-advertiser.co.uk^
 @@||mail-www.baynote.net^
@@ -10017,7 +10011,6 @@
 @@||onelink.me^
 @@||onelinksmartscript.appsflyer.com^
 @@||onelnk.com^
-@@||onelogin.com^
 @@||oneman.gr^
 @@||onemanhua.com^
 @@||onenavi.jp^
@@ -14543,7 +14536,6 @@
 @@||umicore.jp^
 @@||umke.org^
 @@||unbiasedsenseevent.com^
-@@||unchartedsky.com^
 @@||unfriend-app.com^
 @@||ungdungcnttchi.gnomio.com^
 @@||uni.rest^
@@ -15546,7 +15538,6 @@
 @@||www.dogpile.com^
 @@||www.door2windows.com^
 @@||www.douglas^
-@@||www.elastic.co^
 @@||www.epiotrkow.pl^
 @@||www.fbsbx.com^
 @@||www.gala.pl^
