@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.07.02
-! Total rules: 15977
+! Total rules: 15991
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -56,6 +56,7 @@
 @@||a7.org^
 @@||a8.net^
 @@||a8cv.amiami.jp^
+@@||a9.com^
 @@||aa.com^
 @@||aa.tweakers.nl^
 @@||aachener-nachrichten.de^
@@ -359,6 +360,7 @@
 @@||admin.brightcove.com^
 @@||admin.corrata.com^
 @@||admin.dable.io^
+@@||admin.google.com^
 @@||admin.mailchimp.com^
 @@||admin.mdclinica.ru^
 @@||admin.memberspace.com^
@@ -1044,6 +1046,8 @@
 @@||androidtunado.com.br^
 @@||androidtvbox-.netdna-ssl.com^
 @@||androidvpn.top^
+@@||andromedarabbit.disqus.com^
+@@||andromedarabbit.net^
 @@||androplus.org^
 @@||anessa.shiseido.co^
 @@||anflat.ru^
@@ -1420,6 +1424,7 @@
 @@||app.freeinvoicebuilder.com^
 @@||app.getbeamer.com^
 @@||app.getresponse.com^
+@@||app.gitbook.com^
 @@||app.home^
 @@||app.hubspot.com^
 @@||app.humanornot.ai^
@@ -1642,6 +1647,7 @@
 @@||asusrouter.com^
 @@||at.adtech.redventures^
 @@||at.vodafone.de^
+@@||ataide0.pingbash.com^
 @@||atanx.alicdn.com^
 @@||atari-embeds.googleusercontent.com^
 @@||atdmt.com^
@@ -2290,6 +2296,7 @@
 @@||brainly.com^
 @@||brainly.lat^
 @@||bran-media.canalplus.pro^
+@@||branch.io^
 @@||brand.fujifilm.com^
 @@||brand.naver.com^
 @@||brandexperience-group.com^
@@ -4047,6 +4054,7 @@
 @@||dash.cloudflare.com^
 @@||dash.hyzen-cloud.com^
 @@||dash3.cashvib.com^
+@@||dashboard-01.moengage.com^
 @@||dashboard.jwplayer.com^
 @@||dashboard.mgid.com^
 @@||dashboard.tinypass.com^
@@ -6000,6 +6008,7 @@
 @@||giolandscaping.com^
 @@||gioxx.org^
 @@||gipfelbuch.ch^
+@@||giphy.com^
 @@||giraff.io^
 @@||gironde.fr^
 @@||gismeteo.ru^
@@ -7265,6 +7274,7 @@
 @@||israelsport.co.il^
 @@||isramedia.net^
 @@||istanbulsenin.istanbul^
+@@||istarbucks.co.kr^
 @@||isthischannelmonetized.com^
 @@||istoreil.co.il^
 @@||istotne.pl^
@@ -10011,6 +10021,7 @@
 @@||onelink.me^
 @@||onelinksmartscript.appsflyer.com^
 @@||onelnk.com^
+@@||onelogin.com^
 @@||oneman.gr^
 @@||onemanhua.com^
 @@||onenavi.jp^
@@ -12488,6 +12499,7 @@
 @@||smailas.net^
 @@||smallseo.tools^
 @@||smallseotools.com^
+@@||sman1asjap.my.id^
 @@||smart-c.jp^
 @@||smart.360.cn^
 @@||smart.link^
@@ -14536,6 +14548,7 @@
 @@||umicore.jp^
 @@||umke.org^
 @@||unbiasedsenseevent.com^
+@@||unchartedsky.com^
 @@||unfriend-app.com^
 @@||ungdungcnttchi.gnomio.com^
 @@||uni.rest^
@@ -15538,6 +15551,7 @@
 @@||www.dogpile.com^
 @@||www.door2windows.com^
 @@||www.douglas^
+@@||www.elastic.co^
 @@||www.epiotrkow.pl^
 @@||www.fbsbx.com^
 @@||www.gala.pl^
