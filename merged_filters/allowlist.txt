@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.07.03
-! Total rules: 15994
+! Total rules: 15997
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -2152,6 +2152,7 @@
 @@||bitvid.sx^
 @@||bitzfree.com^
 @@||biu.ac.il^
+@@||biupress.co.il^
 @@||biv.gazeta.pl^
 @@||bivol.bg^
 @@||biyou-seikei.jp^
@@ -9701,6 +9702,7 @@
 @@||nineyu.com^
 @@||ninja.io^
 @@||ninja.onap.io^
+@@||ninstream.com^
 @@||nintendo.co.jp^
 @@||nintendo.co.kr^
 @@||nintendo.com^
@@ -11854,6 +11856,7 @@
 @@||sable.pxf.io^
 @@||saborcaseiro.org^
 @@||sacheats.com^
+@@||sadanpublishing.co.il^
 @@||sadeczanin.info^
 @@||sadeempc.com^
 @@||sadjklq.com^
