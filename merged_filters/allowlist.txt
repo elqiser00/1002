@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.07.03
-! Total rules: 15991
+! Total rules: 15990
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -12499,7 +12499,6 @@
 @@||smailas.net^
 @@||smallseo.tools^
 @@||smallseotools.com^
-@@||sman1asjap.my.id^
 @@||smart-c.jp^
 @@||smart.360.cn^
 @@||smart.link^
