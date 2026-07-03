@@ -1,6 +1,6 @@
 ! Title: AdGuard Allowlist (DNS Compatible)
 ! Version: 2026.07.03
-! Total rules: 15990
+! Total rules: 15994
 
 @@||a-adq.mediation.unity^
 @@||a-ads.com^
@@ -3089,6 +3089,7 @@
 @@||chatgpt.com^
 @@||chatgptdemo.net^
 @@||chathispano.com^
+@@||chatnow.fr^
 @@||chatropolis.com^
 @@||chaturbate-video.xyz^
 @@||chaturbate.com^
@@ -7439,6 +7440,7 @@
 @@||jmedj.co.jp^
 @@||jmp.co.jp^
 @@||jn.pt^
+@@||jnbhi.com^
 @@||jntufastupdates.com^
 @@||joblib.ru^
 @@||jobportal.uni-koeln.de^
@@ -13200,7 +13202,6 @@
 @@||stromerdgas.leuendorff.de^
 @@||strunz.com^
 @@||sts.eccmp.com^
-@@||sts.wavewalt.me^
 @@||studentenwoningweb.nl^
 @@||studioclassroom.com^
 @@||studioglass.work^
@@ -13308,6 +13309,7 @@
 @@||swift4claim.com^
 @@||swiftmailgen.com^
 @@||swiftnav.com^
+@@||swiftstream.top^
 @@||swinglife.ru^
 @@||swishsrv.com^
 @@||swissmed.com.pl^
@@ -13478,6 +13480,7 @@
 @@||tangdou.com^
 @@||tangsanbooks.com^
 @@||tanpopo-inn.jp^
+@@||tanstack.com^
 @@||tansuo.cntv.cn^
 @@||tanx.com^
 @@||tao.barstoolsports.com^
@@ -15488,6 +15491,7 @@
 @@||wp.de^
 @@||wp.hit.gemius^
 @@||wp.pl^
+@@||wp.youtube-anime.com^
 @@||wpad.igd^
 @@||wpb.shueisha.co^
 @@||wpfc.ml^
