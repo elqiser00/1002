@@ -364,7 +364,6 @@ https://github.com/monojp/hosts_merge/raw/master/hosts_blacklist.txt
 https://s3.amazonaws.com/lists.disconnect.me/simple_malvertising.txt
 https://blocklistproject.github.io/Lists/alt-version/phishing-nl.txt
 https://blocklistproject.github.io/Lists/alt-version/tracking-nl.txt
-https://github.com/bogachenko/filterlist/raw/main/bogachenkoBL.hosts
 https://github.com/ph00lt0/blocklist/raw/master/pihole-blocklist.txt
 https://raw.githubusercontent.com/azet12/kadhosts/master/KADhosts.txt
 https://github.com/Neo23x0/signature-base/raw/master/iocs/c2-iocs.txt
