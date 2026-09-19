@@ -3,8 +3,6 @@ import re
 import gzip
 import shutil
 import time
-import ssl
-import socket
 import random
 from datetime import datetime
 from urllib.parse import urlparse, urlunparse
@@ -19,14 +17,13 @@ import warnings
 warnings.simplefilter('ignore', InsecureRequestWarning)
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
-# محاولة استيراد httpx كبديل احتياطي (لو مثبت)
+# محاولة استيراد httpx و brotli (اختياريان)
 try:
     import httpx
     HTTPX_AVAILABLE = True
 except ImportError:
     HTTPX_AVAILABLE = False
 
-# محاولة استيراد brotli (اختياري لفك ضغط br)
 try:
     import brotli
     BROTLI_AVAILABLE = True
@@ -39,8 +36,9 @@ INPUT_FILE = "list.txt"
 OUTPUT_DIR = "dnsmasq_filters"
 OUTPUT_FILE = os.path.join(OUTPUT_DIR, "dnsmasq_blocklist.conf")
 COMPRESSED_FILE = os.path.join(OUTPUT_DIR, "dnsmasq_blocklist.conf.gz")
+SKIPPED_LOG = os.path.join(OUTPUT_DIR, "skipped_lines.log")
 
-# قائمة User-Agents حقيقية للتدوير
+# User-Agents للتدوير
 USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15",
@@ -51,51 +49,48 @@ USER_AGENTS = [
     "Wget/1.21.3",
 ]
 
-# Headers افتراضية
 DEFAULT_HEADERS = {
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
     "Accept-Language": "en-US,en;q=0.9,ar;q=0.8",
-    "Accept-Encoding": "gzip, deflate",   # br يحتاج brotli، بنضيفه لو متاح
+    "Accept-Encoding": "gzip, deflate, br" if BROTLI_AVAILABLE else "gzip, deflate",
     "Connection": "keep-alive",
     "DNT": "1",
     "Upgrade-Insecure-Requests": "1",
 }
 
-if BROTLI_AVAILABLE:
-    DEFAULT_HEADERS["Accept-Encoding"] = "gzip, deflate, br"
+# كلمات مفتاحية للقوائم البيضاء
+ALLOW_KEYWORDS = ['allow', 'whitelist', 'white-list', 'white_list']
+
+# كلمات محجوزة (ليست دومينات)
+INVALID_WORDS = {
+    'localhost', 'broadcasthost', 'ip6-localhost', 'ip6-loopback',
+    'ip6-allnodes', 'ip6-allrouters', 'ip6-localnet', 'ip6-mcastprefix',
+    'local', 'localdomain', 'localhost.localdomain',
+}
 
 
-# ============ إعداد الجلسة مع Retry ============
+# ============ إعداد الجلسة ============
 def create_session():
     """ينشئ جلسة requests مع Retry و SSL مطفأ."""
     session = requests.Session()
-
     retry_strategy = Retry(
         total=5,
-        backoff_factor=1.5,       # 1.5s, 3s, 6s, 12s, 24s
+        backoff_factor=1.5,
         status_forcelist=[429, 500, 502, 503, 504],
         allowed_methods=["GET", "HEAD", "OPTIONS"],
         raise_on_status=False,
     )
-    adapter = HTTPAdapter(
-        max_retries=retry_strategy,
-        pool_connections=10,
-        pool_maxsize=10,
-    )
+    adapter = HTTPAdapter(max_retries=retry_strategy, pool_connections=10, pool_maxsize=10)
     session.mount("http://", adapter)
     session.mount("https://", adapter)
-
     session.headers.update(DEFAULT_HEADERS)
-    session.verify = False  # تعطيل التحقق من SSL
+    session.verify = False
     return session
 
 
-# ============ قراءة قائمة الروابط ============
+# ============ قراءة list.txt ============
 def read_filter_urls(filepath):
-    """يقرأ الروابط، ويدعم صيغ متعددة:
-    - رابط مباشر
-    - URL|COOKIE=...|HEADER=X:Y|UA=...
-    """
+    """يقرأ الروابط مع دعم صيغ متعددة (cookie، header، ua، auth)."""
     entries = []
     if not os.path.exists(filepath):
         print(f"⚠️ ملف {filepath} غير موجود.")
@@ -111,24 +106,13 @@ def read_filter_urls(filepath):
 
 
 def parse_entry(line):
-    """
-    يفهم صيغ متعددة:
-      https://example.com/list.txt
-      https://example.com/list.txt | cookie=abc=1; def=2 | header=X-Token: 123 | ua=Mozilla/5.0
-      https://example.com/list.txt | headers=Referer:https://google.com
-    """
+    """يفهم: URL | cookie=... | header=X:Y | ua=... | auth=user:pass"""
     parts = [p.strip() for p in line.split('|')]
-    entry = {
-        "url": parts[0],
-        "cookies": {},
-        "headers": {},
-        "user_agent": None,
-        "auth": None,
-    }
+    entry = {"url": parts[0], "cookies": {}, "headers": {}, "user_agent": None, "auth": None}
 
     for opt in parts[1:]:
         low = opt.lower()
-        if low.startswith("cookie=") or low.startswith("cookies="):
+        if low.startswith(("cookie=", "cookies=")):
             cookie_str = opt.split("=", 1)[1]
             for c in cookie_str.split(";"):
                 if "=" in c:
@@ -142,51 +126,151 @@ def parse_entry(line):
         elif low.startswith("ua="):
             entry["user_agent"] = opt.split("=", 1)[1].strip()
         elif low.startswith("auth="):
-            # auth=user:pass
             entry["auth"] = tuple(opt.split("=", 1)[1].split(":", 1))
 
     return entry
 
 
-# ============ التنزيل مع كل الحمايات ============
+# ============ كشف الهيدرز والتعليقات ============
+def is_header_or_comment(line):
+    """يتعرف على أسطر الهيدرز والتعليقات بكل أنواعها."""
+    stripped = line.strip()
+    if not stripped:
+        return True
+    if stripped.startswith(('#', '!', '//', ';', '[', ']')):
+        return True
+    if re.match(r'^[\s#*=\-_~`+=|<>/\\.,;:!"\']+$', stripped):
+        return True
+    if re.match(r'^[=\-#*_~]{3,}.*[=\-#*_~]{3,}$', stripped):
+        return True
+    if stripped.startswith('<!--') or stripped.endswith('-->'):
+        return True
+    return False
+
+
+# ============ تنظيف الدومين ============
+def clean_domain(d):
+    """ينظف الدومين ويتحقق من صحته بشكل صارم."""
+    if not d:
+        return None
+    d = d.strip().lower().rstrip('.')
+    d = d.replace("*.", "")
+    d = d.strip('^$|')
+
+    if not re.match(r'^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)+$', d):
+        return None
+    if '.' not in d:
+        return None
+    if re.match(r'^(\d{1,3}\.){3}\d{1,3}$', d):
+        return None
+    if d in INVALID_WORDS:
+        return None
+
+    tld = d.rsplit('.', 1)[-1]
+    if len(tld) < 2 or not tld.isalpha():
+        return None
+
+    return d
+
+
+# ============ استخراج الدومينات من سطر ============
+def extract_domains_from_line(line):
+    """يستخرج كل الدومينات من سطر واحد، ويتجاهل الهيدرز."""
+    if is_header_or_comment(line):
+        return []
+
+    line = line.strip()
+    line = re.split(r'\s[#!]', line, maxsplit=1)[0].strip()
+    if not line:
+        return []
+
+    domains_found = []
+
+    # الحالة 1: مفصولة بـ ::
+    if '::' in line:
+        for part in line.split('::'):
+            part = part.strip()
+            if not part:
+                continue
+            for token in part.split():
+                d = clean_domain(token)
+                if d:
+                    domains_found.append(d)
+        return domains_found
+
+    parts = line.split()
+
+    # الحالة 2: hosts (IP DOMAIN)
+    if parts and (re.match(r'^(\d{1,3}\.){3}\d{1,3}$', parts[0]) or
+                  parts[0] in ('0.0.0.0', '127.0.0.1', '::1', '::')):
+        for token in parts[1:]:
+            d = clean_domain(token)
+            if d:
+                domains_found.append(d)
+        return domains_found
+
+    # الحالة 3: dnsmasq
+    m = re.match(r'^address=/([^/]+)/', line)
+    if m:
+        d = clean_domain(m.group(1))
+        if d:
+            domains_found.append(d)
+        return domains_found
+
+    # الحالة 4: Adblock
+    m = re.match(r'^\|\|([a-z0-9.-]+)\^?', line, re.IGNORECASE)
+    if m:
+        d = clean_domain(m.group(1))
+        if d:
+            domains_found.append(d)
+        return domains_found
+
+    # الحالة 5: URL
+    if line.startswith(("http://", "https://")):
+        parsed = urlparse(line)
+        d = clean_domain(parsed.hostname or "")
+        if d:
+            domains_found.append(d)
+        return domains_found
+
+    # الحالة 6: دومين مباشر
+    for token in parts:
+        d = clean_domain(token)
+        if d:
+            domains_found.append(d)
+
+    return domains_found
+
+
+# ============ التنزيل ============
 def download_content(entry, max_attempts=3):
-    """
-    ينزّل محتوى الرابط مع كل الاحتياطات:
-    - SSL مطفأ
-    - Retries
-    - تدوير User-Agents
-    - دعم Cookies و Headers
-    - بديل httpx لو requests فشل
-    - دعم FTP
-    """
+    """ينزّل المحتوى بكل الاحتياطات."""
     url = entry["url"]
 
-    # --- 1. دعم FTP ---
+    # FTP
     if url.lower().startswith("ftp://"):
         return download_ftp(url)
 
-    # --- 2. دعم file:// ---
+    # file://
     if url.lower().startswith("file://"):
-        path = url[7:]
         try:
-            with open(path, 'r', encoding='utf-8', errors='ignore') as f:
+            with open(url[7:], 'r', encoding='utf-8', errors='ignore') as f:
                 return f.read()
         except Exception as e:
             print(f"  ❌ file:// فشل: {e}")
             return None
 
-    # --- 3. التعامل مع Basic Auth في الرابط ---
+    # Basic Auth في الرابط
     auth = entry.get("auth")
     if not auth and "@" in urlparse(url).netloc:
         parsed = urlparse(url)
         if ":" in parsed.netloc.split("@")[0]:
             user, pwd = parsed.netloc.split("@")[0].split(":", 1)
             auth = (user, pwd)
-            # نظف الرابط من الـ auth
             new_netloc = parsed.netloc.split("@", 1)[1]
             url = urlunparse(parsed._replace(netloc=new_netloc))
 
-    # --- 4. المحاولة بـ requests ---
+    # محاولات requests
     for attempt in range(1, max_attempts + 1):
         ua = entry.get("user_agent") or random.choice(USER_AGENTS)
         headers = dict(entry.get("headers", {}))
@@ -198,17 +282,11 @@ def download_content(entry, max_attempts=3):
                 session.cookies.update(entry["cookies"])
 
             resp = session.get(
-                url,
-                headers=headers,
-                auth=auth,
-                timeout=(10, 60),       # (اتصال، قراءة)
-                allow_redirects=True,
-                verify=False,
-                stream=False,
+                url, headers=headers, auth=auth,
+                timeout=(10, 60), allow_redirects=True, verify=False,
             )
 
             if resp.status_code == 200:
-                # فك الضغط يدويًا لو brotli
                 content = resp.content
                 encoding = resp.headers.get("Content-Encoding", "").lower()
                 if "br" in encoding and BROTLI_AVAILABLE:
@@ -218,7 +296,6 @@ def download_content(entry, max_attempts=3):
                         content = gzip.decompress(content)
                     except Exception:
                         pass
-
                 try:
                     return content.decode(resp.encoding or "utf-8", errors="ignore")
                 except Exception:
@@ -237,9 +314,9 @@ def download_content(entry, max_attempts=3):
 
         time.sleep(1.5 * attempt)
 
-    # --- 5. المحاولة بـ httpx كبديل ---
+    # بديل httpx
     if HTTPX_AVAILABLE:
-        print("  🔄 تجربة httpx كبديل...")
+        print("  🔄 تجربة httpx...")
         try:
             with httpx.Client(verify=False, follow_redirects=True, timeout=60) as client:
                 r = client.get(url, headers=entry.get("headers", {}), auth=auth)
@@ -248,15 +325,13 @@ def download_content(entry, max_attempts=3):
         except Exception as e:
             print(f"  ❌ httpx فشل: {str(e)[:100]}")
 
-    # --- 6. المحاولة بـ curl كملاذ أخير ---
-    print("  🔄 تجربة curl كملاذ أخير...")
+    # ملاذ أخير: curl
+    print("  🔄 تجربة curl...")
     return download_with_curl(url, entry)
 
 
 def download_ftp(url):
-    """ينزّل ملف FTP."""
     from ftplib import FTP
-    from urllib.parse import urlparse
     try:
         p = urlparse(url)
         ftp = FTP(p.hostname, timeout=30)
@@ -272,16 +347,11 @@ def download_ftp(url):
 
 
 def download_with_curl(url, entry):
-    """يستخدم curl الخارجي كحل أخير."""
     import subprocess
     try:
-        cmd = [
-            "curl", "-sSL", "--insecure",
-            "--max-time", "90",
-            "--retry", "3",
-            "--retry-delay", "2",
-            "-A", entry.get("user_agent") or random.choice(USER_AGENTS),
-        ]
+        cmd = ["curl", "-sSL", "--insecure", "--max-time", "90",
+               "--retry", "3", "--retry-delay", "2",
+               "-A", entry.get("user_agent") or random.choice(USER_AGENTS)]
         for k, v in entry.get("headers", {}).items():
             cmd += ["-H", f"{k}: {v}"]
         cmd.append(url)
@@ -293,69 +363,10 @@ def download_with_curl(url, entry):
     return None
 
 
-# ============ استخراج الدومينات ============
-def extract_domains_from_line(line):
-    """يستخرج الدومين من سطر (hosts / دومين / URL / HTML)."""
-    line = line.strip()
-    if not line or line.startswith('#'):
-        return None
-
-    # إزالة تعليقات في نهاية السطر
-    line = line.split('#')[0].strip()
-    if not line:
-        return None
-
-    parts = line.split()
-
-    # صيغة hosts: IP DOMAIN [DOMAIN...]
-    if parts and re.match(r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$', parts[0]):
-        domains = []
-        for p in parts[1:]:
-            d = clean_domain(p)
-            if d:
-                domains.append(d)
-        if domains:
-            return domains[0]  # السطر الأول
-        return None
-
-    # صيغة dnsmasq: address=/domain/0.0.0.0
-    m = re.match(r'^address=/([^/]+)/', line)
-    if m:
-        return clean_domain(m.group(1))
-
-    # صيغة Adblock: ||domain^
-    m = re.match(r'^\|\|([a-z0-9.-]+)\^', line, re.IGNORECASE)
-    if m:
-        return clean_domain(m.group(1))
-
-    # رابط URL كامل
-    if line.startswith(("http://", "https://")):
-        parsed = urlparse(line)
-        return clean_domain(parsed.hostname or "")
-
-    # دومين مباشر
-    return clean_domain(parts[0])
-
-
-def clean_domain(d):
-    """ينظف الدومين ويتحقق من صحته."""
-    if not d:
-        return None
-    d = d.strip().lower().rstrip('.')
-    d = d.replace("*.", "")           # إزالة wildcard
-    if d.startswith("www.") and d.count(".") > 2:
-        pass  # نحتفظ بـ www لو الدومين له subdomain
-    if not re.match(r'^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)+$', d):
-        return None
-    if '.' not in d:
-        return None
-    return d
-
-
-# ============ المعالجة ============
+# ============ المعالجة الرئيسية ============
 def parse_filters(entries):
     blocklist, allowlist = set(), set()
-    ALLOW_KEYWORDS = ['allow', 'whitelist', 'white-list', 'white_list']
+    skipped_samples = []
 
     for entry in entries:
         url = entry["url"]
@@ -368,11 +379,23 @@ def parse_filters(entries):
         is_allow = any(k in url.lower() for k in ALLOW_KEYWORDS)
         count = 0
         for line in content.splitlines():
-            d = extract_domains_from_line(line)
-            if d:
+            if is_header_or_comment(line):
+                if len(skipped_samples) < 100 and line.strip():
+                    skipped_samples.append(line)
+                continue
+            domains = extract_domains_from_line(line)
+            for d in domains:
                 (allowlist if is_allow else blocklist).add(d)
                 count += 1
         print(f"  ✅ {count} دومين")
+
+    # حفظ عينة من الأسطر المتجاهلة
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
+    with open(SKIPPED_LOG, 'w', encoding='utf-8') as f:
+        f.write(f"# عينة من الأسطر المتجاهلة (أول 100)\n")
+        f.write(f"# التاريخ: {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')} UTC\n\n")
+        for s in skipped_samples:
+            f.write(s + "\n")
 
     return blocklist, allowlist
 
