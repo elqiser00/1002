@@ -4,6 +4,7 @@ import gzip
 import shutil
 import time
 import random
+import unicodedata
 from datetime import datetime
 from urllib.parse import urlparse, urlunparse
 
@@ -12,21 +13,18 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 from urllib3.exceptions import InsecureRequestWarning
 
-# كتم تحذيرات SSL
 import warnings
 warnings.simplefilter('ignore', InsecureRequestWarning)
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
-# محاولة استيراد httpx (اختياري)
 try:
     import httpx
     HTTPX_AVAILABLE = True
 except ImportError:
     HTTPX_AVAILABLE = False
 
-# استيراد brotli (مهم - يخلي urllib3 يفك ضغط br تلقائيًا)
 try:
-    import brotli
+    import brotli  # noqa: F401
     BROTLI_AVAILABLE = True
 except ImportError:
     BROTLI_AVAILABLE = False
@@ -38,6 +36,10 @@ OUTPUT_DIR = "dnsmasq_filters"
 OUTPUT_FILE = os.path.join(OUTPUT_DIR, "dnsmasq_blocklist.conf")
 COMPRESSED_FILE = os.path.join(OUTPUT_DIR, "dnsmasq_blocklist.conf.gz")
 SKIPPED_LOG = os.path.join(OUTPUT_DIR, "skipped_lines.log")
+STATS_LOG = os.path.join(OUTPUT_DIR, "stats.txt")
+
+# إزالة الدومينات الفرعية (موصى به بشدة لتقليل الحجم)
+REMOVE_SUBDOMAIN_DUPS = True
 
 USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
@@ -49,11 +51,9 @@ USER_AGENTS = [
     "Wget/1.21.3",
 ]
 
-# مهم: بنخلي urllib3 يتعامل مع كل أنواع الضغط بنفسه
 DEFAULT_HEADERS = {
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
     "Accept-Language": "en-US,en;q=0.9,ar;q=0.8",
-    # لا نضع Accept-Encoding يدويًا - requests/urllib3 يتعامل معه تلقائيًا
     "Connection": "keep-alive",
     "DNT": "1",
     "Upgrade-Insecure-Requests": "1",
@@ -70,7 +70,6 @@ INVALID_WORDS = {
 
 # ============ الجلسة ============
 def create_session():
-    """ينشئ جلسة requests مع Retry و SSL مطفأ."""
     session = requests.Session()
     retry_strategy = Retry(
         total=5,
@@ -147,6 +146,16 @@ def clean_domain(d):
     d = d.strip().lower().rstrip('.')
     d = d.replace("*.", "")
     d = d.strip('^$|')
+
+    # تحويل unicode إلى ASCII (punycode-like)
+    try:
+        d = unicodedata.normalize('NFKC', d)
+    except Exception:
+        pass
+
+    # رفض الطول الزائد (أقصى 253 حرف حسب RFC)
+    if len(d) > 253:
+        return None
 
     if not re.match(r'^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)+$', d):
         return None
@@ -228,14 +237,11 @@ def extract_domains_from_line(line):
 
 # ============ التنزيل ============
 def download_content(entry, max_attempts=3):
-    """ينزّل المحتوى. requests بيفك الضغط تلقائيًا، مفيش فك يدوي."""
     url = entry["url"]
 
-    # FTP
     if url.lower().startswith("ftp://"):
         return download_ftp(url)
 
-    # file://
     if url.lower().startswith("file://"):
         try:
             with open(url[7:], 'r', encoding='utf-8', errors='ignore') as f:
@@ -244,7 +250,6 @@ def download_content(entry, max_attempts=3):
             print(f"  ❌ file:// فشل: {e}")
             return None
 
-    # Basic Auth
     auth = entry.get("auth")
     if not auth and "@" in urlparse(url).netloc:
         parsed = urlparse(url)
@@ -254,7 +259,6 @@ def download_content(entry, max_attempts=3):
             new_netloc = parsed.netloc.split("@", 1)[1]
             url = urlunparse(parsed._replace(netloc=new_netloc))
 
-    # محاولات requests
     for attempt in range(1, max_attempts + 1):
         ua = entry.get("user_agent") or random.choice(USER_AGENTS)
         headers = dict(entry.get("headers", {}))
@@ -271,8 +275,6 @@ def download_content(entry, max_attempts=3):
             )
 
             if resp.status_code == 200:
-                # ✅ requests/urllib3 بيفك الضغط تلقائيًا - مفيش فك يدوي
-                # resp.content أو resp.text كلاهما مفكوك ضغطه بالفعل
                 try:
                     return resp.text
                 except Exception:
@@ -281,30 +283,27 @@ def download_content(entry, max_attempts=3):
                 print(f"  ⚠️ محاولة {attempt}: HTTP {resp.status_code}")
 
         except requests.exceptions.SSLError as e:
-            print(f"  ⚠️ SSL خطأ (محاولة {attempt}): {str(e)[:80]}")
+            print(f"  ⚠️ SSL (محاولة {attempt}): {str(e)[:60]}")
         except requests.exceptions.Timeout:
             print(f"  ⚠️ Timeout (محاولة {attempt})")
         except requests.exceptions.ConnectionError as e:
-            print(f"  ⚠️ اتصال فشل (محاولة {attempt}): {str(e)[:80]}")
+            print(f"  ⚠️ اتصال (محاولة {attempt}): {str(e)[:60]}")
         except Exception as e:
-            print(f"  ⚠️ خطأ (محاولة {attempt}): {str(e)[:100]}")
+            print(f"  ⚠️ خطأ (محاولة {attempt}): {str(e)[:80]}")
 
         time.sleep(1.5 * attempt)
 
-    # بديل httpx
     if HTTPX_AVAILABLE:
-        print("  🔄 تجربة httpx...")
+        print("  🔄 httpx...")
         try:
-            # httpx بيفك ضغط br تلقائيًا لو brotli متثبت
             with httpx.Client(verify=False, follow_redirects=True, timeout=60) as client:
                 r = client.get(url, headers=entry.get("headers", {}), auth=auth)
                 if r.status_code == 200:
                     return r.text
         except Exception as e:
-            print(f"  ❌ httpx فشل: {str(e)[:100]}")
+            print(f"  ❌ httpx: {str(e)[:80]}")
 
-    # ملاذ أخير: curl
-    print("  🔄 تجربة curl...")
+    print("  🔄 curl...")
     return download_with_curl(url, entry)
 
 
@@ -320,12 +319,11 @@ def download_ftp(url):
         ftp.quit()
         return "\n".join(lines)
     except Exception as e:
-        print(f"  ❌ FTP فشل: {e}")
+        print(f"  ❌ FTP: {e}")
         return None
 
 
 def download_with_curl(url, entry):
-    """curl بيفك الضغط تلقائيًا مع --compressed"""
     import subprocess
     try:
         cmd = ["curl", "-sSL", "--insecure", "--compressed",
@@ -338,25 +336,54 @@ def download_with_curl(url, entry):
         if result.returncode == 0:
             return result.stdout.decode("utf-8", errors="ignore")
     except Exception as e:
-        print(f"  ❌ curl فشل: {e}")
+        print(f"  ❌ curl: {e}")
     return None
+
+
+# ============ إزالة الدومينات الفرعية ============
+def remove_subdomain_duplicates(domains):
+    """
+    يحذف الدومين الفرعي إذا كان أبوه موجودًا.
+    مثال: إذا كان example.com موجودًا، نحذف ads.example.com و tracker.example.com.
+    السبب: dnsmasq يحجب كل الفروع تلقائيًا مع address=/example.com/0.0.0.0.
+    """
+    sorted_domains = sorted(domains, key=lambda d: d.count('.'))
+    result = set()
+    removed = 0
+    for d in sorted_domains:
+        parts = d.split('.')
+        has_parent = False
+        for i in range(1, len(parts) - 1):
+            parent = '.'.join(parts[i:])
+            if parent in result:
+                has_parent = True
+                break
+        if has_parent:
+            removed += 1
+        else:
+            result.add(d)
+    print(f"  🗑️ إزالة {removed} دومين فرعي مكرر")
+    return result
 
 
 # ============ المعالجة ============
 def parse_filters(entries):
     blocklist, allowlist = set(), set()
     skipped_samples = []
+    stats = []
 
     for entry in entries:
         url = entry["url"]
         print(f"🌐 معالجة: {url}")
         content = download_content(entry)
         if not content:
-            print(f"  ❌ فشل نهائي: {url}")
+            print(f"  ❌ فشل نهائي")
+            stats.append((url, 0, "FAILED"))
             continue
 
         is_allow = any(k in url.lower() for k in ALLOW_KEYWORDS)
         count = 0
+        before = len(blocklist) + len(allowlist)
         for line in content.splitlines():
             if is_header_or_comment(line):
                 if len(skipped_samples) < 100 and line.strip():
@@ -366,7 +393,10 @@ def parse_filters(entries):
             for d in domains:
                 (allowlist if is_allow else blocklist).add(d)
                 count += 1
-        print(f"  ✅ {count} دومين")
+        after = len(blocklist) + len(allowlist)
+        added = after - before
+        print(f"  ✅ {count} دومين مقروء، {added} جديد")
+        stats.append((url, count, "OK"))
 
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     with open(SKIPPED_LOG, 'w', encoding='utf-8') as f:
@@ -375,13 +405,19 @@ def parse_filters(entries):
         for s in skipped_samples:
             f.write(s + "\n")
 
+    with open(STATS_LOG, 'w', encoding='utf-8') as f:
+        f.write("URL\tعدد الدومينات\tالحالة\n")
+        for url, cnt, st in stats:
+            f.write(f"{url}\t{cnt}\t{st}\n")
+
     return blocklist, allowlist
 
 
 def apply_priority(blocklist, allowlist):
-    print(f"\n📊 سوداء: {len(blocklist)} | بيضاء: {len(allowlist)}")
+    print(f"\n📊 سوداء (بدون إزالة فرعية): {len(blocklist):,}")
+    print(f"📊 بيضاء: {len(allowlist):,}")
     final = blocklist - allowlist
-    print(f"📊 النهائية: {len(final)}")
+    print(f"📊 بعد إزالة البيضاء: {len(final):,}")
     return final
 
 
@@ -390,7 +426,7 @@ def format_dnsmasq(domains, output_path):
     with open(output_path, 'w', encoding='utf-8') as f:
         f.write(f"# قائمة الحظر - تنسيق dnsmasq\n")
         f.write(f"# تاريخ الإنشاء: {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')} UTC\n")
-        f.write(f"# عدد الدومينات: {len(domains)}\n\n")
+        f.write(f"# عدد الدومينات: {len(domains):,}\n\n")
         for d in sorted(domains):
             f.write(f"address=/{d}/0.0.0.0\n")
     print(f"✅ تم إنشاء {output_path}")
@@ -409,8 +445,16 @@ def main():
     if not entries:
         print("لا توجد روابط.")
         return
+
     block, allow = parse_filters(entries)
     final = apply_priority(block, allow)
+
+    if REMOVE_SUBDOMAIN_DUPS:
+        print(f"\n🔍 إزالة الدومينات الفرعية المكررة...")
+        before = len(final)
+        final = remove_subdomain_duplicates(final)
+        print(f"📊 قبل: {before:,} → بعد: {len(final):,}")
+
     format_dnsmasq(final, OUTPUT_FILE)
     compress_file(OUTPUT_FILE, COMPRESSED_FILE)
     os.remove(OUTPUT_FILE)
