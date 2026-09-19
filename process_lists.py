@@ -17,13 +17,14 @@ import warnings
 warnings.simplefilter('ignore', InsecureRequestWarning)
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
-# محاولة استيراد httpx و brotli (اختياريان)
+# محاولة استيراد httpx (اختياري)
 try:
     import httpx
     HTTPX_AVAILABLE = True
 except ImportError:
     HTTPX_AVAILABLE = False
 
+# استيراد brotli (مهم - يخلي urllib3 يفك ضغط br تلقائيًا)
 try:
     import brotli
     BROTLI_AVAILABLE = True
@@ -38,7 +39,6 @@ OUTPUT_FILE = os.path.join(OUTPUT_DIR, "dnsmasq_blocklist.conf")
 COMPRESSED_FILE = os.path.join(OUTPUT_DIR, "dnsmasq_blocklist.conf.gz")
 SKIPPED_LOG = os.path.join(OUTPUT_DIR, "skipped_lines.log")
 
-# User-Agents للتدوير
 USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15",
@@ -49,19 +49,18 @@ USER_AGENTS = [
     "Wget/1.21.3",
 ]
 
+# مهم: بنخلي urllib3 يتعامل مع كل أنواع الضغط بنفسه
 DEFAULT_HEADERS = {
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
     "Accept-Language": "en-US,en;q=0.9,ar;q=0.8",
-    "Accept-Encoding": "gzip, deflate, br" if BROTLI_AVAILABLE else "gzip, deflate",
+    # لا نضع Accept-Encoding يدويًا - requests/urllib3 يتعامل معه تلقائيًا
     "Connection": "keep-alive",
     "DNT": "1",
     "Upgrade-Insecure-Requests": "1",
 }
 
-# كلمات مفتاحية للقوائم البيضاء
 ALLOW_KEYWORDS = ['allow', 'whitelist', 'white-list', 'white_list']
 
-# كلمات محجوزة (ليست دومينات)
 INVALID_WORDS = {
     'localhost', 'broadcasthost', 'ip6-localhost', 'ip6-loopback',
     'ip6-allnodes', 'ip6-allrouters', 'ip6-localnet', 'ip6-mcastprefix',
@@ -69,7 +68,7 @@ INVALID_WORDS = {
 }
 
 
-# ============ إعداد الجلسة ============
+# ============ الجلسة ============
 def create_session():
     """ينشئ جلسة requests مع Retry و SSL مطفأ."""
     session = requests.Session()
@@ -90,12 +89,10 @@ def create_session():
 
 # ============ قراءة list.txt ============
 def read_filter_urls(filepath):
-    """يقرأ الروابط مع دعم صيغ متعددة (cookie، header، ua، auth)."""
     entries = []
     if not os.path.exists(filepath):
         print(f"⚠️ ملف {filepath} غير موجود.")
         return entries
-
     with open(filepath, 'r', encoding='utf-8') as f:
         for raw in f:
             line = raw.strip()
@@ -106,15 +103,12 @@ def read_filter_urls(filepath):
 
 
 def parse_entry(line):
-    """يفهم: URL | cookie=... | header=X:Y | ua=... | auth=user:pass"""
     parts = [p.strip() for p in line.split('|')]
     entry = {"url": parts[0], "cookies": {}, "headers": {}, "user_agent": None, "auth": None}
-
     for opt in parts[1:]:
         low = opt.lower()
         if low.startswith(("cookie=", "cookies=")):
-            cookie_str = opt.split("=", 1)[1]
-            for c in cookie_str.split(";"):
+            for c in opt.split("=", 1)[1].split(";"):
                 if "=" in c:
                     k, v = c.split("=", 1)
                     entry["cookies"][k.strip()] = v.strip()
@@ -127,13 +121,11 @@ def parse_entry(line):
             entry["user_agent"] = opt.split("=", 1)[1].strip()
         elif low.startswith("auth="):
             entry["auth"] = tuple(opt.split("=", 1)[1].split(":", 1))
-
     return entry
 
 
-# ============ كشف الهيدرز والتعليقات ============
+# ============ كشف الهيدرز ============
 def is_header_or_comment(line):
-    """يتعرف على أسطر الهيدرز والتعليقات بكل أنواعها."""
     stripped = line.strip()
     if not stripped:
         return True
@@ -150,7 +142,6 @@ def is_header_or_comment(line):
 
 # ============ تنظيف الدومين ============
 def clean_domain(d):
-    """ينظف الدومين ويتحقق من صحته بشكل صارم."""
     if not d:
         return None
     d = d.strip().lower().rstrip('.')
@@ -173,9 +164,8 @@ def clean_domain(d):
     return d
 
 
-# ============ استخراج الدومينات من سطر ============
+# ============ استخراج الدومينات ============
 def extract_domains_from_line(line):
-    """يستخرج كل الدومينات من سطر واحد، ويتجاهل الهيدرز."""
     if is_header_or_comment(line):
         return []
 
@@ -186,7 +176,6 @@ def extract_domains_from_line(line):
 
     domains_found = []
 
-    # الحالة 1: مفصولة بـ ::
     if '::' in line:
         for part in line.split('::'):
             part = part.strip()
@@ -200,7 +189,6 @@ def extract_domains_from_line(line):
 
     parts = line.split()
 
-    # الحالة 2: hosts (IP DOMAIN)
     if parts and (re.match(r'^(\d{1,3}\.){3}\d{1,3}$', parts[0]) or
                   parts[0] in ('0.0.0.0', '127.0.0.1', '::1', '::')):
         for token in parts[1:]:
@@ -209,7 +197,6 @@ def extract_domains_from_line(line):
                 domains_found.append(d)
         return domains_found
 
-    # الحالة 3: dnsmasq
     m = re.match(r'^address=/([^/]+)/', line)
     if m:
         d = clean_domain(m.group(1))
@@ -217,7 +204,6 @@ def extract_domains_from_line(line):
             domains_found.append(d)
         return domains_found
 
-    # الحالة 4: Adblock
     m = re.match(r'^\|\|([a-z0-9.-]+)\^?', line, re.IGNORECASE)
     if m:
         d = clean_domain(m.group(1))
@@ -225,7 +211,6 @@ def extract_domains_from_line(line):
             domains_found.append(d)
         return domains_found
 
-    # الحالة 5: URL
     if line.startswith(("http://", "https://")):
         parsed = urlparse(line)
         d = clean_domain(parsed.hostname or "")
@@ -233,7 +218,6 @@ def extract_domains_from_line(line):
             domains_found.append(d)
         return domains_found
 
-    # الحالة 6: دومين مباشر
     for token in parts:
         d = clean_domain(token)
         if d:
@@ -244,7 +228,7 @@ def extract_domains_from_line(line):
 
 # ============ التنزيل ============
 def download_content(entry, max_attempts=3):
-    """ينزّل المحتوى بكل الاحتياطات."""
+    """ينزّل المحتوى. requests بيفك الضغط تلقائيًا، مفيش فك يدوي."""
     url = entry["url"]
 
     # FTP
@@ -260,7 +244,7 @@ def download_content(entry, max_attempts=3):
             print(f"  ❌ file:// فشل: {e}")
             return None
 
-    # Basic Auth في الرابط
+    # Basic Auth
     auth = entry.get("auth")
     if not auth and "@" in urlparse(url).netloc:
         parsed = urlparse(url)
@@ -287,19 +271,12 @@ def download_content(entry, max_attempts=3):
             )
 
             if resp.status_code == 200:
-                content = resp.content
-                encoding = resp.headers.get("Content-Encoding", "").lower()
-                if "br" in encoding and BROTLI_AVAILABLE:
-                    content = brotli.decompress(content)
-                elif "gzip" in encoding:
-                    try:
-                        content = gzip.decompress(content)
-                    except Exception:
-                        pass
+                # ✅ requests/urllib3 بيفك الضغط تلقائيًا - مفيش فك يدوي
+                # resp.content أو resp.text كلاهما مفكوك ضغطه بالفعل
                 try:
-                    return content.decode(resp.encoding or "utf-8", errors="ignore")
+                    return resp.text
                 except Exception:
-                    return content.decode("utf-8", errors="ignore")
+                    return resp.content.decode("utf-8", errors="ignore")
             else:
                 print(f"  ⚠️ محاولة {attempt}: HTTP {resp.status_code}")
 
@@ -318,6 +295,7 @@ def download_content(entry, max_attempts=3):
     if HTTPX_AVAILABLE:
         print("  🔄 تجربة httpx...")
         try:
+            # httpx بيفك ضغط br تلقائيًا لو brotli متثبت
             with httpx.Client(verify=False, follow_redirects=True, timeout=60) as client:
                 r = client.get(url, headers=entry.get("headers", {}), auth=auth)
                 if r.status_code == 200:
@@ -347,10 +325,11 @@ def download_ftp(url):
 
 
 def download_with_curl(url, entry):
+    """curl بيفك الضغط تلقائيًا مع --compressed"""
     import subprocess
     try:
-        cmd = ["curl", "-sSL", "--insecure", "--max-time", "90",
-               "--retry", "3", "--retry-delay", "2",
+        cmd = ["curl", "-sSL", "--insecure", "--compressed",
+               "--max-time", "90", "--retry", "3", "--retry-delay", "2",
                "-A", entry.get("user_agent") or random.choice(USER_AGENTS)]
         for k, v in entry.get("headers", {}).items():
             cmd += ["-H", f"{k}: {v}"]
@@ -363,7 +342,7 @@ def download_with_curl(url, entry):
     return None
 
 
-# ============ المعالجة الرئيسية ============
+# ============ المعالجة ============
 def parse_filters(entries):
     blocklist, allowlist = set(), set()
     skipped_samples = []
@@ -389,7 +368,6 @@ def parse_filters(entries):
                 count += 1
         print(f"  ✅ {count} دومين")
 
-    # حفظ عينة من الأسطر المتجاهلة
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     with open(SKIPPED_LOG, 'w', encoding='utf-8') as f:
         f.write(f"# عينة من الأسطر المتجاهلة (أول 100)\n")
@@ -431,7 +409,6 @@ def main():
     if not entries:
         print("لا توجد روابط.")
         return
-
     block, allow = parse_filters(entries)
     final = apply_priority(block, allow)
     format_dnsmasq(final, OUTPUT_FILE)
