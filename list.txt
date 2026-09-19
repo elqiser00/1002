@@ -358,7 +358,6 @@ https://github.com/Th3M3/blocklists/raw/master/tracking%26ads.list
 https://cdn.jsdelivr.net/gh/neoFelhz/neohosts@gh-pages/basic/hosts
 https://github.com/minoplhy/filters/raw/main/Resources/blocked.txt
 https://browser.coccoc.com/js/android_abp_custom_rules_premium.txt
-https://github.com/HotKids/Rules/raw/master/Surge/RULE-SET/AD.list
 https://github.com/LiviaMedeiros/hosts.pub/raw/master/hosts-filter
 https://github.com/curutpilek12/adguard-custom-list/raw/main/custom
 https://github.com/jakejarvis/ios-trackers/raw/master/blocklist.txt
@@ -367,10 +366,8 @@ https://github.com/faralai/Pihole-Rules/raw/master/Fara-Xiaomi-info
 https://github.com/faralai/Pihole-Rules/raw/master/Fara-Popups_Head
 https://github.com/hosts-file/BulgarianHostsFile/raw/master/bhf.txt
 https://github.com/hell-sh/Evil-Domains/raw/master/evil-domains.txt
-https://github.com/blocklistproject/Lists/raw/master/ransomware.txt
 https://github.com/DBFVGit/FVEDL_BlOCKFQDN/raw/main/FVEDL_Block.txt
 https://blocklistproject.github.io/Lists/alt-version/malware-nl.txt
-https://github.com/NoGitHubForYou/yafp/raw/main/subdomains_adshield
 https://github.com/issueser/hosts/raw/main/Non-Essential/strict.txt
 https://github.com/SpitFire-666/ublock-filters/raw/main/filters.txt
 https://github.com/Claire9518/filters/raw/main/rules/adblockdns.txt
@@ -396,7 +393,6 @@ https://github.com/ShadowWhisperer/BlockLists/raw/master/Lists/Malware
 https://blocklistproject.github.io/Lists/alt-version/ransomware-nl.txt
 https://github.com/klst90/domainlists/raw/main/blacklist/blacklist.txt
 https://github.com/luzhnan/luzhnan-list/raw/main/REJECT-DOMAINSET.conf
-https://github.com/hagezi/dns-blocklists/raw/main/domains/pro.plus.txt
 https://raw.githubusercontent.com/Laicure/HostsY_hosts/master/shithosts
 https://github.com/svetlyobg/svet-custom-domains/raw/master/ads-domains
 https://github.com/zhouhanc/malware-discoverer/raw/master/blocklist.csv
@@ -438,7 +434,6 @@ https://gitlab.com/quidsup/notrack-blocklists/-/raw/master/notrack-malware.txt
 https://github.com/KokichaKolevTM/BG-Adblock-list/raw/main/BG-Adblock-list.txt
 https://raw.githubusercontent.com/FadeMind/hosts.extras/master/UncheckyAds/hosts
 https://raw.githubusercontent.com/hoshsadiq/adblock-nocoin-list/master/hosts.txt
-https://github.com/stamparm/maltrail/raw/master/trails/static/suspicious/pua.txt
 https://github.com/DJMo13/JustARandomBlacklist/raw/main/JustARandomBlacklist.txt
 https://github.com/217heidai/adblockfilters/raw/main/rules/adblockdomainlite.txt
 https://raw.githubusercontent.com/StevenBlack/hosts/master/data/StevenBlack/hosts
@@ -456,9 +451,7 @@ https://github.com/migueldemoura/ublock-umatrix-rulesets/raw/master/Hosts/ads-tr
 https://raw.githubusercontent.com/MasterKia/PersianBlocker/main/PersianBlockerHosts.txt
 https://github.com/AdguardTeam/FiltersRegistry/raw/master/platforms/mac/filters/231.txt
 https://raw.githubusercontent.com/matomo-org/referrer-spam-blacklist/master/spammers.txt
-https://github.com/stamparm/maltrail/raw/master/trails/static/suspicious/android_pua.txt
 https://codeberg.org/chapeubranco/filtros/raw/branch/master/filtros/filtros-trackers.txt
-https://github.com/KodoPengin/GameIndustry-hosts-Template/raw/master/Main-Template/hosts
 https://github.com/AdguardTeam/cname-trackers/raw/master/data/combined_disguised_ads.txt
 https://github.com/rpgls-cybersec/rpgls-edl-host/raw/main/feeds/Blacklist_IOC_Domain.txt
 https://reddestdream.github.io/Projects/MinimalHosts/etc/MinimalHostsBlocker/minimalhosts
@@ -467,12 +460,9 @@ https://github.com/MajkiIT/polish-ads-filter/raw/master/polish-adblock-filters/a
 https://github.com/MajkiIT/polish-ads-filter/raw/master/polish-pihole-filters/hostfile.txt
 https://raw.githubusercontent.com/h2y/Shadowrocket-ADBlock-Rules/master/sr_proxy_banad.conf
 https://github.com/javabean/dnsmasq-antispy/raw/master/dnsmasq.zz-extra-servers-manual.conf
-https://github.com/KodoPengin/GameIndustry-hosts-Template/raw/master/Amazon-FireStick/hosts
 https://raw.githubusercontent.com/PoorPocketsMcNewHold/steamscamsite/master/steamscamsite.txt
 https://github.com/Hariharann8175/Indicators-of-Compromise-IOC-/raw/master/Ransomware%20URL's
 https://github.com/TG-Twilight/AWAvenue-Ads-Rule/raw/main/Filters/AWAvenue-Ads-Rule-Adguard.txt
-https://raw.githubusercontent.com/hagezi/dns-blocklists/main/domains/native.tiktok.extended.txt
-https://github.com/KodoPengin/GameIndustry-hosts-Template/raw/master/Gaming-Full-Template/hosts
 https://github.com/ANCHSMedia-iptv/AdGuard-Filters/raw/main/files/filters/blockunwanreq_dns.txt
 https://raw.githubusercontent.com/gwillem/magento-malware-scanner/master/rules/burner-domains.txt
 https://github.com/Elysian-Realme/FuGfConfig/raw/main/ConfigFile/Host/FuckRogueSoftwareRules.conf
