@@ -158,8 +158,6 @@ https://raw.githubusercontent.com/MasterKia/PersianBlocker/refs/heads/main/Persi
 https://raw.githubusercontent.com/MasterKia/PersianBlocker/refs/heads/main/PersianBlockerCensor.txt
 https://raw.githubusercontent.com/MasterKia/PersianBlocker/refs/heads/main/PersianBlockerHalfPrice.txt
 https://raw.githubusercontent.com/MasterKia/PersianBlocker/refs/heads/main/PersianBlockerHosts.txt
-https://raw.githubusercontent.com/MasterKia/PersianBlocker/refs/heads/main/PersianBlockerMobile.txt
-https://raw.githubusercontent.com/MasterKia/PersianBlocker/refs/heads/main/PersianBlockerTrackers-Domains.txt
 https://raw.githubusercontent.com/MasterKia/PersianBlocker/refs/heads/main/PersianBlockerTrackers.txt
 https://raw.githubusercontent.com/olegwukr/polish-privacy-filters/refs/heads/master/adblock-suplement.txt
 https://raw.githubusercontent.com/olegwukr/polish-privacy-filters/refs/heads/master/adblock.txt
@@ -308,7 +306,6 @@ https://raw.githubusercontent.com/bjornstar/hosts/master/hosts
 https://raw.githubusercontent.com/chrisjudk/hosts/master/hosts
 https://github.com/pathforwardit/BlockList/raw/main/DomainList
 https://github.com/NoGitHubForYou/yafp/raw/main/subdomains_ads
-https://github.com/xOS/Config/raw/Her/RuleSet/Advertising.list
 https://github.com/dreammjow/MyFilters/raw/main/src/filters.txt
 https://raw.github.com/anudeepND/blacklist/master/adservers.txt
 https://github.com/durablenapkin/block/raw/master/streaming.txt
