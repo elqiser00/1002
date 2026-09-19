@@ -1,0 +1,42 @@
+name: تحديث قائمة حظر dnsmasq
+
+on:
+  # جدولة التشغيل كل 24 ساعة (في منتصف الليل بتوقيت UTC)
+  schedule:
+    - cron: '0 0 * * *' 
+  # السماح بالتشغيل اليدوي من واجهة GitHub
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: سحب كود المستودع
+      uses: actions/checkout@v4
+      
+    - name: إعداد بايثون
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11' # يمكنك اختيار أي إصدار حديث
+        
+    - name: تثبيت المكتبات المطلوبة
+      run: |
+        python -m pip install --upgrade pip
+        pip install requests
+        
+    - name: تشغيل سكربت معالجة القوائم
+      run: python process_lists.py
+      
+    - name: حفظ الملفات المُحدثة في المستودع
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add dnsmasq_blocklist.conf
+        # التحقق من وجود تغييرات لتجنب فشل الأمر
+        if ! git diff --staged --quiet; then
+          git commit -m "تحديث تلقائي لقائمة حظر dnsmasq"
+          git push
+        else
+          echo "لا توجد تغييرات لحفظها."
+        fi
