@@ -8,7 +8,6 @@ on:
 permissions:
   contents: write
 
-# منع تشغيل نسختين في نفس الوقت
 concurrency:
   group: dnsmasq-update
   cancel-in-progress: false
@@ -19,7 +18,6 @@ jobs:
     timeout-minutes: 60
 
     steps:
-    # ====== 1. سحب الكود (سريع، بدون تاريخ أو تاجز) ======
     - name: سحب كود المستودع
       uses: actions/checkout@v4
       with:
@@ -28,40 +26,28 @@ jobs:
         show-progress: false
       timeout-minutes: 5
 
-    # ====== 2. إعداد بايثون ======
     - name: إعداد بايثون
       uses: actions/setup-python@v5
       with:
         python-version: '3.11'
         cache: 'pip'
 
-    # ====== 3. تثبيت المكتبات ======
-    - name: تثبيت المكتبات المطلوبة
+    - name: تثبيت المكتبات
       run: |
         python -m pip install --upgrade pip
         pip install --no-cache-dir \
-          requests \
-          urllib3 \
-          certifi \
-          httpx \
-          h2 \
-          brotli \
-          chardet \
-          charset-normalizer
+          requests urllib3 certifi httpx h2 brotli chardet charset-normalizer
       timeout-minutes: 5
 
-    # ====== 4. التحقق من curl ======
     - name: التحقق من curl
       run: |
         curl --version || sudo apt-get install -y curl
         echo "✅ curl جاهز"
 
-    # ====== 5. تشغيل السكربت ======
-    - name: تشغيل سكربت معالجة القوائم
+    - name: تشغيل السكربت
       run: python process_lists.py
       timeout-minutes: 45
 
-    # ====== 6. التحقق من الملف الناتج ======
     - name: التحقق من الملف الناتج
       run: |
         if [ -f "dnsmasq_filters/dnsmasq_blocklist.conf.gz" ]; then
@@ -74,22 +60,39 @@ jobs:
           exit 1
         fi
 
-    # ====== 7. حفظ الملف مع حل تعارض push ======
-    - name: حفظ الملف المضغوط في المستودع
+    # ====== حفظ الملفات مع حل قوي لتعارض push ======
+    - name: حفظ الملفات في المستودع
       run: |
+        # 1. احفظ الملفات الناتجة في مكان آمن
+        mkdir -p /tmp/generated
+        cp dnsmasq_filters/dnsmasq_blocklist.conf.gz /tmp/generated/ 2>/dev/null || true
+        cp dnsmasq_filters/skipped_lines.log /tmp/generated/ 2>/dev/null || true
+        cp dnsmasq_filters/stats.txt /tmp/generated/ 2>/dev/null || true
+
+        # 2. إعداد git
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
-        git add dnsmasq_filters/dnsmasq_blocklist.conf.gz dnsmasq_filters/skipped_lines.log
-        
+
+        # 3. مزامنة كاملة مع remote (بدون depth لتجنب مشاكل rebase)
+        git fetch origin main
+        git reset --hard origin/main
+
+        # 4. أعد نسخ الملفات الناتجة
+        mkdir -p dnsmasq_filters
+        cp /tmp/generated/* dnsmasq_filters/ 2>/dev/null || true
+
+        # 5. أضف وتحقّق من وجود تغييرات
+        git add dnsmasq_filters/
         if git diff --staged --quiet; then
           echo "ℹ️ لا توجد تغييرات جديدة"
           exit 0
         fi
-        
+
+        # 6. commit و push
         git commit -m "🔄 تحديث تلقائي لقائمة dnsmasq - $(date +'%Y-%m-%d %H:%M UTC')"
-        
-        # إعادة المحاولة عند فشل push
-        MAX_RETRIES=5
+
+        # 7. محاولة push مع retry بسيط
+        MAX_RETRIES=3
         RETRY=0
         until git push origin HEAD:main; do
           RETRY=$((RETRY + 1))
@@ -97,22 +100,31 @@ jobs:
             echo "❌ فشل push بعد $MAX_RETRIES محاولات"
             exit 1
           fi
-          echo "⚠️ محاولة $RETRY: جاري مزامنة التغييرات..."
-          # جلب main فقط بدون تاجز وبدون تاريخ كامل
-          git fetch origin main --depth=1 --no-tags
-          git rebase origin/main || git rebase --abort
-          sleep 3
+          echo "⚠️ محاولة $RETRY..."
+          sleep 5
+          # أعد المزامنة والأخذ بأحدث نسخة
+          git fetch origin main
+          git rebase origin/main || {
+            # لو فشل rebase، ارجع للطريقة القوية
+            cp dnsmasq_filters/dnsmasq_blocklist.conf.gz /tmp/generated/ 2>/dev/null || true
+            cp dnsmasq_filters/skipped_lines.log /tmp/generated/ 2>/dev/null || true
+            cp dnsmasq_filters/stats.txt /tmp/generated/ 2>/dev/null || true
+            git rebase --abort || true
+            git reset --hard origin/main
+            mkdir -p dnsmasq_filters
+            cp /tmp/generated/* dnsmasq_filters/ 2>/dev/null || true
+            git add dnsmasq_filters/
+            git commit -m "🔄 تحديث تلقائي - محاولة $RETRY - $(date +'%Y-%m-%d %H:%M UTC')" || true
+          }
         done
         echo "✅ تم الحفظ في المستودع"
       timeout-minutes: 10
 
-    # ====== 8. الحصول على التاريخ ======
-    - name: الحصول على التاريخ الحالي
+    - name: الحصول على التاريخ
       id: date
       run: echo "tag=$(date +'%Y.%m.%d')" >> $GITHUB_OUTPUT
 
-    # ====== 9. إنشاء Release ======
-    - name: إنشاء إصدار جديد ورفع الملف
+    - name: إنشاء Release
       uses: softprops/action-gh-release@v2
       with:
         tag_name: blocklist-${{ steps.date.outputs.tag }}-${{ github.run_number }}
@@ -124,13 +136,13 @@ jobs:
           **رقم التشغيل:** #${{ github.run_number }}
 
           ### 📦 الملفات المرفقة
-          - `dnsmasq_blocklist.conf.gz` — قائمة الحظر بصيغة dnsmasq مضغوطة
+          - `dnsmasq_blocklist.conf.gz` — القائمة النهائية (بعد إزالة الفروع المكررة)
 
           ### 🔗 روابط التنزيل
-          - **آخر إصدار دائمًا:** [اضغط هنا](https://github.com/${{ github.repository }}/releases/latest/download/dnsmasq_blocklist.conf.gz)
-          - **من المستودع مباشرة:** [اضغط هنا](https://github.com/${{ github.repository }}/raw/main/dnsmasq_filters/dnsmasq_blocklist.conf.gz)
+          - **آخر إصدار:** [اضغط هنا](https://github.com/${{ github.repository }}/releases/latest/download/dnsmasq_blocklist.conf.gz)
+          - **من المستودع:** [اضغط هنا](https://github.com/${{ github.repository }}/raw/main/dnsmasq_filters/dnsmasq_blocklist.conf.gz)
 
-          ### 💻 طريقة الاستخدام
+          ### 💻 الاستخدام
           ```bash
           wget https://github.com/${{ github.repository }}/releases/latest/download/dnsmasq_blocklist.conf.gz
           gunzip dnsmasq_blocklist.conf.gz
