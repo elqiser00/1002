@@ -1,15 +1,10 @@
 name: تحديث قائمة حظر dnsmasq
 
 on:
-  # كل 24 ساعة - منتصف الليل UTC (3 صباحًا بتوقيت القاهرة)
   schedule:
     - cron: '0 0 * * *'
-  # السماح بالتشغيل اليدوي من تبويب Actions
   workflow_dispatch:
-  # إعادة التشغيل تلقائيًا لو حدث خطأ (بحد أقصى محاولتين)
-  # (لا يوجد خيار مباشر لذلك، لكن يمكن الاعتماد على إعادة الجدولة)
 
-# صلاحيات مطلوبة لإنشاء Releases ورفع الملفات
 permissions:
   contents: write
 
@@ -17,16 +12,13 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 60
-    
-    # لا تتوقف عند فشل بعض الخطوات غير الحرجة
-    continue-on-error: false
 
     steps:
     # ====== 1. سحب الكود ======
     - name: سحب كود المستودع
       uses: actions/checkout@v4
       with:
-        fetch-depth: 1
+        fetch-depth: 0
         show-progress: false
       timeout-minutes: 5
 
@@ -37,7 +29,7 @@ jobs:
         python-version: '3.11'
         cache: 'pip'
 
-    # ====== 3. تثبيت المكتبات (مع كل الاحتياطات) ======
+    # ====== 3. تثبيت المكتبات ======
     - name: تثبيت المكتبات المطلوبة
       run: |
         python -m pip install --upgrade pip
@@ -52,7 +44,7 @@ jobs:
           charset-normalizer
       timeout-minutes: 5
 
-    # ====== 4. التأكد من وجود curl (متوفر افتراضيًا في ubuntu-latest) ======
+    # ====== 4. التحقق من curl ======
     - name: التحقق من curl
       run: |
         curl --version || sudo apt-get install -y curl
@@ -62,42 +54,56 @@ jobs:
     - name: تشغيل سكربت معالجة القوائم
       run: python process_lists.py
       timeout-minutes: 45
-      continue-on-error: false
 
-    # ====== 6. التحقق من إنشاء الملف ======
+    # ====== 6. التحقق من الملف الناتج ======
     - name: التحقق من الملف الناتج
       run: |
         if [ -f "dnsmasq_filters/dnsmasq_blocklist.conf.gz" ]; then
           echo "✅ الملف موجود"
           ls -lh dnsmasq_filters/
-          echo "📊 عدد الأسطر في النسخة المضغوطة:"
+          echo "📊 عدد الأسطر:"
           gunzip -c dnsmasq_filters/dnsmasq_blocklist.conf.gz | wc -l
         else
           echo "❌ الملف غير موجود!"
           exit 1
         fi
 
-    # ====== 7. حفظ الملف في المستودع ======
+    # ====== 7. حفظ الملف مع حل تعارض push ======
     - name: حفظ الملف المضغوط في المستودع
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
-        git add dnsmasq_filters/dnsmasq_blocklist.conf.gz
-        if ! git diff --staged --quiet; then
-          git commit -m "🔄 تحديث تلقائي لقائمة dnsmasq - $(date +'%Y-%m-%d %H:%M UTC')"
-          git push
-          echo "✅ تم الحفظ في المستودع"
-        else
+        git add dnsmasq_filters/dnsmasq_blocklist.conf.gz dnsmasq_filters/skipped_lines.log
+        
+        if git diff --staged --quiet; then
           echo "ℹ️ لا توجد تغييرات جديدة"
+          exit 0
         fi
+        
+        git commit -m "🔄 تحديث تلقائي لقائمة dnsmasq - $(date +'%Y-%m-%d %H:%M UTC')"
+        
+        # إعادة المحاولة عند فشل push (بسبب commits جديدة من تشغيل آخر)
+        MAX_RETRIES=5
+        RETRY=0
+        until git push; do
+          RETRY=$((RETRY + 1))
+          if [ $RETRY -ge $MAX_RETRIES ]; then
+            echo "❌ فشل push بعد $MAX_RETRIES محاولات"
+            exit 1
+          fi
+          echo "⚠️ محاولة $RETRY: فشل push، جاري مزامنة التغييرات..."
+          git pull --rebase origin main
+          sleep 3
+        done
+        echo "✅ تم الحفظ في المستودع"
       timeout-minutes: 10
 
-    # ====== 8. الحصول على التاريخ للتاج ======
+    # ====== 8. الحصول على التاريخ ======
     - name: الحصول على التاريخ الحالي
       id: date
       run: echo "tag=$(date +'%Y.%m.%d')" >> $GITHUB_OUTPUT
 
-    # ====== 9. إنشاء Release جديد ======
+    # ====== 9. إنشاء Release ======
     - name: إنشاء إصدار جديد ورفع الملف
       uses: softprops/action-gh-release@v2
       with:
