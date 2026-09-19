@@ -208,15 +208,6 @@ https://raw.githubusercontent.com/durablenapkin/scamblocklist/master/hosts.txt
 https://raw.githubusercontent.com/hoshsadiq/adblock-nocoin-list/master/nocoin.txt
 https://raw.githubusercontent.com/hoshsadiq/adblock-nocoin-list/master/hosts.txt
 https://v.firebog.net/hosts/Easyprivacy.txt
-https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/domains/native.amazon.txt
-https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/domains/native.apple.txt
-https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/domains/native.huawei.txt
-https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/domains/native.winoffice.txt
-https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/domains/native.tiktok.extended.txt
-https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/domains/native.lgwebos.txt
-https://codeberg.org/hagezi/mirror2/raw/branch/main/dns-blocklists/domains/native.vivo.txt
-https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/domains/native.oppo-realme.txt
-https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/domains/native.xiaomi.txt
 https://small.oisd.nl/rpz
 https://raw.githubusercontent.com/lassekongo83/Frellwits-filter-lists/master/Frellwits-Swedish-Hosts-File.txt
 https://v.firebog.net/hosts/AdguardDNS.txt
