@@ -38,9 +38,6 @@ COMPRESSED_FILE = os.path.join(OUTPUT_DIR, "dnsmasq_blocklist.conf.gz")
 SKIPPED_LOG = os.path.join(OUTPUT_DIR, "skipped_lines.log")
 STATS_LOG = os.path.join(OUTPUT_DIR, "stats.txt")
 
-# إزالة الدومينات الفرعية (موصى به بشدة لتقليل الحجم)
-REMOVE_SUBDOMAIN_DUPS = True
-
 USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15",
@@ -66,6 +63,9 @@ INVALID_WORDS = {
     'ip6-allnodes', 'ip6-allrouters', 'ip6-localnet', 'ip6-mcastprefix',
     'local', 'localdomain', 'localhost.localdomain',
 }
+
+# امتدادات معروفة عشان نرفض أي حاجة غريبة
+VALID_TLD_PATTERN = re.compile(r'^[a-z]{2,24}$')
 
 
 # ============ الجلسة ============
@@ -147,14 +147,12 @@ def clean_domain(d):
     d = d.replace("*.", "")
     d = d.strip('^$|')
 
-    # تحويل unicode إلى ASCII (punycode-like)
     try:
         d = unicodedata.normalize('NFKC', d)
     except Exception:
         pass
 
-    # رفض الطول الزائد (أقصى 253 حرف حسب RFC)
-    if len(d) > 253:
+    if len(d) > 253 or len(d) < 4:
         return None
 
     if not re.match(r'^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)+$', d):
@@ -167,7 +165,7 @@ def clean_domain(d):
         return None
 
     tld = d.rsplit('.', 1)[-1]
-    if len(tld) < 2 or not tld.isalpha():
+    if not VALID_TLD_PATTERN.match(tld):
         return None
 
     return d
@@ -340,34 +338,13 @@ def download_with_curl(url, entry):
     return None
 
 
-# ============ إزالة الدومينات الفرعية ============
-def remove_subdomain_duplicates(domains):
-    """
-    يحذف الدومين الفرعي إذا كان أبوه موجودًا.
-    مثال: إذا كان example.com موجودًا، نحذف ads.example.com و tracker.example.com.
-    السبب: dnsmasq يحجب كل الفروع تلقائيًا مع address=/example.com/0.0.0.0.
-    """
-    sorted_domains = sorted(domains, key=lambda d: d.count('.'))
-    result = set()
-    removed = 0
-    for d in sorted_domains:
-        parts = d.split('.')
-        has_parent = False
-        for i in range(1, len(parts) - 1):
-            parent = '.'.join(parts[i:])
-            if parent in result:
-                has_parent = True
-                break
-        if has_parent:
-            removed += 1
-        else:
-            result.add(d)
-    print(f"  🗑️ إزالة {removed} دومين فرعي مكرر")
-    return result
-
-
 # ============ المعالجة ============
 def parse_filters(entries):
+    """
+    يجمع كل الدومينات من كل الروابط.
+    - set() بيمنع التكرار تلقائيًا (دومين فريد فقط).
+    - لا نحذف فروع أي دومين (عشان ما نمنعش مواقع كاملة زي google.com بالغلط).
+    """
     blocklist, allowlist = set(), set()
     skipped_samples = []
     stats = []
@@ -395,7 +372,7 @@ def parse_filters(entries):
                 count += 1
         after = len(blocklist) + len(allowlist)
         added = after - before
-        print(f"  ✅ {count} دومين مقروء، {added} جديد")
+        print(f"  ✅ {count} دومين مقروء، {added} جديد فريد")
         stats.append((url, count, "OK"))
 
     os.makedirs(OUTPUT_DIR, exist_ok=True)
@@ -414,10 +391,10 @@ def parse_filters(entries):
 
 
 def apply_priority(blocklist, allowlist):
-    print(f"\n📊 سوداء (بدون إزالة فرعية): {len(blocklist):,}")
-    print(f"📊 بيضاء: {len(allowlist):,}")
+    print(f"\n📊 سوداء (فريدة): {len(blocklist):,}")
+    print(f"📊 بيضاء (فريدة): {len(allowlist):,}")
     final = blocklist - allowlist
-    print(f"📊 بعد إزالة البيضاء: {len(final):,}")
+    print(f"📊 النهائية بعد إزالة البيضاء: {len(final):,}")
     return final
 
 
@@ -445,16 +422,8 @@ def main():
     if not entries:
         print("لا توجد روابط.")
         return
-
     block, allow = parse_filters(entries)
     final = apply_priority(block, allow)
-
-    if REMOVE_SUBDOMAIN_DUPS:
-        print(f"\n🔍 إزالة الدومينات الفرعية المكررة...")
-        before = len(final)
-        final = remove_subdomain_duplicates(final)
-        print(f"📊 قبل: {before:,} → بعد: {len(final):,}")
-
     format_dnsmasq(final, OUTPUT_FILE)
     compress_file(OUTPUT_FILE, COMPRESSED_FILE)
     os.remove(OUTPUT_FILE)
