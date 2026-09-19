@@ -1,69 +1,131 @@
 name: تحديث قائمة حظر dnsmasq
 
 on:
+  # كل 24 ساعة - منتصف الليل UTC (3 صباحًا بتوقيت القاهرة)
   schedule:
-    - cron: '0 0 * * *'   # كل 24 ساعة (منتصف الليل UTC)
+    - cron: '0 0 * * *'
+  # السماح بالتشغيل اليدوي من تبويب Actions
   workflow_dispatch:
+  # إعادة التشغيل تلقائيًا لو حدث خطأ (بحد أقصى محاولتين)
+  # (لا يوجد خيار مباشر لذلك، لكن يمكن الاعتماد على إعادة الجدولة)
 
+# صلاحيات مطلوبة لإنشاء Releases ورفع الملفات
 permissions:
   contents: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
+    
+    # لا تتوقف عند فشل بعض الخطوات غير الحرجة
+    continue-on-error: false
 
     steps:
-    - name: سحب الكود
+    # ====== 1. سحب الكود ======
+    - name: سحب كود المستودع
       uses: actions/checkout@v4
       with:
         fetch-depth: 1
+        show-progress: false
+      timeout-minutes: 5
 
+    # ====== 2. إعداد بايثون ======
     - name: إعداد بايثون
       uses: actions/setup-python@v5
       with:
         python-version: '3.11'
+        cache: 'pip'
 
-    - name: تثبيت المكتبات
+    # ====== 3. تثبيت المكتبات (مع كل الاحتياطات) ======
+    - name: تثبيت المكتبات المطلوبة
       run: |
         python -m pip install --upgrade pip
-        pip install requests
+        pip install --no-cache-dir \
+          requests \
+          urllib3 \
+          certifi \
+          httpx \
+          h2 \
+          brotli \
+          chardet \
+          charset-normalizer
+      timeout-minutes: 5
 
-    - name: تشغيل السكربت
+    # ====== 4. التأكد من وجود curl (متوفر افتراضيًا في ubuntu-latest) ======
+    - name: التحقق من curl
+      run: |
+        curl --version || sudo apt-get install -y curl
+        echo "✅ curl جاهز"
+
+    # ====== 5. تشغيل السكربت ======
+    - name: تشغيل سكربت معالجة القوائم
       run: python process_lists.py
+      timeout-minutes: 45
+      continue-on-error: false
 
-    - name: حفظ الملف المضغوط في المجلد
+    # ====== 6. التحقق من إنشاء الملف ======
+    - name: التحقق من الملف الناتج
+      run: |
+        if [ -f "dnsmasq_filters/dnsmasq_blocklist.conf.gz" ]; then
+          echo "✅ الملف موجود"
+          ls -lh dnsmasq_filters/
+          echo "📊 عدد الأسطر في النسخة المضغوطة:"
+          gunzip -c dnsmasq_filters/dnsmasq_blocklist.conf.gz | wc -l
+        else
+          echo "❌ الملف غير موجود!"
+          exit 1
+        fi
+
+    # ====== 7. حفظ الملف في المستودع ======
+    - name: حفظ الملف المضغوط في المستودع
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
         git add dnsmasq_filters/dnsmasq_blocklist.conf.gz
         if ! git diff --staged --quiet; then
-          git commit -m "تحديث تلقائي لقائمة dnsmasq - $(date +'%Y-%m-%d')"
+          git commit -m "🔄 تحديث تلقائي لقائمة dnsmasq - $(date +'%Y-%m-%d %H:%M UTC')"
           git push
+          echo "✅ تم الحفظ في المستودع"
         else
-          echo "لا توجد تغييرات."
+          echo "ℹ️ لا توجد تغييرات جديدة"
         fi
+      timeout-minutes: 10
 
-    - name: الحصول على التاريخ للتاج
+    # ====== 8. الحصول على التاريخ للتاج ======
+    - name: الحصول على التاريخ الحالي
       id: date
       run: echo "tag=$(date +'%Y.%m.%d')" >> $GITHUB_OUTPUT
 
-    - name: إنشاء Release (اختياري لكن مفيد)
+    # ====== 9. إنشاء Release جديد ======
+    - name: إنشاء إصدار جديد ورفع الملف
       uses: softprops/action-gh-release@v2
       with:
         tag_name: blocklist-${{ steps.date.outputs.tag }}-${{ github.run_number }}
         name: "قائمة الحظر - ${{ steps.date.outputs.tag }}"
         body: |
-          تحديث تلقائي لقائمة dnsmasq.
-          الملف داخل المستودع: `dnsmasq_filters/dnsmasq_blocklist.conf.gz`
-        files: dnsmasq_filters/dnsmasq_blocklist.conf.gz
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ## 🛡️ تحديث تلقائي لقائمة حظر dnsmasq
 
-    - name: حذف الإصدارات القديمة (احتفظ بآخر 5)
-      uses: dev-drprasad/delete-older-releases@v0.3.3
-      with:
-        keep_latest: 5
-        delete_tags: true
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          **التاريخ:** ${{ steps.date.outputs.tag }}  
+          **رقم التشغيل:** #${{ github.run_number }}
+
+          ### 📦 الملفات المرفقة
+          - `dnsmasq_blocklist.conf.gz` — قائمة الحظر بصيغة dnsmasq مضغوطة
+
+          ### 🔗 روابط التنزيل
+          - **آخر إصدار دائمًا:** [اضغط هنا](https://github.com/${{ github.repository }}/releases/latest/download/dnsmasq_blocklist.conf.gz)
+          - **من المستودع مباشرة:** [اضغط هنا](https://github.com/${{ github.repository }}/raw/main/dnsmasq_filters/dnsmasq_blocklist.conf.gz)
+
+          ### 💻 طريقة الاستخدام
+          ```bash
+          # تنزيل
+          wget https://github.com/${{ github.repository }}/releases/latest/download/dnsmasq_blocklist.conf.gz
+
+          # فك الضغط
+          gunzip dnsmasq_blocklist.conf.gz
+
+          # النسخ لمجلد dnsmasq
+          sudo mv dnsmasq_blocklist.conf /etc/dnsmasq.d/
+
+          # إعادة التشغيل
+          sudo systemctl restart dnsmasq
