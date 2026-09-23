@@ -1,5 +1,5 @@
 # عينة من الأسطر المتجاهلة (أول 100)
-# التاريخ: 2026-09-22 03:43:03 UTC
+# التاريخ: 2026-09-23 03:42:21 UTC
 
 # This hosts file is brought to you by Mitchell Krog
 # You are free to copy and distribute this file for non-commercial uses,
@@ -34,15 +34,15 @@
 # Maintainer      : FireHOL
 # Maintainer URL  : http://iplists.firehol.org/
 # List source URL : 
-# Source File Date: Mon Sep 21 04:44:38 UTC 2026
+# Source File Date: Tue Sep 22 06:44:44 UTC 2026
 #
 # Category        : attacks
-# Version         : 32893
+# Version         : 32898
 #
-# This File Date  : Mon Sep 21 04:52:56 UTC 2026
+# This File Date  : Tue Sep 22 07:44:57 UTC 2026
 # Update Frequency: 1 min 
 # Aggregation     : none
-# Entries         : 3955 subnets, 611143105 unique IPs
+# Entries         : 3957 subnets, 611140289 unique IPs
 #
 # Full list analysis, including geolocation map, history,
 # retention policy, overlaps with other lists, etc.
