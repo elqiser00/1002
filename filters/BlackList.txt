@@ -367,3 +367,13 @@
 ||ire-dsu.shalltry.com^$important
 ||mi-pre.shalltry.com^$important
 ||os-notice.shalltry.com^$important
+||dsu-a.shalltry.com^$important
+||ins.shalltry.com^$important
+||osupdate2020.shalltry.com^$important
+||osfeature.shalltry.com^$important
+||ds-test.shalltry.com^$important
+||app-manage-api.shalltry.com^$important
+||cc-api.hisavana.com^$important
+||cloud-config-api.shalltry.com^$important
+||material-static-oss.eagllwin.com^$important
+||api.hisavana.com^$important
