@@ -287,3 +287,11 @@
 ||appsgrowthpromo-pa.googleapis.com^$important
 ||cai.iteldrive.com^$important
 ||notifications-ueeshp-pa.googleapis.com^$important
+||cdn.pop-convert.com^$important
+||fonts.loox.io^$important
+||images.loox.io^$important
+||loox.io^$important
+||privacyportal-de.onetrust.com^$important
+||script.claspo.io^$important
+||tagging5-noneu.truecaller.com^$important
+||use.typekit.net^$important
