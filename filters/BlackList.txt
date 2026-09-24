@@ -296,3 +296,6 @@
 ||tagging5-noneu.truecaller.com^$important
 ||use.typekit.net^$important
 ||notice.samsungcloudsolution.com^$important
+||path1.xtracloud.net^$important
+||path2.xtracloud.net^$important
+||path3.xtracloud.net^$important
