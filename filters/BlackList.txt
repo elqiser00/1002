@@ -275,3 +275,5 @@
 ||osb-v1-eusvc.samsungqbe.com^$important
 ||otnprd10.samsungcloudsolution.net^$important
 ||gpm.samsungqbe.com^$important
+||appsgrowthpromo-pa.googleapis.com^$important
+||tiktok.tps.dv.tech^$important
