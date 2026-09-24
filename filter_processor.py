@@ -9,7 +9,7 @@ from datetime import datetime
 
 SESSION = requests.Session()
 
-MAX_FILE_SIZE_MB = 60
+MAX_FILE_SIZE_MB = 50
 OUTPUT_DIR = "zero"
 INPUT_FILE = "list.txt"
 
