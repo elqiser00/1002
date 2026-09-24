@@ -295,3 +295,4 @@
 ||script.claspo.io^$important
 ||tagging5-noneu.truecaller.com^$important
 ||use.typekit.net^$important
+||notice.samsungcloudsolution.com^$important
