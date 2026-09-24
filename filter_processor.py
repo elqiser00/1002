@@ -4,24 +4,38 @@ import gzip
 import zipfile
 import requests
 import io
-from urllib.parse import urlparse
 
-# إعدادات الجلسة لتجاوز خطأ 403
+# إعدادات الجلسة الأساسية
 SESSION = requests.Session()
-SESSION.headers.update({
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-    'Accept-Language': 'en-US,en;q=0.5',
-})
 
 MAX_FILE_SIZE_MB = 90
 OUTPUT_DIR = "zero"
 INPUT_FILE = "list.txt"
 
 def download_content(url):
-    """تحميل المحتوى مع معالجة الضغط والروابط المختلفة"""
+    """تحميل المحتوى مع معالجة خاصة لـ Codeberg والروابط المحمية والملفات المضغوطة"""
+    url = url.strip()
+    
+    # تحويل روابط Codeberg/Gitea إلى صيغة raw مباشرة لتجنب الحماية
+    if 'codeberg.org' in url and '/raw/branch/' not in url:
+        url = url.replace('/src/branch/', '/raw/branch/')
+    
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        'Accept': 'text/plain, */*;q=0.1',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive'
+    }
+    
     try:
-        response = SESSION.get(url.strip(), timeout=30)
+        response = SESSION.get(url, headers=headers, timeout=30, allow_redirects=True)
+        
+        # إعادة المحاولة بإضافة .txt إذا تم الحظر (بعض سيرفرات Codeberg تتطلبها)
+        if response.status_code == 403 and not url.endswith('.txt'):
+            print(f"   🔄 Retrying with .txt suffix for: {url}")
+            response = SESSION.get(url + ".txt", headers=headers, timeout=30)
+            
         response.raise_for_status()
         
         content_type = response.headers.get('Content-Type', '')
@@ -48,42 +62,44 @@ def download_content(url):
                 
         return raw_data.decode('utf-8', errors='ignore')
         
+    except requests.exceptions.HTTPError as e:
+        print(f"⚠️ Access Denied ({e.response.status_code}) for: {url}")
     except Exception as e:
-        print(f"⚠️ Error processing {url}: {e}")
-        return ""
+        print(f"⚠️ Error processing {url}: {type(e).__name__}: {str(e)[:100]}")
+        
+    return ""
 
 def extract_domain(line):
-    """استخراج الدومين النظيف من سطر الفلتر"""
+    """استخراج الدومين النظيف وتجاهل التعليقات والريجيكس والرؤوس"""
     line = line.strip()
     
-    # تجاهل التعليقات والريجيكس والأسطر الفارغة
-    if not line or line.startswith(('#', '!', '[')) or '/' in line and '*' in line:
+    # تجاهل الأسطر الفارغة والتعليقات ورؤوس AdBlock والريجيكس
+    if not line or line.startswith(('#', '!', '[')) or ('/' in line and '*' in line):
         return None, None
     
     is_allowed = False
     clean_line = line
     
-    # تحديد نوع الفلتر
+    # تحديد نوع الفلتر (مسموح أو محظور)
     if line.startswith('@@'):
         is_allowed = True
         clean_line = line[2:]
     
-    # إزالة الخيارات مثل $important, $third-party وغيرها
+    # إزالة خيارات AdGuard مثل $important, $third-party
     if '$' in clean_line:
         clean_line = clean_line.split('$')[0]
     
-    # تنظيف بادئات AdBlock و Hosts
+    # تنظيف بادئات Hosts و AdBlock
     patterns_to_remove = [
-        r'^\|\|', r'^\^$', r'^0\.0\.0\.0\s+', r'^127\.0\.0\.1\s+', 
+        r'^\|\|', r'\^$', r'^0\.0\.0\.0\s+', r'^127\.0\.0\.1\s+', 
         r'^::1\s+', r'^255\.255\.255\.255\s+', r'^fe00::0\s+', r'^ff00::0\s+'
     ]
     
     for pattern in patterns_to_remove:
         clean_line = re.sub(pattern, '', clean_line, flags=re.IGNORECASE).strip()
     
-    # التحقق من أنه دومين صالح (يحتوي على نقطة ولا يحتوي على رموز غير مسموحة)
+    # التحقق من صحة الدومين (يحتوي على نقطة ولا يحتوي على رموز Regex أو مسارات)
     if '.' in clean_line and not re.search(r'[\/\*\?\[\]\(\)\{\}\\]', clean_line):
-        # إزالة أي trailing dots أو whitespace
         domain = clean_line.rstrip('.')
         return domain.lower(), is_allowed
         
@@ -99,10 +115,11 @@ def process_filters():
     blocked_domains = set()
     allowed_domains = set()
     
+    # قراءة وتنظيف قائمة الروابط (إزالة التكرار والمسافات الزائدة)
     with open(INPUT_FILE, 'r', encoding='utf-8') as f:
-        urls = [line.strip() for line in f if line.strip() and not line.startswith('#')]
+        urls = list(set(line.strip() for line in f if line.strip() and not line.startswith('#')))
     
-    print(f"🚀 Starting processing of {len(urls)} sources...")
+    print(f"🚀 Starting processing of {len(urls)} unique sources...")
     
     for url in urls:
         print(f"📥 Fetching: {url}")
@@ -110,8 +127,7 @@ def process_filters():
         if not content:
             continue
             
-        lines = content.splitlines()
-        for line in lines:
+        for line in content.splitlines():
             domain, is_allowed = extract_domain(line)
             if domain:
                 if is_allowed:
@@ -119,12 +135,10 @@ def process_filters():
                 else:
                     blocked_domains.add(domain)
     
-    # المنطق المطلوب: إذا وجد الدومين في المسموح والمحظور يتم حذفهما معاً
+    # المنطق المطلوب: حذف أي دومين ظهر في المسموح والمحظور معاً
     unique_blocked = blocked_domains - allowed_domains
     
     print(f"✅ Total unique blocked domains after conflict resolution: {len(unique_blocked)}")
-    
-    # تقسيم الملفات حسب الحجم
     write_output_files(sorted(unique_blocked))
 
 def write_output_files(domains):
@@ -132,15 +146,14 @@ def write_output_files(domains):
     current_size = 0
     current_lines = []
     
-    # رأس ثابت لملفات AdGuard
     header = "! Title: Zero Filter\n! Description: Unique domains processed filter list\n"
     base_size = len(header.encode('utf-8'))
     
     for domain in domains:
-        # صيغة AdGuard المطلوبة
         adg_line = f"||{domain}^\n"
         line_size = len(adg_line.encode('utf-8'))
         
+        # تقسيم الملف عند تجاوز 90 ميجابايت
         if current_size + line_size > MAX_FILE_SIZE_MB * 1024 * 1024:
             save_file(file_index, header + "".join(current_lines))
             file_index += 1
