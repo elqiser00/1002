@@ -15,13 +15,20 @@ MAX_SIZE_BYTES = 85 * 1024 * 1024 # 85 MB
 # Disable SSL warnings
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-# Initialize requests session
+# Initialize requests session with FULL Browser Headers to bypass 403 Forbidden
 session = requests.Session()
 session.headers.update({
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-    'Accept': 'text/plain,text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-    'Accept-Language': 'en-US,en;q=0.5'
-    # Removed Accept-Encoding to prevent automatic gzip decompression errors on raw text files
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+    'Accept-Language': 'en-US,en;q=0.9,ar;q=0.8',
+    'Accept-Encoding': 'gzip, deflate, br',
+    'Connection': 'keep-alive',
+    'Upgrade-Insecure-Requests': '1',
+    'Sec-Fetch-Dest': 'document',
+    'Sec-Fetch-Mode': 'navigate',
+    'Sec-Fetch-Site': 'none',
+    'Sec-Fetch-User': '?1',
+    'Cache-Control': 'max-age=0',
 })
 
 def extract_domain(rule):
@@ -108,13 +115,25 @@ def process_list(url):
     accepted = set()
     try:
         print(f"Fetching: {url}")
-        # stream=False and relying on requests auto-handling without forcing gzip in headers
-        res = session.get(url, timeout=30, verify=False)
+        
+        # Add referer dynamically based on the URL to bypass hotlink protection
+        from urllib.parse import urlparse
+        parsed_url = urlparse(url)
+        referer = f"{parsed_url.scheme}://{parsed_url.netloc}/"
+        
+        res = session.get(url, timeout=30, verify=False, headers={'Referer': referer})
         res.raise_for_status()
         
-        # Force decoding using apparent encoding or utf-8
-        res.encoding = res.apparent_encoding or 'utf-8'
-        content = res.text
+        # Handle content decoding safely
+        if res.headers.get('Content-Encoding') == 'br':
+            try:
+                import brotli
+                content = brotli.decompress(res.content).decode('utf-8', errors='ignore')
+            except ImportError:
+                content = res.content.decode('utf-8', errors='ignore')
+        else:
+            res.encoding = res.apparent_encoding or 'utf-8'
+            content = res.text
             
         for line in content.splitlines():
             result = extract_domain(line)
@@ -148,21 +167,21 @@ def main():
             all_blocked.update(blocked)
             all_accepted.update(accepted)
             
-    # Conflict resolution
+    # Conflict resolution: 
+    # لو الدومين موجود في البلوك وفي الوايت ليست، يتشالوا الاتنين عشان يفتح بشكل طبيعي
     conflicts = all_blocked.intersection(all_accepted)
-    print(f"Found {len(conflicts)} conflicting domains. Removing them.")
+    print(f"Found {len(conflicts)} conflicting domains. Removing them completely.")
     all_blocked -= conflicts
-    all_accepted -= conflicts
     
-    print(f"Final blocked domains: {len(all_blocked)}")
-    print(f"Final accepted domains: {len(all_accepted)}")
+    # شيلنا أي دومين اتصنف كـ accepted خالص من قائمة البلوك النهائية
+    all_blocked -= all_accepted
     
-    # Prepare rules
+    print(f"Final unique blocked domains: {len(all_blocked)}")
+    
+    # Prepare rules (Blacklist ONLY - No @@ rules anymore)
     rules = []
     for domain in all_blocked:
         rules.append(f"||{domain}^$important")
-    for domain in all_accepted:
-        rules.append(f"@@||{domain}^$important")
         
     # Sort rules for consistency
     rules.sort()
