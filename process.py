@@ -3,7 +3,6 @@ import sys
 import re
 import socket
 import requests
-import gzip
 import tldextract
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import urllib3
@@ -11,7 +10,7 @@ import urllib3
 # Configuration
 LIST_FILE = 'list.txt'
 OUTPUT_FOLDER = 'zero'
-MAX_SIZE_BYTES = 85 * 1024 * 1024 # 85 MB to be safely under 90 MB
+MAX_SIZE_BYTES = 85 * 1024 * 1024 # 85 MB
 
 # Disable SSL warnings
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -20,9 +19,9 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 session = requests.Session()
 session.headers.update({
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-    'Accept-Language': 'en-US,en;q=0.5',
-    'Accept-Encoding': 'gzip, deflate, br'
+    'Accept': 'text/plain,text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+    'Accept-Language': 'en-US,en;q=0.5'
+    # Removed Accept-Encoding to prevent automatic gzip decompression errors on raw text files
 })
 
 def extract_domain(rule):
@@ -94,7 +93,7 @@ def extract_domain(rule):
         if ext.subdomain:
             domain = f"{ext.subdomain}.{domain}"
             
-        # Final validation: a domain should not be just a suffix or have invalid chars
+        # Final validation
         if '.' not in domain:
             return None
         if len(domain) > 253:
@@ -109,20 +108,13 @@ def process_list(url):
     accepted = set()
     try:
         print(f"Fetching: {url}")
-        res = session.get(url, timeout=30, verify=False, stream=True)
+        # stream=False and relying on requests auto-handling without forcing gzip in headers
+        res = session.get(url, timeout=30, verify=False)
         res.raise_for_status()
         
-        # Handle brotli
-        if res.headers.get('Content-Encoding') == 'br':
-            try:
-                import brotli
-                content = brotli.decompress(res.content).decode('utf-8', errors='ignore')
-            except ImportError:
-                content = res.content.decode('utf-8', errors='ignore')
-        elif res.headers.get('Content-Encoding') == 'gzip':
-            content = gzip.decompress(res.content).decode('utf-8', errors='ignore')
-        else:
-            content = res.content.decode('utf-8', errors='ignore')
+        # Force decoding using apparent encoding or utf-8
+        res.encoding = res.apparent_encoding or 'utf-8'
+        content = res.text
             
         for line in content.splitlines():
             result = extract_domain(line)
@@ -156,7 +148,7 @@ def main():
             all_blocked.update(blocked)
             all_accepted.update(accepted)
             
-    # Conflict resolution (If a domain is blocked in one list and accepted in another, remove both)
+    # Conflict resolution
     conflicts = all_blocked.intersection(all_accepted)
     print(f"Found {len(conflicts)} conflicting domains. Removing them.")
     all_blocked -= conflicts
