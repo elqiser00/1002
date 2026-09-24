@@ -261,3 +261,6 @@
 ||geomobileservices-pa.googleapis.com^$important
 ||grs.hihonorcloud.com^$important
 ||firebaseinstallations.googleapis.com^$important
+||oshola.shalltry.com^$important
+||oslab.shalltry.com^$important
+||tms-api.shalltry.com^$important
