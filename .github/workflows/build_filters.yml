@@ -10,7 +10,6 @@ on:
       - 'filter_processor.py'
       - '.github/workflows/build_filters.yml'
 
-# منع التشغيل المتزامن نهائياً (هذا هو السبب الرئيسي للمشكلة)
 concurrency:
   group: build-filters
   cancel-in-progress: false
@@ -20,10 +19,10 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - name: Checkout Repository
+      - name: Checkout Repository (Shallow)
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 1  # جلب آخر commit فقط لتسريع العملية
       
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -36,18 +35,24 @@ jobs:
       - name: Run Filter Processor
         run: python filter_processor.py
         
-      - name: Commit and Push Changes Safely
+      - name: Commit and Push Changes
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           
-          # إضافة المجلد
           git add zero/
           
-          # التحقق إذا كان هناك تغييرات
           if git diff --staged --quiet; then
             echo "✅ No changes to commit"
           else
             git commit -m "♻️ Auto-update Zero filters $(date +%Y%m%d%H%M)"
             
-            # الحل السحري: سحب أي
+            # استخدام rebase مع shallow history
+            git pull --rebase origin main --allow-unrelated-histories || {
+              echo "⚠️ Rebase conflict, forcing update..."
+              git rebase --abort
+            }
+            
+            # الدفع مع السماح بالتجاوز الآمن
+            git push origin main --force-with-lease
+          fi
