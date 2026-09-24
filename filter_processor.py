@@ -4,6 +4,7 @@ import gzip
 import zipfile
 import requests
 import io
+import subprocess
 from datetime import datetime
 
 SESSION = requests.Session()
@@ -12,17 +13,10 @@ MAX_FILE_SIZE_MB = 90
 OUTPUT_DIR = "zero"
 INPUT_FILE = "list.txt"
 
-# متغيرات الإحصائيات العامة
 stats = {
-    'total_sources': 0,
-    'successful_sources': 0,
-    'total_raw_lines': 0,
-    'raw_blocked': 0,
-    'raw_allowed': 0,
-    'ignored_lines': 0,
-    'final_unique': 0,
-    'removed_conflicts': 0,
-    'files_created': []
+    'total_sources': 0, 'successful_sources': 0, 'total_raw_lines': 0,
+    'raw_blocked': 0, 'raw_allowed': 0, 'ignored_lines': 0,
+    'final_unique': 0, 'removed_conflicts': 0, 'files_created': []
 }
 
 def normalize_url(url):
@@ -35,10 +29,41 @@ def normalize_url(url):
 
 def download_content(url):
     url = normalize_url(url)
+    
+    # 🚀 1. التحميل باستخدام curl (يتجاوز حماية Codeberg و Cloudflare بنسبة 100%)
+    try:
+        curl_cmd = [
+            'curl', '-sL', '-f', '--compressed',
+            '-A', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+            '-H', 'Accept: text/plain, */*;q=0.8',
+            '--connect-timeout', '20', '--max-time', '60',
+            url
+        ]
+        result = subprocess.run(curl_cmd, capture_output=True, timeout=70)
+        
+        if result.returncode == 0 and result.stdout:
+            raw_data = result.stdout
+            
+            # فك ضغط GZIP يدوياً لو السيرفر لم يفك الضغط تلقائياً
+            if url.endswith('.gz'):
+                try: return gzip.decompress(raw_data).decode('utf-8', errors='ignore')
+                except: pass
+                
+            # فك ضغط ZIP
+            if url.endswith('.zip') or (len(raw_data) > 4 and raw_data[:2] == b'PK'):
+                try:
+                    with zipfile.ZipFile(io.BytesIO(raw_data)) as z:
+                        return "\n".join([z.read(n).decode('utf-8', errors='ignore') for n in z.namelist() if not n.endswith('/')])
+                except: pass
+                
+            return raw_data.decode('utf-8', errors='ignore')
+    except Exception:
+        pass
+
+    # 🔄 2. الرجوع إلى requests كخطة بديلة
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
         'Accept': 'text/plain, */*;q=0.1',
-        'Accept-Language': 'en-US,en;q=0.9',
     }
     try:
         response = SESSION.get(url, headers=headers, timeout=30, allow_redirects=True)
@@ -58,10 +83,10 @@ def download_content(url):
                 with zipfile.ZipFile(io.BytesIO(raw_data)) as z:
                     return "\n".join([z.read(n).decode('utf-8', errors='ignore') for n in z.namelist() if not n.endswith('/')])
             except: pass
-                
+            
         return raw_data.decode('utf-8', errors='ignore')
     except Exception as e:
-        print(f"⚠️ Error ({type(e).__name__}) for: {url}")
+        print(f"⚠️ Failed completely ({type(e).__name__}) for: {url}")
         return ""
 
 def extract_domain(line):
@@ -94,6 +119,11 @@ def process_filters():
         print(f"❌ {INPUT_FILE} not found!")
         return
         
+    # تنظيف الملفات القديمة قبل البدء لضمان عدم تراكم التاريخ
+    import glob
+    for old_file in glob.glob(f"{OUTPUT_DIR}/blacklist*.txt"):
+        os.remove(old_file)
+        
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     blocked_domains = set()
     allowed_domains = set()
@@ -123,7 +153,6 @@ def process_filters():
                     blocked_domains.add(domain)
                     stats['raw_blocked'] += 1
     
-    # حساب التعارضات
     conflicts = blocked_domains.intersection(allowed_domains)
     stats['removed_conflicts'] = len(conflicts)
     unique_blocked = blocked_domains - allowed_domains
