@@ -264,3 +264,14 @@
 ||oshola.shalltry.com^$important
 ||oslab.shalltry.com^$important
 ||tms-api.shalltry.com^$important
+||qcc.qualcomm.com^$important
+||osb-v1.samsungqbe.com^$important
+||www.samsungotn.net^$important
+||sas.samsungcloudsolution.com^$important
+||sp-a855e2ff.apkrep.avcdn.net^$important
+||time.samsungcloudsolution.net^$important
+||otnprd11.samsungcloudsolution.net^$important
+||osb-tnc-v2-appsacc.samsungqbe.com^$important
+||osb-v1-eusvc.samsungqbe.com^$important
+||otnprd10.samsungcloudsolution.net^$important
+||gpm.samsungqbe.com^$important
