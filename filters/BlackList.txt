@@ -377,3 +377,9 @@
 ||cloud-config-api.shalltry.com^$important
 ||material-static-oss.eagllwin.com^$important
 ||api.hisavana.com^$important
+||widget.intercom.io^$important
+||redirector.skimresources.com^$important
+||tagmanager.google.com^$important
+||graph.facebook.com^$important
+||i.instagram.com^$important
+||ngfts.lge.com^$important
