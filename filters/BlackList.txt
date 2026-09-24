@@ -257,3 +257,7 @@
 ||graph.facebook.com^$important
 ||i.instagram.com^$important
 ||ngfts.lge.com^$important
+||mssdk22-normal-alisg.tiktokv.com^$important
+||geomobileservices-pa.googleapis.com^$important
+||grs.hihonorcloud.com^$important
+||firebaseinstallations.googleapis.com^$important
