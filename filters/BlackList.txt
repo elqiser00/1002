@@ -360,3 +360,10 @@
 ||init.push.apple.com^$important
 ||push.apple.com^$important
 ||xgapromomanager-pa.googleapis.com^$important
+||af.shalltry.com^$important
+||ds.shalltry.com^$important
+||dsu-b.shalltry.com^$important
+||gslb.shalltry.com^$important
+||ire-dsu.shalltry.com^$important
+||mi-pre.shalltry.com^$important
+||os-notice.shalltry.com^$important
