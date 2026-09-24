@@ -277,3 +277,13 @@
 ||gpm.samsungqbe.com^$important
 ||appsgrowthpromo-pa.googleapis.com^$important
 ||tiktok.tps.dv.tech^$important
+||partiality.itunes.apple.com^$important
+||script.pop-convert.com^$important
+||cdn.s3.pop-convert.com^$important
+||scripts.claspo.io^$important
+||cdn.micro.pop-convert.com^$important
+||micro.pop-convert.com^$important
+||sdk.pop-convert.com^$important
+||appsgrowthpromo-pa.googleapis.com^$important
+||cai.iteldrive.com^$important
+||notifications-ueeshp-pa.googleapis.com^$important
