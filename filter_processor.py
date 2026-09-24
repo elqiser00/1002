@@ -5,7 +5,6 @@ import zipfile
 import requests
 import io
 
-# إعدادات الجلسة الأساسية
 SESSION = requests.Session()
 
 MAX_FILE_SIZE_MB = 90
@@ -13,10 +12,10 @@ OUTPUT_DIR = "zero"
 INPUT_FILE = "list.txt"
 
 def download_content(url):
-    """تحميل المحتوى مع معالجة خاصة لـ Codeberg والروابط المحمية والملفات المضغوطة"""
+    """تحميل المحتوى مع معالجة خاصة لـ Codeberg والملفات المضغوطة"""
     url = url.strip()
     
-    # تحويل روابط Codeberg/Gitea إلى صيغة raw مباشرة لتجنب الحماية
+    # تحويل روابط Codeberg/Gitea إلى صيغة raw مباشرة
     if 'codeberg.org' in url and '/raw/branch/' not in url:
         url = url.replace('/src/branch/', '/raw/branch/')
     
@@ -31,7 +30,7 @@ def download_content(url):
     try:
         response = SESSION.get(url, headers=headers, timeout=30, allow_redirects=True)
         
-        # إعادة المحاولة بإضافة .txt إذا تم الحظر (بعض سيرفرات Codeberg تتطلبها)
+        # إعادة المحاولة بإضافة .txt إذا تم الحظر
         if response.status_code == 403 and not url.endswith('.txt'):
             print(f"   🔄 Retrying with .txt suffix for: {url}")
             response = SESSION.get(url + ".txt", headers=headers, timeout=30)
@@ -70,22 +69,26 @@ def download_content(url):
     return ""
 
 def extract_domain(line):
-    """استخراج الدومين النظيف وتجاهل التعليقات والريجيكس والرؤوس"""
+    """استخراج الدومين النظيف وحذف Regex والتعليقات والرؤوس نهائياً"""
     line = line.strip()
     
-    # تجاهل الأسطر الفارغة والتعليقات ورؤوس AdBlock والريجيكس
-    if not line or line.startswith(('#', '!', '[')) or ('/' in line and '*' in line):
+    # حذف فوري لأي سطر يحتوي على Regex أو تعليقات أو رؤوس
+    if not line or line.startswith(('#', '!', '[')):
+        return None, None
+    
+    # حذف أي سطر يحتوي على رموز Regex أو مسارات URL
+    if re.search(r'[/\*\?\[\]\(\)\{\}\|\\]', line):
         return None, None
     
     is_allowed = False
     clean_line = line
     
-    # تحديد نوع الفلتر (مسموح أو محظور)
+    # تحديد نوع الفلتر
     if line.startswith('@@'):
         is_allowed = True
         clean_line = line[2:]
     
-    # إزالة خيارات AdGuard مثل $important, $third-party
+    # إزالة خيارات AdGuard مثل $important
     if '$' in clean_line:
         clean_line = clean_line.split('$')[0]
     
@@ -98,10 +101,9 @@ def extract_domain(line):
     for pattern in patterns_to_remove:
         clean_line = re.sub(pattern, '', clean_line, flags=re.IGNORECASE).strip()
     
-    # التحقق من صحة الدومين (يحتوي على نقطة ولا يحتوي على رموز Regex أو مسارات)
-    if '.' in clean_line and not re.search(r'[\/\*\?\[\]\(\)\{\}\\]', clean_line):
-        domain = clean_line.rstrip('.')
-        return domain.lower(), is_allowed
+    # التحقق النهائي من أنه دومين نقي فقط
+    if '.' in clean_line and re.match(r'^[a-z0-9]([a-z0-9\-\.]*[a-z0-9])?$', clean_line):
+        return clean_line.lower(), is_allowed
         
     return None, None
 
@@ -115,7 +117,7 @@ def process_filters():
     blocked_domains = set()
     allowed_domains = set()
     
-    # قراءة وتنظيف قائمة الروابط (إزالة التكرار والمسافات الزائدة)
+    # إزالة الروابط المكررة من قائمة المصادر
     with open(INPUT_FILE, 'r', encoding='utf-8') as f:
         urls = list(set(line.strip() for line in f if line.strip() and not line.startswith('#')))
     
@@ -135,10 +137,10 @@ def process_filters():
                 else:
                     blocked_domains.add(domain)
     
-    # المنطق المطلوب: حذف أي دومين ظهر في المسموح والمحظور معاً
+    # حذف الدومينات التي تظهر في المسموح والمحظور معاً
     unique_blocked = blocked_domains - allowed_domains
     
-    print(f"✅ Total unique blocked domains after conflict resolution: {len(unique_blocked)}")
+    print(f"✅ Total unique blocked domains after deduplication & conflict resolution: {len(unique_blocked)}")
     write_output_files(sorted(unique_blocked))
 
 def write_output_files(domains):
