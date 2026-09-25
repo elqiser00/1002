@@ -299,3 +299,7 @@
 ||path1.xtracloud.net^$important
 ||path2.xtracloud.net^$important
 ||path3.xtracloud.net^$important
+||iphone-ld.apple.com^$important
+||graph.fbpigeon.com^$important
+||gs-loc.apple.com^$important
+||android-safebrowsing.google.com^$important
