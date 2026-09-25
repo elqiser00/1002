@@ -314,3 +314,5 @@
 ||connect.facebook.net^$important
 ||facebook.net^$important
 ||pixel.facebook.com^$important
+||geo.prod.do.dsp.mp.microsoft.com^$important
+||geover.prod.do.dsp.mp.microsoft.com^$important
