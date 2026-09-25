@@ -33,9 +33,6 @@
 ||advice-ads.s3.amazonaws.com^$important
 ||afs.googlesyndication.com^$important
 ||amazon-adsystem.com^$important
-||an.facebook.com^$important
-||an.m.facebook.com^$important
-||an.mobile.facebook.com^$important
 ||analytics-api.samsunghealthcn.com^$important
 ||analytics-sg.tiktok.com^$important
 ||analytics.google.com^$important
@@ -71,7 +68,6 @@
 ||click.googleanalytics.com^$important
 ||click.oneplus.cn^$important
 ||config.unityads.unity3d.com^$important
-||connect.facebook.net^$important
 ||cs.luckyorange.net^$important
 ||data.ads.oppomobile.com^$important
 ||data.mistat.india.xiaomi.com^$important
@@ -86,7 +82,6 @@
 ||events.hotjar.io^$important
 ||events3alt.adcolony.com^$important
 ||extmaps-api.yandex.net^$important
-||facebook.net^$important
 ||freshmarketer.com^$important
 ||fwtracks.freshmarketer.com^$important
 ||gemini.yahoo.com^$important
@@ -142,7 +137,6 @@
 ||open.oneplus.net^$important
 ||pagead2.googlesyndication.com^$important
 ||partnerads.ysm.yahoo.com^$important
-||pixel.facebook.com^$important
 ||popads.net^$important
 ||popcash.net^$important
 ||priorato.org^$important
@@ -313,3 +307,4 @@
 ||sb-ssl.google.com^$important
 ||mon-boot.tiktokv.com^$important
 ||config.edge.skype.com^$important
+||graph-fallback.instagram.com^$important
