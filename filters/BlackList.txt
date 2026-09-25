@@ -56,7 +56,6 @@
 ||applovin.com^$important
 ||appmetrica.yandex.ru^$important
 ||auction.unityads.unity3d.com^$important
-||b-graph.facebook.com^$important
 ||bdapi-ads.realmemobile.com^$important
 ||bdapi-in-ads.realmemobile.com^$important
 ||books-analytics-events.apple.com^$important
@@ -254,7 +253,6 @@
 ||widget.intercom.io^$important
 ||redirector.skimresources.com^$important
 ||tagmanager.google.com^$important
-||graph.facebook.com^$important
 ||i.instagram.com^$important
 ||ngfts.lge.com^$important
 ||mssdk22-normal-alisg.tiktokv.com^$important
@@ -315,3 +313,4 @@
 ||whoami.akamai.net^$important
 ||sb-ssl.google.com^$important
 ||mon-boot.tiktokv.com^$important
+||config.edge.skype.com^$important
