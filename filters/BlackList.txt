@@ -308,3 +308,9 @@
 ||mon-boot.tiktokv.com^$important
 ||config.edge.skype.com^$important
 ||graph-fallback.instagram.com^$important
+||an.facebook.com^$important
+||an.m.facebook.com^$important
+||an.mobile.facebook.com^$important
+||connect.facebook.net^$important
+||facebook.net^$important
+||pixel.facebook.com^$important
