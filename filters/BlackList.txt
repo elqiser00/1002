@@ -303,3 +303,13 @@
 ||graph.fbpigeon.com^$important
 ||gs-loc.apple.com^$important
 ||android-safebrowsing.google.com^$important
+||lcprd1.samsungcloudsolution.net^$important
+||android-context-data.googleapis.com^$important
+||cl2.apple.com^$important
+||semanticlocation-pa.googleapis.com^$important
+||lcdn-locator.apple.com^$important
+||cl3.apple.com^$important
+||locationhistoryaggregates-pa.googleapis.com^$important
+||safebrowsing.googleapis.com^$important
+||footprints-pa.googleapis.com^$important
+||whoami.akamai.net^$important
