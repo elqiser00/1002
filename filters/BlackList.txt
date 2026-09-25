@@ -316,3 +316,6 @@
 ||pixel.facebook.com^$important
 ||geo.prod.do.dsp.mp.microsoft.com^$important
 ||geover.prod.do.dsp.mp.microsoft.com^$important
+||ohttp-relay-safebrowsing-android.google.fastly-edge.com^$important
+||s0.2mdn.net^$important
+||s.youtube.com^$important
