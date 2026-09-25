@@ -314,3 +314,4 @@
 ||footprints-pa.googleapis.com^$important
 ||whoami.akamai.net^$important
 ||sb-ssl.google.com^$important
+||mon-boot.tiktokv.com^$important
