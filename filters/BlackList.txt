@@ -337,3 +337,6 @@
 ||ohttp-relay-safebrowsing-chrome.google.fastly-edge.com^$important
 ||default.exp-tas.com^$important
 ||remote-settings-v2.voodoo-tech.io^$important
+||api.helpshift.com^$important
+||cloud.gsdk.proximabeta.com^$important
+||dl.listdl.com^$important
