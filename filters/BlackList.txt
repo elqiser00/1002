@@ -330,3 +330,5 @@
 ||c.ksa.webengage.com^$important
 ||otnprd8.samsungcloudsolution.net^$important
 ||otnprd9.samsungcloudsolution.net^$important
+||collections.mp.microsoft.com^$important
+||fd.api.iris.microsoft.com^$important
