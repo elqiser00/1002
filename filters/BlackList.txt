@@ -340,3 +340,5 @@
 ||api.helpshift.com^$important
 ||cloud.gsdk.proximabeta.com^$important
 ||dl.listdl.com^$important
+||gsp10-ssl.apple.com^$important
+||shepherd.ff.avast.com^$important
