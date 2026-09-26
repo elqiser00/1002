@@ -319,3 +319,14 @@
 ||ohttp-relay-safebrowsing-android.google.fastly-edge.com^$important
 ||s0.2mdn.net^$important
 ||s.youtube.com^$important
+||time.xtracloud.net^$important
+||api.smoot.apple.com^$important
+||locationhistoryplacedetails-pa.googleapis.com^$important
+||cl1.apple.com^$important
+||t2.gstatic.com^$important
+||graph.fbpigeon.com^$important
+||api2.smoot.apple.com^$important
+||api.onesignal.com^$important
+||c.ksa.webengage.com^$important
+||otnprd8.samsungcloudsolution.net^$important
+||otnprd9.samsungcloudsolution.net^$important
