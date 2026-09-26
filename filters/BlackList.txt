@@ -333,3 +333,7 @@
 ||collections.mp.microsoft.com^$important
 ||fd.api.iris.microsoft.com^$important
 ||ulp1p-pa.googleapis.com^$important
+||mdp-appconf-eg.heytapdl.com^$important
+||ohttp-relay-safebrowsing-chrome.google.fastly-edge.com^$important
+||default.exp-tas.com^$important
+||remote-settings-v2.voodoo-tech.io^$important
