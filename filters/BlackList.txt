@@ -344,3 +344,5 @@
 ||shepherd.ff.avast.com^$important
 ||token.safebrowsing.apple^$important
 ||loc.map.baidu.com^$important
+||a.968421.shop^$important
+||cdn.growthbook.io^$important
