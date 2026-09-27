@@ -17,7 +17,7 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
         with:
@@ -35,32 +35,35 @@ jobs:
           rm -f "Adguard-Adblock-only"/*.txt || true
           rm -f "Adguard-Adblock-only/0" || true
 
-      - name: Build
+      - name: Build (Deep Scan)
         run: python build.py
-
-      - name: Debug - list files
-        run: |
-          echo "=== محتويات الفولدر ==="
-          ls -la "Adguard-Adblock-only" || echo "الفولدر مش موجود!"
-          echo "=== عدد الملفات ==="
-          find "Adguard-Adblock-only" -type f | wc -l
 
       - name: Commit & push
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          if [ ! -d "Adguard-Adblock-only" ] || [ -z "$(ls -A "Adguard-Adblock-only" 2>/dev/null | grep -v '^0$')" ]; then
-            echo "❌ الفولدر فاضي أو مش موجود"
+          if [ ! -d "Adguard-Adblock-only" ]; then
+            echo "❌ الفولدر مش موجود"
             exit 1
           fi
 
           git add -A "Adguard-Adblock-only"
-          git status
 
           if git diff --staged --quiet; then
             echo "✅ مفيش تغييرات"
-          else
-            git commit -m "chore: update blacklist [skip ci]"
-            git push
+            exit 0
           fi
+
+          git commit -m "chore: update blacklist [skip ci]"
+
+          # 🔑 سحب التغييرات البعيدة + rebase
+          git pull --rebase origin main
+
+          # حل التعارض لو حصل: ناخد نسختنا
+          git checkout --ours "Adguard-Adblock-only/blacklist.txt" 2>/dev/null || true
+          git add -A "Adguard-Adblock-only" 2>/dev/null || true
+          git rebase --continue 2>/dev/null || true
+
+          # الرفع
+          git push origin main
