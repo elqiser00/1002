@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Zero Blacklist Builder
+Adguard Adblock only - Blacklist Builder
 - يقرأ الروابط من list2.txt
 - يحمّل كل مصدر (يدعم gzip / zip / tar / tar.gz + redirects + cookies + headers + SSL fallback)
 - يستخرج الدومينات من adblock / hosts / plain
 - يحوّلها إلى: ||domain^$important
 - لو دومين مسموح وفي نفس الوقت محظور -> يتحذف الاتنين
 - الفاينل = المحظور فقط بدون تكرار
-- يكتب في مجلد zero/ ويقسّم على 90 ميجا
+- يكتب في مجلد "Adguard Adblock only" ويقسّم على 90 ميجا
 """
 
 import os
@@ -22,11 +22,11 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-LIST_FILE     = "list2.txt"
-OUT_DIR       = "zero"
-MAX_BYTES     = 90 * 1024 * 1024
-TIMEOUT       = 90
-MAX_RETRIES   = 3
+LIST_FILE   = "list2.txt"
+OUT_DIR     = "Adguard Adblock only"
+MAX_BYTES   = 90 * 1024 * 1024
+TIMEOUT     = 90
+MAX_RETRIES = 3
 
 DOMAIN_RE = re.compile(
     r"^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?"
@@ -169,7 +169,6 @@ def fetch(session, url):
     body = try_decompress(body, url, r.headers.get("Content-Type", ""))
     text = decode_bytes(body)
 
-    # لو الصفحة HTML خطأ -> تجاهل
     head = text[:400].lstrip().lower()
     if head.startswith("<!doctype html") or head.startswith("<html"):
         if "||" not in text and "0.0.0.0" not in text:
@@ -180,8 +179,8 @@ def fetch(session, url):
 
 
 # ---------- تحليل الأسطر ----------
-HOSTS_IP_RE      = re.compile(r"^([0-9a-fA-F:.]+)\s+([^\s#]+)")
-ADBLOCK_DOM_RE   = re.compile(r"^([a-z0-9][a-z0-9.\-]*[a-z0-9])", re.I)
+HOSTS_IP_RE    = re.compile(r"^([0-9a-fA-F:.]+)\s+([^\s#]+)")
+ADBLOCK_DOM_RE = re.compile(r"^([a-z0-9][a-z0-9.\-]*[a-z0-9])", re.I)
 
 
 def is_comment_or_header(s: str) -> bool:
@@ -276,7 +275,7 @@ def write_output(domains, out_dir, max_bytes):
 
     header = (
         "[Adblock Plus 2.0]\n"
-        "! Title: Zero Blacklist\n"
+        "! Title: Adguard Adblock only\n"
         "! Description: Auto-generated unique blocked domains\n"
         "! Generated: "
         + time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime()) + "\n"
