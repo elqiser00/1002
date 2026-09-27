@@ -1,0 +1,51 @@
+name: Build Zero Blacklist
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 3 * * *"
+  push:
+    branches: [main]
+    paths:
+      - "list2.txt"
+      - "build.py"
+      - ".github/workflows/build.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-zero
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install deps
+        run: pip install --upgrade requests
+
+      - name: Build
+        run: python build.py
+
+      - name: Commit & push
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          mkdir -p zero
+          git add zero
+          if git diff --staged --quiet; then
+            echo "No changes"
+          else
+            git commit -m "chore: update zero blacklist [skip ci]"
+            git push
+          fi
