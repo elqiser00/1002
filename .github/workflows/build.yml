@@ -14,10 +14,6 @@ on:
 permissions:
   contents: write
 
-concurrency:
-  group: build-zero
-  cancel-in-progress: false
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -34,21 +30,36 @@ jobs:
       - name: Install deps
         run: pip install --upgrade requests
 
+      - name: Clean old outputs
+        run: |
+          rm -f "Adguard-Adblock-only"/*.txt || true
+          rm -f "Adguard-Adblock-only/0" || true
+
       - name: Build
         run: python build.py
 
-      - name: Cleanup old files
+      - name: Debug - list files
         run: |
-          rm -rf "Adguard Adblock only"/*.txt || true
+          echo "=== محتويات الفولدر ==="
+          ls -la "Adguard-Adblock-only" || echo "الفولدر مش موجود!"
+          echo "=== عدد الملفات ==="
+          find "Adguard-Adblock-only" -type f | wc -l
 
       - name: Commit & push
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          mkdir -p "Adguard Adblock only"
-          git add -A "Adguard Adblock only"
+
+          if [ ! -d "Adguard-Adblock-only" ] || [ -z "$(ls -A "Adguard-Adblock-only" 2>/dev/null | grep -v '^0$')" ]; then
+            echo "❌ الفولدر فاضي أو مش موجود"
+            exit 1
+          fi
+
+          git add -A "Adguard-Adblock-only"
+          git status
+
           if git diff --staged --quiet; then
-            echo "No changes"
+            echo "✅ مفيش تغييرات"
           else
             git commit -m "chore: update blacklist [skip ci]"
             git push
