@@ -2,9 +2,10 @@
 # -*- coding: utf-8 -*-
 """
 Adguard-Adblock-only Builder
-- Deep Scan لكل الملفات
+- Deep Scan لكل الملفات (100% من كل ملف)
 - الناتج: دومينات محظورة خالصة فقط
 - أي دومين مسموح (حتى لو محظور في مكان تاني) → يُحذف نهائيًا
+- إحصائيات دقيقة: أسطر حظر/سماح، مكرر حقيقي، فريد نهائي
 """
 
 import os
@@ -41,6 +42,8 @@ COSMETIC_MARKERS = ("##", "#@#", "#?#", "#$#", "#%#", "#@$#")
 
 
 # ═══════════════════════════════════════════════
+# قراءة الروابط
+# ═══════════════════════════════════════════════
 def clean_url(raw: str) -> str:
     u = raw.strip().strip('"\'').strip()
     u = re.sub(r"[:;,\.\s]+$", "", u)
@@ -66,6 +69,8 @@ def read_urls(path):
     return urls
 
 
+# ═══════════════════════════════════════════════
+# HTTP + Decompression
 # ═══════════════════════════════════════════════
 def build_session():
     s = requests.Session()
@@ -179,6 +184,8 @@ def fetch(session, url):
 
 
 # ═══════════════════════════════════════════════
+# تحليل الأسطر
+# ═══════════════════════════════════════════════
 HOSTS_IP_RE    = re.compile(r"^([0-9a-fA-F:.]+)\s+([^\s#]+)")
 ADBLOCK_DOM_RE = re.compile(r"^([a-z0-9][a-z0-9.\-]*[a-z0-9])", re.I)
 
@@ -193,35 +200,39 @@ def is_comment_or_header(s: str) -> bool:
     return False
 
 
-def parse_line(line, blocked, allowed):
-    s = line.strip()
+def extract_domain(s):
+    """
+    يستخرج الدومين من سطر واحد.
+    يرجّع (domain, allowed_flag) أو (None, None) لو السطر مش صالح.
+    """
     if is_comment_or_header(s):
-        return 0, 0
+        return None, None
     if len(s) > 1024:
-        return 0, 0
+        return None, None
 
+    # hosts format
     m = HOSTS_IP_RE.match(s)
     if m:
         host = m.group(2).lower().rstrip(".")
         if host in SKIP_HOSTS:
-            return 0, 0
+            return None, None
         if not DOMAIN_RE.match(host):
-            return 0, 0
-        before = len(blocked)
-        blocked.add(host)
-        return (1 if len(blocked) > before else 0), 0
+            return None, None
+        return host, False
 
+    # كوزمتك
     for marker in COSMETIC_MARKERS:
         if marker in s:
-            return 0, 0
+            return None, None
 
     allowed_flag = False
     if s.startswith("@@"):
         allowed_flag = True
         s = s[2:]
 
+    # regex
     if s.startswith("/") or s.endswith("/"):
-        return 0, 0
+        return None, None
 
     domain = None
 
@@ -244,26 +255,21 @@ def parse_line(line, blocked, allowed):
                 domain = m.group(1).lower()
 
     if not domain:
-        return 0, 0
+        return None, None
 
     domain = domain.strip(".").lower()
     if not domain or domain in SKIP_HOSTS:
-        return 0, 0
+        return None, None
     if not DOMAIN_RE.match(domain):
-        return 0, 0
+        return None, None
     if len(domain) > 253:
-        return 0, 0
+        return None, None
 
-    if allowed_flag:
-        before = len(allowed)
-        allowed.add(domain)
-        return 0, (1 if len(allowed) > before else 0)
-    else:
-        before = len(blocked)
-        blocked.add(domain)
-        return (1 if len(blocked) > before else 0), 0
+    return domain, allowed_flag
 
 
+# ═══════════════════════════════════════════════
+# كتابة المخرجات
 # ═══════════════════════════════════════════════
 def write_output(domains, out_dir, max_bytes):
     os.makedirs(out_dir, exist_ok=True)
@@ -313,6 +319,8 @@ def write_output(domains, out_dir, max_bytes):
 
 
 # ═══════════════════════════════════════════════
+# main - Deep Scan + إحصائيات دقيقة
+# ═══════════════════════════════════════════════
 def main():
     print("=" * 60)
     print("  Adguard-Adblock-only  |  Deep Full-File Scan")
@@ -324,10 +332,10 @@ def main():
     session = build_session()
     blocked, allowed = set(), set()
 
-    total_lines_scanned = 0
+    total_lines_scanned   = 0
     total_bytes_downloaded = 0
-    total_blocked_hits = 0
-    total_allowed_hits = 0
+    total_blocked_lines   = 0   # كل سطر محظور صالح (حتى المكرر)
+    total_allowed_lines   = 0   # كل سطر مسموح صالح (حتى المكرر)
     failed_urls = []
 
     for i, url in enumerate(urls, 1):
@@ -343,30 +351,51 @@ def main():
         file_lines = len(lines)
         total_lines_scanned += file_lines
 
-        file_blocked = 0
-        file_allowed = 0
+        file_blocked_lines = 0
+        file_allowed_lines = 0
+        file_blocked_new   = 0
+        file_allowed_new   = 0
 
         for line in lines:
-            b, a = parse_line(line, blocked, allowed)
-            file_blocked += b
-            file_allowed += a
+            s = line.strip()
+            if not s or len(s) > 1024:
+                continue
 
-        total_blocked_hits += file_blocked
-        total_allowed_hits += file_allowed
+            domain, allowed_flag = extract_domain(s)
+            if not domain:
+                continue
+
+            if allowed_flag:
+                file_allowed_lines += 1
+                before = len(allowed)
+                allowed.add(domain)
+                if len(allowed) > before:
+                    file_allowed_new += 1
+            else:
+                file_blocked_lines += 1
+                before = len(blocked)
+                blocked.add(domain)
+                if len(blocked) > before:
+                    file_blocked_new += 1
+
+        total_blocked_lines += file_blocked_lines
+        total_allowed_lines += file_allowed_lines
 
         print(f"    ├─ الحجم: {size/1024:.1f} KB")
         print(f"    ├─ الأسطر المفحوصة: {file_lines:,}")
-        print(f"    ├─ محظور جديد: +{file_blocked:,}")
-        print(f"    └─ مسموح جديد: +{file_allowed:,}")
+        print(f"    ├─ أسطر حظر: {file_blocked_lines:,}  (جديد: +{file_blocked_new:,})")
+        print(f"    └─ أسطر سماح: {file_allowed_lines:,}  (جديد: +{file_allowed_new:,})")
 
     # ═══════════════════════════════════════════════
-    # ═══ الفلترة النهائية: شيل المسموح كامل ═══
+    # الفلترة النهائية
     # ═══════════════════════════════════════════════
-    conflicts = blocked & allowed                 # محظور + مسموح
-    allowed_only = allowed - blocked              # مسموح بس
-    pure_blocked = blocked - allowed              # محظور خالص ✅
+    conflicts      = blocked & allowed    # محظور + مسموح
+    allowed_only   = allowed - blocked    # مسموح بس
+    pure_blocked   = blocked - allowed    # محظور خالص ✅
 
     final = sorted(pure_blocked)
+
+    duplicates_removed = total_blocked_lines - len(blocked)
 
     print("\n" + "=" * 60)
     print("  📊 إحصائيات الديب سيرش الكامل")
@@ -377,8 +406,8 @@ def main():
           f"({total_bytes_downloaded/1024/1024:.2f} MB)")
     print(f"  إجمالي الأسطر المفحوصة:      {total_lines_scanned:,}")
     print()
-    print(f"  🚫 إجمالي ضربات الحظر:        {total_blocked_hits:,}")
-    print(f"  ✅ إجمالي ضربات السماح:        {total_allowed_hits:,}")
+    print(f"  🚫 إجمالي أسطر الحظر:          {total_blocked_lines:,}")
+    print(f"  ✅ إجمالي أسطر السماح:          {total_allowed_lines:,}")
     print()
     print(f"  الدومينات المحظورة الفريدة:   {len(blocked):,}")
     print(f"  الدومينات المسموحة الفريدة:   {len(allowed):,}")
@@ -389,8 +418,7 @@ def main():
     print(f"     ├─ محظور+مسموح (يتشالوا):   {len(conflicts):,}")
     print(f"     └─ محظور خالص (يفضل):       {len(pure_blocked):,}")
     print()
-    print(f"  📦 المكرر اللي اتشال:          "
-          f"{total_blocked_hits - len(blocked):,}")
+    print(f"  📦 المكرر اللي اتشال:          {duplicates_removed:,}")
     print()
     print(f"  ✨ الدومينات الفريدة النهائية:  {len(final):,}")
     print("=" * 60)
