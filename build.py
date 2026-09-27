@@ -2,13 +2,6 @@
 # -*- coding: utf-8 -*-
 """
 Adguard Adblock only - Blacklist Builder
-- يقرأ الروابط من list2.txt
-- يحمّل كل مصدر (يدعم gzip / zip / tar / tar.gz + redirects + cookies + headers + SSL fallback)
-- يستخرج الدومينات من adblock / hosts / plain
-- يحوّلها إلى: ||domain^$important
-- لو دومين مسموح وفي نفس الوقت محظور -> يتحذف الاتنين
-- الفاينل = المحظور فقط بدون تكرار
-- يكتب في مجلد "Adguard Adblock only" ويقسّم على 90 ميجا
 """
 
 import os
@@ -23,7 +16,7 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 LIST_FILE   = "list2.txt"
-OUT_DIR     = "Adguard Adblock only"
+OUT_DIR     = "Adguard-Adblock-only"
 MAX_BYTES   = 90 * 1024 * 1024
 TIMEOUT     = 90
 MAX_RETRIES = 3
@@ -44,10 +37,8 @@ SKIP_HOSTS = {
 COSMETIC_MARKERS = ("##", "#@#", "#?#", "#$#", "#%#", "#@$#")
 
 
-# ---------- قراءة الروابط ----------
 def clean_url(raw: str) -> str:
     u = raw.strip().strip('"\'').strip()
-    # 🔴 الحل لمشكلة النقطتين والأخطاء اللي بتتلزق في آخر الرابط
     u = re.sub(r"[:;,\.\s]+$", "", u)
     return u
 
@@ -71,7 +62,6 @@ def read_urls(path):
     return urls
 
 
-# ---------- HTTP ----------
 def build_session():
     s = requests.Session()
     retry = Retry(
@@ -148,7 +138,7 @@ def try_decompress(data, url, content_type):
 
 def fetch(session, url):
     r = None
-    for verify in (True, False):  # SSL fallback
+    for verify in (True, False):
         try:
             r = session.get(url, timeout=TIMEOUT, allow_redirects=True, verify=verify)
             r.raise_for_status()
@@ -178,7 +168,6 @@ def fetch(session, url):
     return text
 
 
-# ---------- تحليل الأسطر ----------
 HOSTS_IP_RE    = re.compile(r"^([0-9a-fA-F:.]+)\s+([^\s#]+)")
 ADBLOCK_DOM_RE = re.compile(r"^([a-z0-9][a-z0-9.\-]*[a-z0-9])", re.I)
 
@@ -200,7 +189,6 @@ def parse_line(line, blocked, allowed):
     if len(s) > 1024:
         return
 
-    # -------- hosts format --------
     m = HOSTS_IP_RE.match(s)
     if m:
         host = m.group(2).lower().rstrip(".")
@@ -211,18 +199,15 @@ def parse_line(line, blocked, allowed):
         blocked.add(host)
         return
 
-    # -------- كوزمتك --------
     for marker in COSMETIC_MARKERS:
         if marker in s:
             return
 
-    # -------- Allowed --------
     allowed_flag = False
     if s.startswith("@@"):
         allowed_flag = True
         s = s[2:]
 
-    # -------- regex --------
     if s.startswith("/") or s.endswith("/"):
         return
 
@@ -263,7 +248,6 @@ def parse_line(line, blocked, allowed):
         blocked.add(domain)
 
 
-# ---------- كتابة المخرجات ----------
 def write_output(domains, out_dir, max_bytes):
     os.makedirs(out_dir, exist_ok=True)
     for f in os.listdir(out_dir):
@@ -310,7 +294,6 @@ def write_output(domains, out_dir, max_bytes):
     return files
 
 
-# ---------- main ----------
 def main():
     urls = read_urls(LIST_FILE)
     print(f"[+] عدد الروابط: {len(urls)}")
