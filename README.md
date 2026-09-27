@@ -1,17 +1,3 @@
-All filters To Adguard Home & Pi-hole & Adguard App filters
-
-To Adguard Home 
-
-https://raw.githubusercontent.com/elqiser00/1002/refs/heads/main/merged_filters/adguard_rules.txt
-
-To Pi-hole
-
-https://raw.githubusercontent.com/elqiser00/1002/refs/heads/main/pi-hole_filters/pi-hole_domains.txt
-
-Adguard App filters
-
-https://raw.githubusercontent.com/elqiser00/1002/refs/heads/main/merged_filters/adguard_app_filter.txt
-
 All filters
 
 https://adguardteam.github.io/HostlistsRegistry/assets/filter_3.txt
