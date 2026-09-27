@@ -342,3 +342,5 @@
 ||dl.listdl.com^$important
 ||gsp10-ssl.apple.com^$important
 ||shepherd.ff.avast.com^$important
+||token.safebrowsing.apple^$important
+||loc.map.baidu.com^$important
