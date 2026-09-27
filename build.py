@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Adguard Adblock only - Blacklist Builder
+Adguard-Adblock-only Builder
+- Deep Scan لكل الملفات
+- الناتج: دومينات محظورة خالصة فقط
+- أي دومين مسموح (حتى لو محظور في مكان تاني) → يُحذف نهائيًا
 """
 
 import os
@@ -18,7 +21,7 @@ from urllib3.util.retry import Retry
 LIST_FILE   = "list2.txt"
 OUT_DIR     = "Adguard-Adblock-only"
 MAX_BYTES   = 90 * 1024 * 1024
-TIMEOUT     = 90
+TIMEOUT     = 120
 MAX_RETRIES = 3
 
 DOMAIN_RE = re.compile(
@@ -37,6 +40,7 @@ SKIP_HOSTS = {
 COSMETIC_MARKERS = ("##", "#@#", "#?#", "#$#", "#%#", "#@$#")
 
 
+# ═══════════════════════════════════════════════
 def clean_url(raw: str) -> str:
     u = raw.strip().strip('"\'').strip()
     u = re.sub(r"[:;,\.\s]+$", "", u)
@@ -62,6 +66,7 @@ def read_urls(path):
     return urls
 
 
+# ═══════════════════════════════════════════════
 def build_session():
     s = requests.Session()
     retry = Retry(
@@ -109,9 +114,12 @@ def try_decompress(data, url, content_type):
     if low_url.endswith((".tgz", ".tar.gz")):
         try:
             with tarfile.open(fileobj=io.BytesIO(data), mode="r:gz") as tar:
-                chunks = [tar.extractfile(m).read()
-                          for m in tar.getmembers()
-                          if m.isfile() and tar.extractfile(m)]
+                chunks = []
+                for m in tar.getmembers():
+                    if m.isfile():
+                        f = tar.extractfile(m)
+                        if f:
+                            chunks.append(f.read())
                 if chunks:
                     return b"\n".join(chunks)
         except Exception:
@@ -148,14 +156,16 @@ def fetch(session, url):
             continue
         except Exception as exc:
             print(f"    [!] {exc}")
-            return None
+            return None, 0
+
     if r is None:
-        return None
+        return None, 0
 
     body = r.content
     if not body:
-        return None
+        return None, 0
 
+    original_size = len(body)
     body = try_decompress(body, url, r.headers.get("Content-Type", ""))
     text = decode_bytes(body)
 
@@ -163,11 +173,12 @@ def fetch(session, url):
     if head.startswith("<!doctype html") or head.startswith("<html"):
         if "||" not in text and "0.0.0.0" not in text:
             print("    [!] محتوى HTML مش ليست، تجاهل")
-            return None
+            return None, original_size
 
-    return text
+    return text, original_size
 
 
+# ═══════════════════════════════════════════════
 HOSTS_IP_RE    = re.compile(r"^([0-9a-fA-F:.]+)\s+([^\s#]+)")
 ADBLOCK_DOM_RE = re.compile(r"^([a-z0-9][a-z0-9.\-]*[a-z0-9])", re.I)
 
@@ -185,23 +196,24 @@ def is_comment_or_header(s: str) -> bool:
 def parse_line(line, blocked, allowed):
     s = line.strip()
     if is_comment_or_header(s):
-        return
+        return 0, 0
     if len(s) > 1024:
-        return
+        return 0, 0
 
     m = HOSTS_IP_RE.match(s)
     if m:
         host = m.group(2).lower().rstrip(".")
         if host in SKIP_HOSTS:
-            return
+            return 0, 0
         if not DOMAIN_RE.match(host):
-            return
+            return 0, 0
+        before = len(blocked)
         blocked.add(host)
-        return
+        return (1 if len(blocked) > before else 0), 0
 
     for marker in COSMETIC_MARKERS:
         if marker in s:
-            return
+            return 0, 0
 
     allowed_flag = False
     if s.startswith("@@"):
@@ -209,7 +221,7 @@ def parse_line(line, blocked, allowed):
         s = s[2:]
 
     if s.startswith("/") or s.endswith("/"):
-        return
+        return 0, 0
 
     domain = None
 
@@ -232,22 +244,27 @@ def parse_line(line, blocked, allowed):
                 domain = m.group(1).lower()
 
     if not domain:
-        return
+        return 0, 0
 
     domain = domain.strip(".").lower()
     if not domain or domain in SKIP_HOSTS:
-        return
+        return 0, 0
     if not DOMAIN_RE.match(domain):
-        return
+        return 0, 0
     if len(domain) > 253:
-        return
+        return 0, 0
 
     if allowed_flag:
+        before = len(allowed)
         allowed.add(domain)
+        return 0, (1 if len(allowed) > before else 0)
     else:
+        before = len(blocked)
         blocked.add(domain)
+        return (1 if len(blocked) > before else 0), 0
 
 
+# ═══════════════════════════════════════════════
 def write_output(domains, out_dir, max_bytes):
     os.makedirs(out_dir, exist_ok=True)
     for f in os.listdir(out_dir):
@@ -260,7 +277,8 @@ def write_output(domains, out_dir, max_bytes):
     header = (
         "[Adblock Plus 2.0]\n"
         "! Title: Adguard Adblock only\n"
-        "! Description: Auto-generated unique blocked domains\n"
+        "! Description: Pure blocked domains (no allowed, no conflicts)\n"
+        f"! Total domains: {len(domains)}\n"
         "! Generated: "
         + time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime()) + "\n"
         "!\n"
@@ -294,34 +312,101 @@ def write_output(domains, out_dir, max_bytes):
     return files
 
 
+# ═══════════════════════════════════════════════
 def main():
+    print("=" * 60)
+    print("  Adguard-Adblock-only  |  Deep Full-File Scan")
+    print("=" * 60)
+
     urls = read_urls(LIST_FILE)
-    print(f"[+] عدد الروابط: {len(urls)}")
+    print(f"[+] عدد الروابط في list2.txt: {len(urls)}\n")
 
     session = build_session()
     blocked, allowed = set(), set()
 
+    total_lines_scanned = 0
+    total_bytes_downloaded = 0
+    total_blocked_hits = 0
+    total_allowed_hits = 0
+    failed_urls = []
+
     for i, url in enumerate(urls, 1):
         print(f"[{i}/{len(urls)}] {url}")
-        text = fetch(session, url)
+        text, size = fetch(session, url)
+
         if not text:
+            failed_urls.append(url)
             continue
-        before = len(blocked)
-        for line in text.splitlines():
-            parse_line(line, blocked, allowed)
-        print(f"    -> +{len(blocked) - before} (إجمالي {len(blocked)})")
 
-    print(f"[+] محظور={len(blocked)}  مسموح={len(allowed)}")
-    conflicts = blocked & allowed
-    print(f"[+] متعارض (محظور+مسموح) = {len(conflicts)}  -> يُحذف")
+        total_bytes_downloaded += size
+        lines = text.splitlines()
+        file_lines = len(lines)
+        total_lines_scanned += file_lines
 
-    final = sorted(blocked - allowed)
-    print(f"[+] الدومينات النهائية الفريدة = {len(final)}")
+        file_blocked = 0
+        file_allowed = 0
 
+        for line in lines:
+            b, a = parse_line(line, blocked, allowed)
+            file_blocked += b
+            file_allowed += a
+
+        total_blocked_hits += file_blocked
+        total_allowed_hits += file_allowed
+
+        print(f"    ├─ الحجم: {size/1024:.1f} KB")
+        print(f"    ├─ الأسطر المفحوصة: {file_lines:,}")
+        print(f"    ├─ محظور جديد: +{file_blocked:,}")
+        print(f"    └─ مسموح جديد: +{file_allowed:,}")
+
+    # ═══════════════════════════════════════════════
+    # ═══ الفلترة النهائية: شيل المسموح كامل ═══
+    # ═══════════════════════════════════════════════
+    conflicts = blocked & allowed                 # محظور + مسموح
+    allowed_only = allowed - blocked              # مسموح بس
+    pure_blocked = blocked - allowed              # محظور خالص ✅
+
+    final = sorted(pure_blocked)
+
+    print("\n" + "=" * 60)
+    print("  📊 إحصائيات الديب سيرش الكامل")
+    print("=" * 60)
+    print(f"  عدد الروابط الإجمالي:        {len(urls)}")
+    print(f"  عدد الروابط اللي فشلت:       {len(failed_urls)}")
+    print(f"  إجمالي البايتات المحمّلة:    {total_bytes_downloaded:,} "
+          f"({total_bytes_downloaded/1024/1024:.2f} MB)")
+    print(f"  إجمالي الأسطر المفحوصة:      {total_lines_scanned:,}")
+    print()
+    print(f"  🚫 إجمالي ضربات الحظر:        {total_blocked_hits:,}")
+    print(f"  ✅ إجمالي ضربات السماح:        {total_allowed_hits:,}")
+    print()
+    print(f"  الدومينات المحظورة الفريدة:   {len(blocked):,}")
+    print(f"  الدومينات المسموحة الفريدة:   {len(allowed):,}")
+    print()
+    print("  " + "-" * 50)
+    print("  🧹 الفلترة النهائية:")
+    print(f"     ├─ مسموح بس (يتشال):        {len(allowed_only):,}")
+    print(f"     ├─ محظور+مسموح (يتشالوا):   {len(conflicts):,}")
+    print(f"     └─ محظور خالص (يفضل):       {len(pure_blocked):,}")
+    print()
+    print(f"  📦 المكرر اللي اتشال:          "
+          f"{total_blocked_hits - len(blocked):,}")
+    print()
+    print(f"  ✨ الدومينات الفريدة النهائية:  {len(final):,}")
+    print("=" * 60)
+
+    if failed_urls:
+        print("\n⚠️  روابط فشلت:")
+        for u in failed_urls:
+            print(f"   - {u}")
+
+    print("\n[+] كتابة الملفات...")
     files = write_output(final, OUT_DIR, MAX_BYTES)
     for f in files:
         size = os.path.getsize(f)
-        print(f"[+] {f}  ({size/1024/1024:.2f} MB)")
+        print(f"    ✅ {f}  ({size/1024/1024:.2f} MB)")
+
+    print("\n[✓] خلص بنجاح")
 
 
 if __name__ == "__main__":
