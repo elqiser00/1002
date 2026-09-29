@@ -347,3 +347,4 @@
 ||a.968421.shop^$important
 ||cdn.growthbook.io^$important
 ||www.qualcomm.cn^$important
+||tk.0118k.shop^$important
