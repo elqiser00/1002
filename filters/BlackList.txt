@@ -348,3 +348,4 @@
 ||cdn.growthbook.io^$important
 ||www.qualcomm.cn^$important
 ||tk.0118k.shop^$important
+||scripts.clarity.ms^$important
