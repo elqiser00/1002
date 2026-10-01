@@ -349,3 +349,13 @@
 ||www.qualcomm.cn^$important
 ||tk.0118k.shop^$important
 ||scripts.clarity.ms^$important
+||xp.apple.com^$important
+||cstat.cdn-apple.com^$important
+||iphonesubmissions.apple.com^$important
+||api.snapkit.com^$important
+||api.ipify.org^$important
+||experiments.apple.com^$important
+||apm.fourseasons.com^$important
+||geolocation.onetrust.com^$important
+||cdn.cookielaw.org^$important
+||cdn.optimizely.com^$important
