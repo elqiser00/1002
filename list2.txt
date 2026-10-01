@@ -51,10 +51,6 @@ https://adguardteam.github.io/HostlistsRegistry/assets/filter_9.txt
 https://adguardteam.github.io/HostlistsRegistry/assets/filter_50.txt
 https://adguardteam.github.io/HostlistsRegistry/assets/filter_11.txt
 https://easylist.to/easylist/easylist.txt
-https://secure.fanboy.co.nz/fanboy-cookiemonster.txt
-https://easylist.to/easylist/easyprivacy.txt
-https://secure.fanboy.co.nz/fanboy-annoyance.txt
-https://easylist.to/easylist/fanboy-social.txt
 https://raw.githubusercontent.com/heradhis/indonesianadblockrules/master/subscriptions/abpindo.txt
 https://abpvn.com/filter/abpvn-IPl6HE.txt
 http://stanev.org/abp/adblock_bg.txt
