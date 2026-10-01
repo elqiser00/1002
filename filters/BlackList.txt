@@ -359,3 +359,4 @@
 ||geolocation.onetrust.com^$important
 ||cdn.cookielaw.org^$important
 ||cdn.optimizely.com^$important
+||t1.gstatic.com^$important
