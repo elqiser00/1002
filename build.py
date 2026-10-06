@@ -4,8 +4,10 @@
 Adguard-Adblock-only Builder
 - Deep Scan لكل الملفات
 - يستخرج الدومين فقط (بدون /path ولا :port ولا ?query)
-- Output: ||domain^ للفلاتر العادية
-          @@||domain^ للفلاتر المسموحة
+- قواعد الأولوية:
+    * محظور بس         -> ||domain^
+    * مسموح بس         -> whitelist.txt
+    * محظور + مسموح     -> يحذف من البلاك ويفضل في الوايت (الوايت تغلب)
 - يشيل: ! تعليقات، # كوزمتك، $options، regex
 """
 
@@ -39,9 +41,6 @@ SKIP_HOSTS = {
     "0.0.0.0", "127.0.0.1", "::1", "255.255.255.255",
 }
 
-# ═══════════════════════════════════════════════
-# 🔴 كاشف Regex
-# ═══════════════════════════════════════════════
 REGEX_PATTERNS = [
     re.compile(r"^/.*/$"),
     re.compile(r"/\*.*\*/"),
@@ -211,54 +210,38 @@ HOSTS_IP_RE    = re.compile(r"^([0-9a-fA-F:.]+)\s+([^\s#]+)")
 ADBLOCK_DOM_RE = re.compile(r"^([a-z0-9][a-z0-9.\-]*[a-z0-9])", re.I)
 
 
-# 🔴 دالة تنضيف الدومين: بتشيل أي /path أو :port أو ?query
 def clean_domain(d: str) -> str:
     if not d:
         return ""
-    # اقسم على أول / أو : أو ? أو # أو &
     d = re.split(r"[/:?#&]", d)[0]
     d = d.strip(".").lower()
     return d
 
 
 def extract_domain(s):
-    """
-    يستخرج الدومين فقط من أي نوع فلتر.
-    يرجّع (domain, allowed_flag) أو (None, None).
-    """
     if not s:
         return None, None
     if len(s) > 1024:
         return None, None
-
-    # ═══ 1) تعليق يبدأ بـ !
     if s.startswith("!"):
         return None, None
-
-    # ═══ 2) أي حاجة فيها # تتشال (تعليق أو كوزمتك)
     if "#" in s:
         return None, None
-
-    # ═══ 3) [Header] يتشال
     if s.startswith("[") and s.endswith("]"):
         return None, None
-
-    # ═══ 4) Regex يتشال
     if looks_like_regex(s):
         return None, None
 
-    # ═══ 5) Hosts format: 0.0.0.0 domain.com/path
     m = HOSTS_IP_RE.match(s)
     if m:
         raw_host = m.group(2)
-        host = clean_domain(raw_host)   # شيل أي /path
+        host = clean_domain(raw_host)
         if not host or host in SKIP_HOSTS:
             return None, None
         if not DOMAIN_RE.match(host):
             return None, None
         return host, False
 
-    # ═══ 6) Allowed flag
     allowed_flag = False
     if s.startswith("@@"):
         allowed_flag = True
@@ -266,23 +249,18 @@ def extract_domain(s):
 
     domain = None
 
-    # ═══ 7) ||domain^ أو ||domain/path^
     if s.startswith("||"):
         rest = s[2:]
         m = ADBLOCK_DOM_RE.match(rest)
         if m:
             domain = m.group(1)
-    # ═══ 8) |http://domain أو |http://domain/path
     elif s.startswith("|"):
         rest = re.sub(r"^https?://", "", s[1:], flags=re.I)
         m = ADBLOCK_DOM_RE.match(rest)
         if m:
             domain = m.group(1)
-    # ═══ 9) Plain: domain.com أو domain.com/path أو http://domain.com/path
     else:
-        # شيل البروتوكول لو موجود
         tmp = re.sub(r"^https?://", "", s, flags=re.I)
-        # خد أول جزء قبل أي / : ? # &
         tmp = re.split(r"[/:?#&\s]", tmp)[0]
         if DOMAIN_RE.match(tmp):
             domain = tmp
@@ -303,13 +281,11 @@ def extract_domain(s):
 
 
 # ═══════════════════════════════════════════════
-def write_output(domains, out_dir, max_bytes):
-    """
-    يكتب الملفات بالصيغة: ||domain^
-    """
+def write_blocked(domains, out_dir, max_bytes):
+    """يكتب ملفات البلاك ليست: ||domain^"""
     os.makedirs(out_dir, exist_ok=True)
     for f in os.listdir(out_dir):
-        if f.endswith(".txt"):
+        if f.startswith("blacklist") and f.endswith(".txt"):
             try:
                 os.remove(os.path.join(out_dir, f))
             except OSError:
@@ -318,7 +294,7 @@ def write_output(domains, out_dir, max_bytes):
     header = (
         "[Adblock Plus 2.0]\n"
         "! Title: Adguard Adblock only\n"
-        "! Description: Pure blocked domains (no allowed, no regex, no paths)\n"
+        "! Description: Pure blocked domains (whitelist has priority)\n"
         f"! Total domains: {len(domains)}\n"
         "! Generated: "
         + time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime()) + "\n"
@@ -342,7 +318,6 @@ def write_output(domains, out_dir, max_bytes):
         cur_lines, cur_size = [], header_bytes
 
     for d in domains:
-        # ═══ الصيغة المطلوبة: ||domain^ (بدون $important) ═══
         line = f"||{d}^\n"
         b = len(line.encode("utf-8"))
         if cur_size + b > max_bytes and cur_lines:
@@ -354,10 +329,33 @@ def write_output(domains, out_dir, max_bytes):
     return files
 
 
+def write_whitelist(domains, out_dir):
+    """يكتب ملف الوايت ليست: @@||domain^"""
+    os.makedirs(out_dir, exist_ok=True)
+    path = os.path.join(out_dir, "whitelist.txt")
+
+    header = (
+        "[Adblock Plus 2.0]\n"
+        "! Title: Adguard Adblock only - Whitelist\n"
+        "! Description: Allowed domains (conflicts go here)\n"
+        f"! Total domains: {len(domains)}\n"
+        "! Generated: "
+        + time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime()) + "\n"
+        "!\n"
+    )
+
+    with open(path, "w", encoding="utf-8", newline="\n") as fh:
+        fh.write(header)
+        for d in sorted(domains):
+            fh.write(f"@@||{d}^\n")
+    return path
+
+
 # ═══════════════════════════════════════════════
 def main():
     print("=" * 60)
     print("  Adguard-Adblock-only  |  Deep Full-File Scan")
+    print("  Rule: WHITELIST has priority over BLACKLIST")
     print("=" * 60)
 
     urls = read_urls(LIST_FILE)
@@ -399,7 +397,6 @@ def main():
             if not s or len(s) > 1024:
                 continue
 
-            # عدّ الـ regex والـ # اللي اتشالوا
             if s.startswith("!") or (s.startswith("[") and s.endswith("]")):
                 continue
             if "#" in s:
@@ -438,11 +435,16 @@ def main():
         print(f"    ├─ Regex اتشال: {file_regex_skipped:,}")
         print(f"    └─ # اتشال: {file_hash_skipped:,}")
 
-    # ═══ الفلترة النهائية ═══
-    conflicts    = blocked & allowed
-    allowed_only = allowed - blocked
-    pure_blocked = blocked - allowed
-    final = sorted(pure_blocked)
+    # ═══════════════════════════════════════════════
+    # 🔑 منطق الأولوية: الوايت تغلب البلاك
+    # ═══════════════════════════════════════════════
+    conflicts    = blocked & allowed        # في الاتنين -> يروح للوايت
+    allowed_only = allowed - blocked        # وايت بس
+    pure_blocked = blocked - allowed        # بلاك بس (يفضل)
+
+    # الوايت النهائي = كل اللي كان مسموح (سواء مسموح بس أو متعارض)
+    final_whitelist = allowed_only | conflicts   # = allowed
+    final_blacklist = sorted(pure_blocked)
 
     duplicates_removed = total_blocked_lines - len(blocked)
 
@@ -464,14 +466,15 @@ def main():
     print(f"  الدومينات المسموحة الفريدة:   {len(allowed):,}")
     print()
     print("  " + "-" * 50)
-    print("  🧹 الفلترة النهائية:")
-    print(f"     ├─ مسموح بس (يتشال):        {len(allowed_only):,}")
-    print(f"     ├─ محظور+مسموح (يتشالوا):   {len(conflicts):,}")
-    print(f"     └─ محظور خالص (يفضل):       {len(pure_blocked):,}")
+    print("  🔑 تطبيق قاعدة: الوايت تغلب البلاك")
+    print(f"     ├─ مسموح بس → whitelist:    {len(allowed_only):,}")
+    print(f"     ├─ متعارض → يتشال من بلاك:  {len(conflicts):,}")
+    print(f"     └─ محظور بس → blacklist:    {len(pure_blocked):,}")
     print()
     print(f"  📦 المكرر اللي اتشال:          {duplicates_removed:,}")
     print()
-    print(f"  ✨ الدومينات الفريدة النهائية:  {len(final):,}")
+    print(f"  ✨ البلاك ليست النهائي:         {len(final_blacklist):,}")
+    print(f"  ✨ الوايت ليست النهائي:         {len(final_whitelist):,}")
     print("=" * 60)
 
     if failed_urls:
@@ -479,11 +482,16 @@ def main():
         for u in failed_urls:
             print(f"   - {u}")
 
+    # ═══ كتابة الملفات ═══
     print("\n[+] كتابة الملفات...")
-    files = write_output(final, OUT_DIR, MAX_BYTES)
+    files = write_blocked(final_blacklist, OUT_DIR, MAX_BYTES)
     for f in files:
         size = os.path.getsize(f)
         print(f"    ✅ {f}  ({size/1024/1024:.2f} MB)")
+
+    wl = write_whitelist(final_whitelist, OUT_DIR)
+    wl_size = os.path.getsize(wl)
+    print(f"    ✅ {wl}  ({wl_size/1024:.1f} KB)")
 
     print("\n[✓] خلص بنجاح")
 
