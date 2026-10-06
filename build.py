@@ -1,16 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
 """
-Adguard-Adblock Builder
-
+Adguard-Adblock-only Builder
 - Deep Scan لكل الملفات
-- استخراج دومينات الحظر والـ Whitelist
-- الاحتفاظ بالـ Whitelist وعدم استخدامها لحذف الحظر
-- إذا كان الدومين محظور + مسموح:
-    يتم إخراج القاعدتين معًا
-- إزالة التكرارات
-- إخراج ملف AdGuard/Adblock صالح
+- يستخرج الدومين فقط (بدون /path ولا :port ولا ?query)
+- Output: ||domain^ للفلاتر العادية
+          @@||domain^ للفلاتر المسموحة
+- يشيل: ! تعليقات، # كوزمتك، $options، regex
 """
 
 import os
@@ -21,26 +17,14 @@ import time
 import zipfile
 import tarfile
 import requests
-
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-
-# ═══════════════════════════════════════════════
-# الإعدادات
-# ═══════════════════════════════════════════════
-
 LIST_FILE   = "list2.txt"
 OUT_DIR     = "Adguard-Adblock-only"
-
 MAX_BYTES   = 90 * 1024 * 1024
 TIMEOUT     = 120
 MAX_RETRIES = 3
-
-
-# ═══════════════════════════════════════════════
-# Regex
-# ═══════════════════════════════════════════════
 
 DOMAIN_RE = re.compile(
     r"^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?"
@@ -49,47 +33,42 @@ DOMAIN_RE = re.compile(
 )
 
 SKIP_HOSTS = {
-    "localhost",
-    "localhost.localdomain",
-    "localdomain",
-    "broadcasthost",
-    "local",
-    "ip6-localhost",
-    "ip6-loopback",
-    "ip6-localnet",
-    "ip6-mcastprefix",
-    "ip6-allnodes",
-    "ip6-allrouters",
-    "ip6-allhosts",
-    "0.0.0.0",
-    "127.0.0.1",
-    "::1",
-    "255.255.255.255",
+    "localhost", "localhost.localdomain", "localdomain", "broadcasthost",
+    "local", "ip6-localhost", "ip6-loopback", "ip6-localnet",
+    "ip6-mcastprefix", "ip6-allnodes", "ip6-allrouters", "ip6-allhosts",
+    "0.0.0.0", "127.0.0.1", "::1", "255.255.255.255",
 }
 
-COSMETIC_MARKERS = (
-    "##",
-    "#@#",
-    "#?#",
-    "#$#",
-    "#%#",
-    "#@$#",
-)
+# ═══════════════════════════════════════════════
+# 🔴 كاشف Regex
+# ═══════════════════════════════════════════════
+REGEX_PATTERNS = [
+    re.compile(r"^/.*/$"),
+    re.compile(r"/\*.*\*/"),
+    re.compile(r"\\[dwsbSWD]"),
+    re.compile(r"\\\."),
+    re.compile(r"\^[a-z0-9]", re.I),
+    re.compile(r"[a-z0-9]\$$", re.I),
+    re.compile(r"\.\*"),
+    re.compile(r"\.\+"),
+    re.compile(r"\(\?[:=!]"),
+    re.compile(r"\[[a-z0-9\-\^]+\]", re.I),
+    re.compile(r"\\\$"),
+]
 
-HOSTS_IP_RE = re.compile(
-    r"^([0-9a-fA-F:.]+)\s+([^\s#]+)"
-)
 
-ADBLOCK_DOM_RE = re.compile(
-    r"^([a-z0-9][a-z0-9.\-]*[a-z0-9])",
-    re.I,
-)
+def looks_like_regex(s: str) -> bool:
+    if not s:
+        return False
+    if s.startswith("/") or s.endswith("/"):
+        return True
+    for pat in REGEX_PATTERNS:
+        if pat.search(s):
+            return True
+    return False
 
 
 # ═══════════════════════════════════════════════
-# قراءة الروابط
-# ═══════════════════════════════════════════════
-
 def clean_url(raw: str) -> str:
     u = raw.strip().strip('"\'').strip()
     u = re.sub(r"[:;,\.\s]+$", "", u)
@@ -97,520 +76,226 @@ def clean_url(raw: str) -> str:
 
 
 def read_urls(path):
-    urls = []
-    seen = set()
-
+    urls, seen = [], set()
     if not os.path.isfile(path):
         print(f"[!] {path} غير موجود")
         return urls
-
-    with open(
-        path,
-        "r",
-        encoding="utf-8",
-        errors="ignore"
-    ) as fh:
-
+    with open(path, "r", encoding="utf-8", errors="ignore") as fh:
         for line in fh:
-
             line = line.strip()
-
-            if not line:
+            if not line or line.startswith("#"):
                 continue
-
-            if line.startswith("#"):
-                continue
-
             u = clean_url(line)
-
-            if not u.lower().startswith(
-                ("http://", "https://")
-            ):
+            if not u.lower().startswith(("http://", "https://")):
                 continue
-
             if u not in seen:
-
                 seen.add(u)
                 urls.append(u)
-
     return urls
 
 
 # ═══════════════════════════════════════════════
-# HTTP Session
-# ═══════════════════════════════════════════════
-
 def build_session():
-
-    session = requests.Session()
-
+    s = requests.Session()
     retry = Retry(
         total=MAX_RETRIES,
         backoff_factor=1.5,
-        status_forcelist=(
-            429,
-            500,
-            502,
-            503,
-            504,
-        ),
-        allowed_methods=frozenset([
-            "GET",
-            "HEAD",
-        ]),
+        status_forcelist=(429, 500, 502, 503, 504),
+        allowed_methods=frozenset(["GET", "HEAD"]),
     )
-
-    adapter = HTTPAdapter(
-        max_retries=retry,
-        pool_connections=20,
-        pool_maxsize=20,
-    )
-
-    session.mount(
-        "http://",
-        adapter
-    )
-
-    session.mount(
-        "https://",
-        adapter
-    )
-
-    session.headers.update({
-        "User-Agent": (
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-            "AppleWebKit/537.36 "
-            "(KHTML, like Gecko) "
-            "Chrome/122.0.0.0 Safari/537.36"
-        ),
+    adapter = HTTPAdapter(max_retries=retry, pool_connections=20, pool_maxsize=20)
+    s.mount("http://", adapter)
+    s.mount("https://", adapter)
+    s.headers.update({
+        "User-Agent": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                       "AppleWebKit/537.36 (KHTML, like Gecko) "
+                       "Chrome/122.0.0.0 Safari/537.36"),
         "Accept": "*/*",
         "Accept-Language": "en-US,en;q=0.9",
         "Connection": "keep-alive",
     })
+    return s
 
-    return session
-
-
-# ═══════════════════════════════════════════════
-# Decode
-# ═══════════════════════════════════════════════
 
 def decode_bytes(data):
-
-    for encoding in (
-        "utf-8",
-        "utf-8-sig",
-        "latin-1",
-    ):
-
+    for enc in ("utf-8", "utf-8-sig", "latin-1"):
         try:
-            return data.decode(encoding)
-
+            return data.decode(enc)
         except Exception:
             continue
-
-    return data.decode(
-        "utf-8",
-        errors="ignore"
-    )
+    return data.decode("utf-8", errors="ignore")
 
 
-# ═══════════════════════════════════════════════
-# فك الضغط
-# ═══════════════════════════════════════════════
-
-def try_decompress(
-    data,
-    url,
-    content_type
-):
-
-    ct = (
-        content_type or ""
-    ).lower()
-
+def try_decompress(data, url, content_type):
+    ct = (content_type or "").lower()
     low_url = url.lower()
 
-    # GZIP
-    if (
-        low_url.endswith(".gz")
-        or "gzip" in ct
-    ):
-
+    if low_url.endswith(".gz") or "gzip" in ct:
         try:
             return gzip.decompress(data)
-
         except Exception:
-
             try:
-
-                pos = data.find(
-                    b"\x1f\x8b"
-                )
-
-                if pos >= 0:
-                    return gzip.decompress(
-                        data[pos:]
-                    )
-
+                return gzip.decompress(data[data.find(b"\x1f\x8b"):])
             except Exception:
                 pass
 
-    # TAR.GZ / TGZ
-    if low_url.endswith(
-        (".tgz", ".tar.gz")
-    ):
-
+    if low_url.endswith((".tgz", ".tar.gz")):
         try:
-
-            with tarfile.open(
-                fileobj=io.BytesIO(data),
-                mode="r:gz"
-            ) as tar:
-
+            with tarfile.open(fileobj=io.BytesIO(data), mode="r:gz") as tar:
                 chunks = []
-
-                for member in tar.getmembers():
-
-                    if not member.isfile():
-                        continue
-
-                    file_obj = tar.extractfile(
-                        member
-                    )
-
-                    if file_obj:
-                        chunks.append(
-                            file_obj.read()
-                        )
-
+                for m in tar.getmembers():
+                    if m.isfile():
+                        f = tar.extractfile(m)
+                        if f:
+                            chunks.append(f.read())
                 if chunks:
-                    return b"\n".join(
-                        chunks
-                    )
-
+                    return b"\n".join(chunks)
         except Exception:
             pass
 
-    # ZIP
-    if (
-        low_url.endswith(".zip")
-        or "zip" in ct
-    ):
-
+    if low_url.endswith(".zip") or "zip" in ct:
         try:
-
-            with zipfile.ZipFile(
-                io.BytesIO(data)
-            ) as archive:
-
+            with zipfile.ZipFile(io.BytesIO(data)) as z:
                 chunks = []
-
-                for name in archive.namelist():
-
+                for name in z.namelist():
                     if name.endswith("/"):
                         continue
-
                     try:
-                        chunks.append(
-                            archive.read(name)
-                        )
-
+                        chunks.append(z.read(name))
                     except Exception:
                         pass
-
                 if chunks:
-                    return b"\n".join(
-                        chunks
-                    )
-
+                    return b"\n".join(chunks)
         except Exception:
             pass
 
     return data
 
 
-# ═══════════════════════════════════════════════
-# تحميل القائمة
-# ═══════════════════════════════════════════════
-
 def fetch(session, url):
-
-    response = None
-
-    for verify in (
-        True,
-        False,
-    ):
-
+    r = None
+    for verify in (True, False):
         try:
-
-            response = session.get(
-                url,
-                timeout=TIMEOUT,
-                allow_redirects=True,
-                verify=verify,
-            )
-
-            response.raise_for_status()
-
+            r = session.get(url, timeout=TIMEOUT, allow_redirects=True, verify=verify)
+            r.raise_for_status()
             break
-
         except requests.exceptions.SSLError:
-
-            print(
-                "    [!] SSL error، "
-                "إعادة المحاولة بدون تحقق..."
-            )
-
+            print("    [!] SSL error، إعادة المحاولة بدون تحقق...")
             continue
-
         except Exception as exc:
-
-            print(
-                f"    [!] {exc}"
-            )
-
+            print(f"    [!] {exc}")
             return None, 0
 
-    if response is None:
+    if r is None:
         return None, 0
 
-    body = response.content
-
+    body = r.content
     if not body:
         return None, 0
 
     original_size = len(body)
-
-    body = try_decompress(
-        body,
-        url,
-        response.headers.get(
-            "Content-Type",
-            ""
-        ),
-    )
-
+    body = try_decompress(body, url, r.headers.get("Content-Type", ""))
     text = decode_bytes(body)
 
-    head = (
-        text[:400]
-        .lstrip()
-        .lower()
-    )
-
-    if (
-        head.startswith(
-            "<!doctype html"
-        )
-        or
-        head.startswith("<html")
-    ):
-
-        if (
-            "||" not in text
-            and "0.0.0.0" not in text
-        ):
-
-            print(
-                "    [!] محتوى HTML "
-                "مش ليست، تجاهل"
-            )
-
+    head = text[:400].lstrip().lower()
+    if head.startswith("<!doctype html") or head.startswith("<html"):
+        if "||" not in text and "0.0.0.0" not in text:
+            print("    [!] محتوى HTML مش ليست، تجاهل")
             return None, original_size
 
     return text, original_size
 
 
 # ═══════════════════════════════════════════════
-# هل السطر تعليق؟
-# ═══════════════════════════════════════════════
-
-def is_comment_or_header(s: str) -> bool:
-
-    if not s:
-        return True
-
-    if s.startswith("!"):
-        return True
-
-    if s.startswith("#"):
-        return True
-
-    if (
-        s.startswith("[")
-        and s.endswith("]")
-    ):
-        return True
-
-    return False
+HOSTS_IP_RE    = re.compile(r"^([0-9a-fA-F:.]+)\s+([^\s#]+)")
+ADBLOCK_DOM_RE = re.compile(r"^([a-z0-9][a-z0-9.\-]*[a-z0-9])", re.I)
 
 
-# ═══════════════════════════════════════════════
-# استخراج الدومين
-# ═══════════════════════════════════════════════
+# 🔴 دالة تنضيف الدومين: بتشيل أي /path أو :port أو ?query
+def clean_domain(d: str) -> str:
+    if not d:
+        return ""
+    # اقسم على أول / أو : أو ? أو # أو &
+    d = re.split(r"[/:?#&]", d)[0]
+    d = d.strip(".").lower()
+    return d
+
 
 def extract_domain(s):
-
     """
-    يرجع:
-
-        (domain, False)
-            = Block
-
-        (domain, True)
-            = Whitelist
-
-        (None, None)
-            = غير صالح
+    يستخرج الدومين فقط من أي نوع فلتر.
+    يرجّع (domain, allowed_flag) أو (None, None).
     """
-
-    if is_comment_or_header(s):
+    if not s:
         return None, None
-
     if len(s) > 1024:
         return None, None
 
-    # ═════════════════════════════════════════════
-    # Hosts
-    # ═════════════════════════════════════════════
+    # ═══ 1) تعليق يبدأ بـ !
+    if s.startswith("!"):
+        return None, None
 
-    match = HOSTS_IP_RE.match(s)
+    # ═══ 2) أي حاجة فيها # تتشال (تعليق أو كوزمتك)
+    if "#" in s:
+        return None, None
 
-    if match:
+    # ═══ 3) [Header] يتشال
+    if s.startswith("[") and s.endswith("]"):
+        return None, None
 
-        host = (
-            match.group(2)
-            .lower()
-            .rstrip(".")
-        )
+    # ═══ 4) Regex يتشال
+    if looks_like_regex(s):
+        return None, None
 
-        if host in SKIP_HOSTS:
+    # ═══ 5) Hosts format: 0.0.0.0 domain.com/path
+    m = HOSTS_IP_RE.match(s)
+    if m:
+        raw_host = m.group(2)
+        host = clean_domain(raw_host)   # شيل أي /path
+        if not host or host in SKIP_HOSTS:
             return None, None
-
         if not DOMAIN_RE.match(host):
             return None, None
-
         return host, False
 
-    # ═════════════════════════════════════════════
-    # Cosmetic filters
-    # ═════════════════════════════════════════════
-
-    for marker in COSMETIC_MARKERS:
-
-        if marker in s:
-            return None, None
-
-    # ═════════════════════════════════════════════
-    # Whitelist
-    # ═════════════════════════════════════════════
-
+    # ═══ 6) Allowed flag
     allowed_flag = False
-
     if s.startswith("@@"):
-
         allowed_flag = True
         s = s[2:]
 
-    # ═════════════════════════════════════════════
-    # Regex rules
-    # ═════════════════════════════════════════════
-
-    if (
-        s.startswith("/")
-        or s.endswith("/")
-    ):
-        return None, None
-
     domain = None
 
-    # ||example.com^
+    # ═══ 7) ||domain^ أو ||domain/path^
     if s.startswith("||"):
-
-        match = ADBLOCK_DOM_RE.match(
-            s[2:]
-        )
-
-        if match:
-            domain = (
-                match.group(1)
-                .lower()
-            )
-
-    # |https://example.com
+        rest = s[2:]
+        m = ADBLOCK_DOM_RE.match(rest)
+        if m:
+            domain = m.group(1)
+    # ═══ 8) |http://domain أو |http://domain/path
     elif s.startswith("|"):
-
-        rest = re.sub(
-            r"^https?://",
-            "",
-            s[1:],
-            flags=re.I,
-        )
-
-        match = ADBLOCK_DOM_RE.match(
-            rest
-        )
-
-        if match:
-            domain = (
-                match.group(1)
-                .lower()
-            )
-
+        rest = re.sub(r"^https?://", "", s[1:], flags=re.I)
+        m = ADBLOCK_DOM_RE.match(rest)
+        if m:
+            domain = m.group(1)
+    # ═══ 9) Plain: domain.com أو domain.com/path أو http://domain.com/path
     else:
-
-        # plain domain
-        match = re.match(
-            r"^([a-z0-9][a-z0-9.\-]*\.[a-z]{2,})"
-            r"(?:[\^/$*?\s]|$)",
-            s,
-            re.I,
-        )
-
-        if match:
-
-            domain = (
-                match.group(1)
-                .lower()
-            )
-
-        else:
-
-            # URL
-            match = re.match(
-                r"^https?://"
-                r"([a-z0-9][a-z0-9.\-]*)",
-                s,
-                re.I,
-            )
-
-            if match:
-
-                domain = (
-                    match.group(1)
-                    .lower()
-                )
+        # شيل البروتوكول لو موجود
+        tmp = re.sub(r"^https?://", "", s, flags=re.I)
+        # خد أول جزء قبل أي / : ? # &
+        tmp = re.split(r"[/:?#&\s]", tmp)[0]
+        if DOMAIN_RE.match(tmp):
+            domain = tmp
 
     if not domain:
         return None, None
 
-    domain = (
-        domain
-        .strip(".")
-        .lower()
-    )
+    domain = clean_domain(domain)
 
-    if not domain:
+    if not domain or domain in SKIP_HOSTS:
         return None, None
-
-    if domain in SKIP_HOSTS:
-        return None, None
-
     if not DOMAIN_RE.match(domain):
         return None, None
-
     if len(domain) > 253:
         return None, None
 
@@ -618,548 +303,190 @@ def extract_domain(s):
 
 
 # ═══════════════════════════════════════════════
-# كتابة الناتج
-# ═══════════════════════════════════════════════
-
-def write_output(
-    blocked,
-    allowed,
-    out_dir,
-    max_bytes
-):
-
-    os.makedirs(
-        out_dir,
-        exist_ok=True
-    )
-
-    # حذف ملفات txt القديمة
-    for filename in os.listdir(out_dir):
-
-        if filename.endswith(".txt"):
-
+def write_output(domains, out_dir, max_bytes):
+    """
+    يكتب الملفات بالصيغة: ||domain^
+    """
+    os.makedirs(out_dir, exist_ok=True)
+    for f in os.listdir(out_dir):
+        if f.endswith(".txt"):
             try:
-
-                os.remove(
-                    os.path.join(
-                        out_dir,
-                        filename
-                    )
-                )
-
+                os.remove(os.path.join(out_dir, f))
             except OSError:
                 pass
-
-    # ═══════════════════════════════════════════
-    # Header
-    # ═══════════════════════════════════════════
-
-    total_domains = (
-        len(blocked)
-        + len(allowed)
-    )
 
     header = (
         "[Adblock Plus 2.0]\n"
         "! Title: Adguard Adblock only\n"
-        "! Description: "
-        "Blocked domains + Whitelist domains\n"
-        f"! Total unique blocked domains: "
-        f"{len(blocked)}\n"
-        f"! Total unique whitelist domains: "
-        f"{len(allowed)}\n"
-        f"! Total unique domains: "
-        f"{total_domains}\n"
+        "! Description: Pure blocked domains (no allowed, no regex, no paths)\n"
+        f"! Total domains: {len(domains)}\n"
         "! Generated: "
-        + time.strftime(
-            "%Y-%m-%d %H:%M:%S UTC",
-            time.gmtime()
-        )
-        + "\n"
+        + time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime()) + "\n"
         "!\n"
     )
+    header_bytes = len(header.encode("utf-8"))
 
-    header_bytes = len(
-        header.encode("utf-8")
-    )
-
-    files = []
-
-    index = 1
-
-    current_lines = []
-
-    current_size = header_bytes
-
-    # ═══════════════════════════════════════════
-    # تقسيم الملفات
-    # ═══════════════════════════════════════════
+    files, idx, cur_lines, cur_size = [], 1, [], header_bytes
 
     def flush():
-
-        nonlocal index
-        nonlocal current_lines
-        nonlocal current_size
-
-        if not current_lines:
+        nonlocal idx, cur_lines, cur_size
+        if not cur_lines:
             return
-
-        if index == 1:
-            filename = "blacklist.txt"
-        else:
-            filename = (
-                f"blacklist_{index}.txt"
-            )
-
-        filepath = os.path.join(
-            out_dir,
-            filename
-        )
-
-        with open(
-            filepath,
-            "w",
-            encoding="utf-8",
-            newline="\n",
-        ) as fh:
-
+        name = "blacklist.txt" if idx == 1 else f"blacklist_{idx}.txt"
+        path = os.path.join(out_dir, name)
+        with open(path, "w", encoding="utf-8", newline="\n") as fh:
             fh.write(header)
-            fh.writelines(
-                current_lines
-            )
+            fh.writelines(cur_lines)
+        files.append(path)
+        idx += 1
+        cur_lines, cur_size = [], header_bytes
 
-        files.append(filepath)
-
-        index += 1
-
-        current_lines = []
-
-        current_size = header_bytes
-
-    # ═══════════════════════════════════════════
-    # أولًا: Block
-    # ═══════════════════════════════════════════
-
-    for domain in sorted(blocked):
-
-        line = (
-            f"||{domain}^$important\n"
-        )
-
-        line_size = len(
-            line.encode("utf-8")
-        )
-
-        if (
-            current_size + line_size > max_bytes
-            and current_lines
-        ):
+    for d in domains:
+        # ═══ الصيغة المطلوبة: ||domain^ (بدون $important) ═══
+        line = f"||{d}^\n"
+        b = len(line.encode("utf-8"))
+        if cur_size + b > max_bytes and cur_lines:
             flush()
+        cur_lines.append(line)
+        cur_size += b
 
-        current_lines.append(line)
-
-        current_size += line_size
-
-    # ═══════════════════════════════════════════
-    # ثانيًا: Whitelist
-    # ═══════════════════════════════════════════
-
-    for domain in sorted(allowed):
-
-        line = (
-            f"@@||{domain}^\n"
-        )
-
-        line_size = len(
-            line.encode("utf-8")
-        )
-
-        if (
-            current_size + line_size > max_bytes
-            and current_lines
-        ):
-            flush()
-
-        current_lines.append(line)
-
-        current_size += line_size
-
-    # آخر ملف
     flush()
-
     return files
 
 
 # ═══════════════════════════════════════════════
-# MAIN
-# ═══════════════════════════════════════════════
-
 def main():
-
     print("=" * 60)
-    print(
-        "  Adguard-Adblock Builder"
-    )
-    print(
-        "  Deep Full-File Scan"
-    )
+    print("  Adguard-Adblock-only  |  Deep Full-File Scan")
     print("=" * 60)
 
-    # ═══════════════════════════════════════════
-    # قراءة الروابط
-    # ═══════════════════════════════════════════
-
-    urls = read_urls(
-        LIST_FILE
-    )
-
-    print(
-        f"[+] عدد الروابط في "
-        f"{LIST_FILE}: {len(urls)}\n"
-    )
+    urls = read_urls(LIST_FILE)
+    print(f"[+] عدد الروابط في list2.txt: {len(urls)}\n")
 
     session = build_session()
+    blocked, allowed = set(), set()
 
-    # ═══════════════════════════════════════════
-    # Sets
-    # ═══════════════════════════════════════════
-
-    blocked = set()
-    allowed = set()
-
-    # ═══════════════════════════════════════════
-    # Statistics
-    # ═══════════════════════════════════════════
-
-    total_lines_scanned = 0
+    total_lines_scanned    = 0
     total_bytes_downloaded = 0
-
-    total_blocked_lines = 0
-    total_allowed_lines = 0
-
+    total_blocked_lines    = 0
+    total_allowed_lines    = 0
+    total_regex_skipped    = 0
+    total_hash_skipped     = 0
     failed_urls = []
 
-    # ═══════════════════════════════════════════
-    # Scan
-    # ═══════════════════════════════════════════
-
-    for index, url in enumerate(
-        urls,
-        1
-    ):
-
-        print(
-            f"[{index}/{len(urls)}] {url}"
-        )
-
-        text, size = fetch(
-            session,
-            url
-        )
+    for i, url in enumerate(urls, 1):
+        print(f"[{i}/{len(urls)}] {url}")
+        text, size = fetch(session, url)
 
         if not text:
-
             failed_urls.append(url)
-
             continue
 
         total_bytes_downloaded += size
-
         lines = text.splitlines()
-
         file_lines = len(lines)
-
-        total_lines_scanned += (
-            file_lines
-        )
+        total_lines_scanned += file_lines
 
         file_blocked_lines = 0
         file_allowed_lines = 0
-
-        file_blocked_new = 0
-        file_allowed_new = 0
-
-        # ═══════════════════════════════════════
-        # Full Scan
-        # ═══════════════════════════════════════
+        file_blocked_new   = 0
+        file_allowed_new   = 0
+        file_regex_skipped = 0
+        file_hash_skipped  = 0
 
         for line in lines:
-
             s = line.strip()
-
-            if not s:
+            if not s or len(s) > 1024:
                 continue
 
-            if len(s) > 1024:
+            # عدّ الـ regex والـ # اللي اتشالوا
+            if s.startswith("!") or (s.startswith("[") and s.endswith("]")):
+                continue
+            if "#" in s:
+                file_hash_skipped += 1
+                continue
+            if looks_like_regex(s):
+                file_regex_skipped += 1
                 continue
 
-            domain, allowed_flag = (
-                extract_domain(s)
-            )
-
+            domain, allowed_flag = extract_domain(s)
             if not domain:
                 continue
 
-            # ═══════════════════════════════
-            # Whitelist
-            # ═══════════════════════════════
-
             if allowed_flag:
-
                 file_allowed_lines += 1
-
-                before = len(
-                    allowed
-                )
-
-                allowed.add(
-                    domain
-                )
-
+                before = len(allowed)
+                allowed.add(domain)
                 if len(allowed) > before:
                     file_allowed_new += 1
-
-            # ═══════════════════════════════
-            # Block
-            # ═══════════════════════════════
-
             else:
-
                 file_blocked_lines += 1
-
-                before = len(
-                    blocked
-                )
-
-                blocked.add(
-                    domain
-                )
-
+                before = len(blocked)
+                blocked.add(domain)
                 if len(blocked) > before:
                     file_blocked_new += 1
 
-        total_blocked_lines += (
-            file_blocked_lines
-        )
+        total_blocked_lines += file_blocked_lines
+        total_allowed_lines += file_allowed_lines
+        total_regex_skipped += file_regex_skipped
+        total_hash_skipped  += file_hash_skipped
 
-        total_allowed_lines += (
-            file_allowed_lines
-        )
+        print(f"    ├─ الحجم: {size/1024:.1f} KB")
+        print(f"    ├─ الأسطر المفحوصة: {file_lines:,}")
+        print(f"    ├─ أسطر حظر: {file_blocked_lines:,}  (جديد: +{file_blocked_new:,})")
+        print(f"    ├─ أسطر سماح: {file_allowed_lines:,}  (جديد: +{file_allowed_new:,})")
+        print(f"    ├─ Regex اتشال: {file_regex_skipped:,}")
+        print(f"    └─ # اتشال: {file_hash_skipped:,}")
 
-        print(
-            f"    ├─ الحجم: "
-            f"{size / 1024:.1f} KB"
-        )
+    # ═══ الفلترة النهائية ═══
+    conflicts    = blocked & allowed
+    allowed_only = allowed - blocked
+    pure_blocked = blocked - allowed
+    final = sorted(pure_blocked)
 
-        print(
-            f"    ├─ الأسطر المفحوصة: "
-            f"{file_lines:,}"
-        )
+    duplicates_removed = total_blocked_lines - len(blocked)
 
-        print(
-            f"    ├─ أسطر حظر: "
-            f"{file_blocked_lines:,} "
-            f"(جديد: +{file_blocked_new:,})"
-        )
-
-        print(
-            f"    └─ أسطر سماح: "
-            f"{file_allowed_lines:,} "
-            f"(جديد: +{file_allowed_new:,})"
-        )
-
-    # ═══════════════════════════════════════════
-    # الإحصائيات النهائية
-    # ═══════════════════════════════════════════
-
-    conflicts = (
-        blocked & allowed
-    )
-
-    blocked_only = (
-        blocked - allowed
-    )
-
-    allowed_only = (
-        allowed - blocked
-    )
-
-    duplicates_blocked = (
-        total_blocked_lines
-        - len(blocked)
-    )
-
-    duplicates_allowed = (
-        total_allowed_lines
-        - len(allowed)
-    )
-
-    total_duplicates = (
-        duplicates_blocked
-        + duplicates_allowed
-    )
-
-    # ═══════════════════════════════════════════
-    # عرض الإحصائيات
-    # ═══════════════════════════════════════════
-
-    print(
-        "\n"
-        + "=" * 60
-    )
-
-    print(
-        "  إحصائيات الديب سيرش الكامل"
-    )
-
-    print(
-        "=" * 60
-    )
-
-    print(
-        f"  عدد الروابط الإجمالي: "
-        f"{len(urls)}"
-    )
-
-    print(
-        f"  عدد الروابط اللي فشلت: "
-        f"{len(failed_urls)}"
-    )
-
-    print(
-        f"  إجمالي البايتات المحمّلة: "
-        f"{total_bytes_downloaded:,} "
-        f"({total_bytes_downloaded / 1024 / 1024:.2f} MB)"
-    )
-
-    print(
-        f"  إجمالي الأسطر المفحوصة: "
-        f"{total_lines_scanned:,}"
-    )
-
+    print("\n" + "=" * 60)
+    print("  📊 إحصائيات الديب سيرش الكامل")
+    print("=" * 60)
+    print(f"  عدد الروابط الإجمالي:        {len(urls)}")
+    print(f"  عدد الروابط اللي فشلت:       {len(failed_urls)}")
+    print(f"  إجمالي البايتات المحمّلة:    {total_bytes_downloaded:,} "
+          f"({total_bytes_downloaded/1024/1024:.2f} MB)")
+    print(f"  إجمالي الأسطر المفحوصة:      {total_lines_scanned:,}")
     print()
-
-    print(
-        f"  إجمالي أسطر الحظر: "
-        f"{total_blocked_lines:,}"
-    )
-
-    print(
-        f"  إجمالي أسطر السماح: "
-        f"{total_allowed_lines:,}"
-    )
-
+    print(f"  🚫 إجمالي أسطر الحظر:          {total_blocked_lines:,}")
+    print(f"  ✅ إجمالي أسطر السماح:          {total_allowed_lines:,}")
+    print(f"  🔴 Regex اللي اتشال:           {total_regex_skipped:,}")
+    print(f"  🟡 # اللي اتشال:               {total_hash_skipped:,}")
     print()
-
-    print(
-        f"  الدومينات المحظورة الفريدة: "
-        f"{len(blocked):,}"
-    )
-
-    print(
-        f"  الدومينات المسموحة الفريدة: "
-        f"{len(allowed):,}"
-    )
-
+    print(f"  الدومينات المحظورة الفريدة:   {len(blocked):,}")
+    print(f"  الدومينات المسموحة الفريدة:   {len(allowed):,}")
     print()
-
-    print(
-        "  " + "-" * 50
-    )
-
-    print(
-        f"  محظور فقط: "
-        f"{len(blocked_only):,}"
-    )
-
-    print(
-        f"  مسموح فقط: "
-        f"{len(allowed_only):,}"
-    )
-
-    print(
-        f"  محظور + مسموح معًا: "
-        f"{len(conflicts):,}"
-    )
-
+    print("  " + "-" * 50)
+    print("  🧹 الفلترة النهائية:")
+    print(f"     ├─ مسموح بس (يتشال):        {len(allowed_only):,}")
+    print(f"     ├─ محظور+مسموح (يتشالوا):   {len(conflicts):,}")
+    print(f"     └─ محظور خالص (يفضل):       {len(pure_blocked):,}")
     print()
-
-    print(
-        f"  تكرارات الحظر التي تم حذفها: "
-        f"{duplicates_blocked:,}"
-    )
-
-    print(
-        f"  تكرارات الـ Whitelist التي تم حذفها: "
-        f"{duplicates_allowed:,}"
-    )
-
-    print(
-        f"  إجمالي التكرارات المحذوفة: "
-        f"{total_duplicates:,}"
-    )
-
+    print(f"  📦 المكرر اللي اتشال:          {duplicates_removed:,}")
     print()
-
-    print(
-        f"  إجمالي الدومينات النهائية: "
-        f"{len(blocked) + len(allowed):,}"
-    )
-
-    print(
-        "=" * 60
-    )
-
-    # ═══════════════════════════════════════════
-    # روابط فشلت
-    # ═══════════════════════════════════════════
+    print(f"  ✨ الدومينات الفريدة النهائية:  {len(final):,}")
+    print("=" * 60)
 
     if failed_urls:
+        print("\n⚠️  روابط فشلت:")
+        for u in failed_urls:
+            print(f"   - {u}")
 
-        print(
-            "\n[!] روابط فشلت:"
-        )
+    print("\n[+] كتابة الملفات...")
+    files = write_output(final, OUT_DIR, MAX_BYTES)
+    for f in files:
+        size = os.path.getsize(f)
+        print(f"    ✅ {f}  ({size/1024/1024:.2f} MB)")
 
-        for failed_url in failed_urls:
+    print("\n[✓] خلص بنجاح")
 
-            print(
-                f"   - {failed_url}"
-            )
-
-    # ═══════════════════════════════════════════
-    # كتابة الملفات
-    # ═══════════════════════════════════════════
-
-    print(
-        "\n[+] كتابة الملفات..."
-    )
-
-    files = write_output(
-        blocked,
-        allowed,
-        OUT_DIR,
-        MAX_BYTES
-    )
-
-    for filepath in files:
-
-        size = os.path.getsize(
-            filepath
-        )
-
-        print(
-            f"    [OK] {filepath} "
-            f"({size / 1024 / 1024:.2f} MB)"
-        )
-
-    print(
-        "\n[✓] خلص بنجاح"
-    )
-
-
-# ═══════════════════════════════════════════════
-# تشغيل
-# ═══════════════════════════════════════════════
 
 if __name__ == "__main__":
     main()
