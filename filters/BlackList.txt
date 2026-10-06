@@ -360,3 +360,16 @@
 ||cdn.cookielaw.org^$important
 ||cdn.optimizely.com^$important
 ||t1.gstatic.com^$important
+||stun.l.google.com^$important
+||2ip.io^$important
+||www.whatismyip.com^$important
+||continuum.dds.microsoft.com^$important
+||stats.gc.apple.com^$important
+||get.geojs.io^$important
+||i.sng.link^$important
+||kinesis.us-east-1.amazonaws.com^$important
+||a314.gameloft.com^$important
+||prod.geo.gluops.com^$important
+||sdk.privacy-center.org^$important
+||sink.gameloft.com^$important
+||ping1.tnt-ea.com^$important
