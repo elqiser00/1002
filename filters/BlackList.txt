@@ -386,3 +386,4 @@
 ||metrics.dt.hihonorcloud.com^$important
 ||remote-data.urbanairship.com^$important
 ||cdn-v4.amp-endpoint3.com^$important
+||locationhistory-pa.googleapis.com^$important
