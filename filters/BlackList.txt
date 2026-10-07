@@ -373,3 +373,16 @@
 ||sdk.privacy-center.org^$important
 ||sink.gameloft.com^$important
 ||ping1.tnt-ea.com^$important
+||cgi.connect.qq.com^$important
+||tags.tiqcdn.com^$important
+||device-api.urbanairship.com^$important
+||firebase-settings.crashlytics.com^$important
+||crashlyticsreports-pa.googleapis.com^$important
+||osb.samsungqbe.com^$important
+||metrics-drcn.dt.hihonorcloud.com^$important
+||fbs.smoot.apple.com^$important
+||clienttracing-pa.googleapis.com^$important
+||cdn.dv.tech^$important
+||metrics.dt.hihonorcloud.com^$important
+||remote-data.urbanairship.com^$important
+||cdn-v4.amp-endpoint3.com^$important
