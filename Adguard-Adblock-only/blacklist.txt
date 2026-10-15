@@ -2,7 +2,7 @@
 ! Title: Adguard Adblock only
 ! Description: Pure blocked domains
 ! Total domains: 1324729
-! Generated: 2026-10-15 17:28:52 UTC
+! Generated: 2026-10-15 17:30:43 UTC
 !
 ||0--0.info^
 ||0--4.com^
