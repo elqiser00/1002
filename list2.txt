@@ -7,3 +7,10 @@ https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/adblock/popupads.txt
 https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/adblock/pro.txt
 https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/adblock/multi.txt
 https://big.oisd.nl/
+https://adguardteam.github.io/HostlistsRegistry/assets/filter_1.txt
+https://adguardteam.github.io/HostlistsRegistry/assets/filter_59.txt
+https://adguardteam.github.io/HostlistsRegistry/assets/filter_47.txt
+https://adguardteam.github.io/HostlistsRegistry/assets/filter_63.txt
+https://adguardteam.github.io/HostlistsRegistry/assets/filter_7.txt
+https://adguardteam.github.io/HostlistsRegistry/assets/filter_8.txt
+https://adguardteam.github.io/HostlistsRegistry/assets/filter_18.txt
