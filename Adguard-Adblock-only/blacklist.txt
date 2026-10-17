@@ -1,10 +1,10 @@
 [Adblock Plus 2.0]
 ! Title: Adguard Adblock only
-! Description: All rules with $important
+! Description: Pure Filtering with $important
 ! Blocked domains: 2257452
 ! Allowed domains: 2866
 ! Total domains:   2260318
-! Generated: 2026-10-17 19:32:03 UTC
+! Generated: 2026-10-17 19:36:20 UTC
 !
 ||0--0.info^$important
 ||0--4.com^$important
