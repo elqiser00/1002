@@ -1,10 +1,10 @@
 [Adblock Plus 2.0]
 ! Title: Adguard Adblock only
 ! Description: Pure Filtering with $important (Forced Blocklist Override)
-! Blocked domains: 2267326
+! Blocked domains: 2267339
 ! Allowed domains: 2807
-! Total domains:   2270133
-! Generated: 2026-10-17 20:45:53 UTC
+! Total domains:   2270146
+! Generated: 2026-10-17 21:11:02 UTC
 !
 ||0--0.info^$important
 ||0--4.com^$important
@@ -366269,6 +366269,7 @@
 ||bc34.kaffeevorteil.de^$important
 ||bc34.wijnvoordeel.nl^$important
 ||bc3ead96a9.com^$important
+||bc3x4o7ltoy9uvq26i4tuvxw.rest^$important
 ||bc450.com^$important
 ||bc48fa9adc.com^$important
 ||bc4de0755f.com^$important
@@ -1112762,6 +1112763,7 @@
 ||i5s.casino^$important
 ||i5s3f4.com^$important
 ||i5sn7ffqkjuzb0xziijfwkuykbi4e1508204431.nuid.imrworldwide.com^$important
+||i5u85h973w93o1ghy4uiggnlq2qe2.cfd^$important
 ||i5ystwflekrmhmwsb8yttcrjlma8f1516681570.nuid.imrworldwide.com^$important
 ||i5zq1t-cdn-settings.appsflyersdk.com^$important
 ||i5zq1t-conversions.appsflyersdk.com^$important
@@ -1272848,6 +1272850,7 @@
 ||lina-alex-hochzeit.space^$important
 ||lina.co.kr^$important
 ||linabap.ru^$important
+||linacacreage.cyou^$important
 ||linacareproservicesllc.com^$important
 ||linadeal.com^$important
 ||linae-build.com^$important
@@ -1523510,6 +1523513,7 @@
 ||odesaconflate.com^$important
 ||odesagroup.com^$important
 ||odeschool.xyz^$important
+||odesdurgahunships.cyou^$important
 ||odesense.xyz^$important
 ||odespin.xyz^$important
 ||odessa.com.pl^$important
@@ -1591892,6 +1591896,7 @@
 ||pevcesobrbwxrb.com^$important
 ||pevclean.com^$important
 ||pevdftpg7.alphonso.tv^$important
+||pevdrkxf.com^$important
 ||peverholl.net^$important
 ||peveshnu.com^$important
 ||pevet4casino.com^$important
@@ -1630667,6 +1630672,7 @@
 ||pogusa.com^$important
 ||pogvmflmokkjh.website^$important
 ||pogwua.cn^$important
+||pogyperry.cfd^$important
 ||pogypog.com^$important
 ||pogypon.com^$important
 ||pogyreflush.com^$important
@@ -1661592,6 +1661598,7 @@
 ||przcratre.online^$important
 ||przcratre.today^$important
 ||przecenione.shop^$important
+||przeclaw24.pl^$important
 ||przedmiot-alufelgi7235234.pl^$important
 ||przedmiot274652.click^$important
 ||przedmiot3525443.pl^$important
@@ -1748505,6 +1748512,7 @@
 ||ruh698.cc^$important
 ||ruhalattar.com^$important
 ||ruhamahservices.com^$important
+||ruhbfarbdqdpg.website^$important
 ||ruhcasino.site^$important
 ||ruhcasinogiris.info^$important
 ||ruhepolemet.de^$important
@@ -1852067,6 +1852075,7 @@
 ||sodboa.com^$important
 ||sodbulky.com^$important
 ||soddiesskyless.qpon^$important
+||sodditegumwood.cfd^$important
 ||sodec-lb.com^$important
 ||sodefender.pro^$important
 ||sodeonline.xyz^$important
@@ -1902876,6 +1902885,7 @@
 ||starvegasscasino.net^$important
 ||starveloyaltytshirt.com^$important
 ||starveobscure.com^$important
+||starverceltium.cfd^$important
 ||starvet.xyz^$important
 ||starvid.site^$important
 ||starvinmarvin1.com^$important
@@ -1994120,6 +1994130,7 @@
 ||tnjcars.go2cloud.org^$important
 ||tnjgn.fluevog.com^$important
 ||tnjjkxhyai.com^$important
+||tnjntjyddpdbs.site^$important
 ||tnjvz.cn^$important
 ||tnjxba.link^$important
 ||tnk.deq.temporary.site^$important
@@ -2121211,6 +2121222,7 @@
 ||vvd.bz^$important
 ||vvd.casino^$important
 ||vvd.im^$important
+||vvdelmaxrtzas.online^$important
 ||vvdfdurfqpxub.space^$important
 ||vvdnp.natpat.com^$important
 ||vvdocsservices.com^$important
@@ -2132074,6 +2132086,7 @@
 ||watsonwebservices.net^$important
 ||wattapeteabowl.shop^$important
 ||wattcafe.fr^$important
+||watteauracoons.cyou^$important
 ||watteimall.com^$important
 ||wattestboa.cfd^$important
 ||watti.me^$important
