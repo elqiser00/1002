@@ -2,10 +2,9 @@
 # -*- coding: utf-8 -*-
 """
 Adguard-Adblock-only Builder
-- فلترة أوتوماتيكية 100% (بدون أي قوائم يدوية أو مراجع خارجية)
-- الوايت ليست (الموجودة في روابطك) هي الكلمة العليا
-- أي دومين أو نطاق فرعي منه مسموح، يتم حذفه من البلاك ليست فوراً
-- بدون $important عشان نضمن إن التطبيقات متقفلش
+- فلترة أوتوماتيكية 100% (بدون أي قوائم يدوية)
+- كل قواعد الحظر تطلع بالشكل: ||domain^$important
+- كل قواعد السماح تطلع بالشكل: @@||domain^$important (عشان السماح يغلب الحظر)
 """
 
 import os
@@ -320,7 +319,7 @@ def write_output(blocked_domains, allowed_domains, out_dir, max_bytes):
     header = (
         "[Adblock Plus 2.0]\n"
         "! Title: Adguard Adblock only\n"
-        "! Description: Automatic Natural Filtering (Pure Data)\n"
+        "! Description: All rules with $important\n"
         f"! Blocked domains: {len(blocked_domains)}\n"
         f"! Allowed domains: {len(allowed_domains)}\n"
         f"! Total domains:   {total}\n"
@@ -353,11 +352,13 @@ def write_output(blocked_domains, allowed_domains, out_dir, max_bytes):
         cur_lines.append(line)
         cur_size += b
 
+    # 🔴 هنا التحويل اللي إنت طلبته: كل الحظر بـ $important
     for d in blocked_domains:
-        add_line(f"||{d}^\n")
+        add_line(f"||{d}^$important\n")
 
+    # 🔴 والسماح كمان بـ $important عشان يغلب الحظر
     for d in allowed_domains:
-        add_line(f"@@||{d}^\n")
+        add_line(f"@@||{d}^$important\n")
 
     flush()
     return files
@@ -365,8 +366,7 @@ def write_output(blocked_domains, allowed_domains, out_dir, max_bytes):
 
 def main():
     print("=" * 60)
-    print("  Adguard-Adblock-only  |  Auto Pure Filtering")
-    print("  No manual lists, No references. Data from list2.txt only.")
+    print("  Adguard-Adblock-only  |  Auto Pure Filtering + $important")
     print("=" * 60)
 
     urls = read_urls(LIST_FILE)
@@ -451,17 +451,14 @@ def main():
         print(f"    ├─ Regex اتشال: {file_regex_skipped:,}")
         print(f"    └─ # اتشال: {file_hash_skipped:,}")
 
-    # ═══ الفلترة النهائية (الاعتماد على بيانات الروابط فقط) ═══
+    # ═══ الفلترة النهائية ═══
     final_blocked = set()
     final_allowed = allowed.copy()
-    removed_by_parent = 0
 
     for d in blocked:
-        # 1. لو الدومين نفسه مسموح -> يتشال
         if d in allowed:
             continue
         
-        # 2. لو فيه أب للدومين مسموح -> يتشال (عشان نحمي التطبيقات)
         is_parent_allowed = False
         parts = d.split('.')
         for i in range(1, len(parts)):
@@ -471,10 +468,10 @@ def main():
                 break
                 
         if is_parent_allowed:
-            removed_by_parent += 1
+            # لو الأب مسموح، بنشيل الابن من الحظر
+            # عشان نحمي التطبيقات زي ما اتفقنا
             continue
             
-        # 3. لو مش مسموح بأي شكل، يتحظر عادي (بدون $important عشان منكسرش حاجة)
         final_blocked.add(d)
 
     final_blocked_list = sorted(final_blocked)
@@ -501,10 +498,9 @@ def main():
     print(f"  الدومينات المسموحة الفريدة:   {len(allowed):,}")
     print()
     print("  " + "-" * 50)
-    print("  🧹 الفلترة النهائية (أوتوماتيكية 100%):")
+    print("  🧹 الفلترة النهائية:")
     print(f"     ├─ محظور خالص (يفضل):       {len(final_blocked):,}  ✅")
     print(f"     ├─ مسموح صريح (يفضل):       {len(final_allowed):,}  ✅")
-    print(f"     └─ مسموح بسبب الأب (اتشال): {removed_by_parent:,}  🛡️")
     print()
     print(f"  📦 المكرر اللي اتشال:          {duplicates_removed:,}")
     print()
