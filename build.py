@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 """
 Adguard-Adblock-only Builder
-- فلترة أوتوماتيكية 100% (بدون أي قوائم يدوية)
-- كل قواعد الحظر تطلع بالشكل: ||domain^$important
-- كل قواعد السماح تطلع بالشكل: @@||domain^$important (عشان السماح يغلب الحظر)
+- فلترة أوتوماتيكية 100% (بدون أي قوائم يدوية أو مراجع خارجية)
+- كل الحظر بيطلع: ||domain^$important
+- كل السماح بيطلع: @@||domain^$important
 """
 
 import os
@@ -319,7 +319,7 @@ def write_output(blocked_domains, allowed_domains, out_dir, max_bytes):
     header = (
         "[Adblock Plus 2.0]\n"
         "! Title: Adguard Adblock only\n"
-        "! Description: All rules with $important\n"
+        "! Description: Pure Filtering with $important\n"
         f"! Blocked domains: {len(blocked_domains)}\n"
         f"! Allowed domains: {len(allowed_domains)}\n"
         f"! Total domains:   {total}\n"
@@ -352,11 +352,11 @@ def write_output(blocked_domains, allowed_domains, out_dir, max_bytes):
         cur_lines.append(line)
         cur_size += b
 
-    # 🔴 هنا التحويل اللي إنت طلبته: كل الحظر بـ $important
+    # 🔴 التعديل الجوهري هنا: إضافة $important لكل حظر
     for d in blocked_domains:
         add_line(f"||{d}^$important\n")
 
-    # 🔴 والسماح كمان بـ $important عشان يغلب الحظر
+    # 🔴 إضافة $important للسماح عشان يغلب الحظر
     for d in allowed_domains:
         add_line(f"@@||{d}^$important\n")
 
@@ -366,7 +366,7 @@ def write_output(blocked_domains, allowed_domains, out_dir, max_bytes):
 
 def main():
     print("=" * 60)
-    print("  Adguard-Adblock-only  |  Auto Pure Filtering + $important")
+    print("  Adguard-Adblock-only  |  Pure Filtering + $important")
     print("=" * 60)
 
     urls = read_urls(LIST_FILE)
@@ -468,8 +468,6 @@ def main():
                 break
                 
         if is_parent_allowed:
-            # لو الأب مسموح، بنشيل الابن من الحظر
-            # عشان نحمي التطبيقات زي ما اتفقنا
             continue
             
         final_blocked.add(d)
@@ -509,9 +507,16 @@ def main():
 
     print("\n[+] كتابة الملفات...")
     files = write_output(final_blocked_list, final_allowed_list, OUT_DIR, MAX_BYTES)
+    
+    # ═══ عشان نتأكد إن الملف طالع صح (معاينة) ═══
     for f in files:
         size = os.path.getsize(f)
         print(f"    ✅ {f}  ({size/1024/1024:.2f} MB)")
+        # طباعة أول 5 أسطر من الملف للتأكد
+        print("    🔍 معاينة (أول 5 أسطر):")
+        with open(f, "r", encoding="utf-8") as preview:
+            for _ in range(5):
+                print(f"       {preview.readline().strip()}")
 
     print("\n[✓] خلص بنجاح")
 
