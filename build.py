@@ -2,9 +2,10 @@
 # -*- coding: utf-8 -*-
 """
 Adguard-Adblock-only Builder
-- فلترة أوتوماتيكية 100% (بدون أي قوائم يدوية أو مراجع خارجية)
-- كل الحظر بيطلع: ||domain^$important
-- كل السماح بيطلع: @@||domain^$important
+- فلترة أوتوماتيكية 100%
+- تحميل قائمة حظر مخصصة (BlackList.txt) كمرجع أعلى سلطة
+- قراءة كل الدومينات في القائمة المخصصة حتى لو كانت في سطر واحد
+- أي دومين في القائمة المخصصة يُحظر بـ $important حتى لو كان مسموحاً في مصادر أخرى
 """
 
 import os
@@ -24,6 +25,11 @@ MAX_BYTES   = 90 * 1024 * 1024
 TIMEOUT     = 300
 MAX_RETRIES = 3
 CHUNK_SIZE  = 1024 * 1024
+
+# ═══════════════════════════════════════════════════════
+# 🔴 القائمة المخصصة (الأعلى سلطة)
+# ═══════════════════════════════════════════════════════
+FORCED_BLOCKLIST_URL = "https://raw.githubusercontent.com/elqiser00/1002/refs/heads/main/filters/BlackList.txt"
 
 DOMAIN_RE = re.compile(
     r"^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?"
@@ -319,7 +325,7 @@ def write_output(blocked_domains, allowed_domains, out_dir, max_bytes):
     header = (
         "[Adblock Plus 2.0]\n"
         "! Title: Adguard Adblock only\n"
-        "! Description: Pure Filtering with $important\n"
+        "! Description: Pure Filtering with $important (Forced Blocklist Override)\n"
         f"! Blocked domains: {len(blocked_domains)}\n"
         f"! Allowed domains: {len(allowed_domains)}\n"
         f"! Total domains:   {total}\n"
@@ -352,11 +358,11 @@ def write_output(blocked_domains, allowed_domains, out_dir, max_bytes):
         cur_lines.append(line)
         cur_size += b
 
-    # 🔴 التعديل الجوهري هنا: إضافة $important لكل حظر
+    # 🔴 كل الحظر بـ $important
     for d in blocked_domains:
         add_line(f"||{d}^$important\n")
 
-    # 🔴 إضافة $important للسماح عشان يغلب الحظر
+    # 🔴 كل السماح بـ $important
     for d in allowed_domains:
         add_line(f"@@||{d}^$important\n")
 
@@ -366,13 +372,32 @@ def write_output(blocked_domains, allowed_domains, out_dir, max_bytes):
 
 def main():
     print("=" * 60)
-    print("  Adguard-Adblock-only  |  Pure Filtering + $important")
+    print("  Adguard-Adblock-only  |  Forced Blocklist Override")
     print("=" * 60)
 
-    urls = read_urls(LIST_FILE)
-    print(f"[+] عدد الروابط في list2.txt: {len(urls)}\n")
-
     session = build_session()
+
+    # ═══ 1) تحميل القائمة المخصصة (الأعلى سلطة) ═══
+    forced_blocked = set()
+    print(f"[*] تحميل القائمة المخصصة: {FORCED_BLOCKLIST_URL}")
+    text, size, is_complete = fetch_full(session, FORCED_BLOCKLIST_URL)
+    if text:
+        # 🔴 التعديل الجوهري: تقسيم كل سطر إلى قواعد منفصلة
+        for line in text.splitlines():
+            for part in re.split(r'\s+', line.strip()):
+                if not part:
+                    continue
+                domain, allowed_flag = extract_domain(part)
+                if domain and not allowed_flag:
+                    forced_blocked.add(domain)
+        print(f"    [✓] تم استخراج {len(forced_blocked):,} دومين للحظر الإجباري.")
+    else:
+        print("    [!] تعذر تحميل القائمة المخصصة، سيتم الاعتماد على list2.txt فقط.")
+
+    # ═══ 2) قراءة الروابط العادية ═══
+    urls = read_urls(LIST_FILE)
+    print(f"\n[+] عدد الروابط في list2.txt: {len(urls)}\n")
+
     blocked, allowed = set(), set()
 
     total_lines_scanned    = 0
@@ -451,14 +476,25 @@ def main():
         print(f"    ├─ Regex اتشال: {file_regex_skipped:,}")
         print(f"    └─ # اتشال: {file_hash_skipped:,}")
 
-    # ═══ الفلترة النهائية ═══
+    # ═══ 3) الفلترة النهائية ═══
     final_blocked = set()
     final_allowed = allowed.copy()
 
+    # أولاً: إزالة أي دومين في forced_blocked من قائمة السماح
+    final_allowed = {d for d in final_allowed if d not in forced_blocked}
+
+    # ثانياً: بناء قائمة الحظر النهائية
     for d in blocked:
+        # لو الدومين في القائمة المخصصة، احظره فوراً وتجاهل أي سماح
+        if d in forced_blocked:
+            final_blocked.add(d)
+            continue
+
+        # لو الدومين نفسه مسموح
         if d in allowed:
             continue
         
+        # لو فيه أب للدومين مسموح
         is_parent_allowed = False
         parts = d.split('.')
         for i in range(1, len(parts)):
@@ -472,13 +508,17 @@ def main():
             
         final_blocked.add(d)
 
+    # ثالثاً: إضافة أي دومين في forced_blocked لم يكن موجوداً في blocked أصلاً
+    for d in forced_blocked:
+        final_blocked.add(d)
+
     final_blocked_list = sorted(final_blocked)
     final_allowed_list = sorted(final_allowed)
 
     duplicates_removed = total_blocked_lines - len(blocked)
 
     print("\n" + "=" * 60)
-    print("  📊 إحصائيات الديب سيرش الكامل")
+    print("  📊 إحصائيات الفلترة")
     print("=" * 60)
     print(f"  عدد الروابط الإجمالي:        {len(urls)}")
     print(f"  عدد الروابط اللي فشلت:       {len(failed_urls)}")
@@ -492,13 +532,15 @@ def main():
     print(f"  🔴 Regex اللي اتشال:           {total_regex_skipped:,}")
     print(f"  🟡 # اللي اتشال:               {total_hash_skipped:,}")
     print()
+    print(f"  🔥 دومينات الحظر الإجباري:     {len(forced_blocked):,}")
     print(f"  الدومينات المحظورة الفريدة:   {len(blocked):,}")
     print(f"  الدومينات المسموحة الفريدة:   {len(allowed):,}")
     print()
     print("  " + "-" * 50)
     print("  🧹 الفلترة النهائية:")
-    print(f"     ├─ محظور خالص (يفضل):       {len(final_blocked):,}  ✅")
-    print(f"     ├─ مسموح صريح (يفضل):       {len(final_allowed):,}  ✅")
+    print(f"     ├─ محظور خالص (يفضل):       {len(final_blocked) - len(forced_blocked):,}  ✅")
+    print(f"     ├─ محظور إجباري (تخطى):     {len(forced_blocked):,}  🔥")
+    print(f"     └─ مسموح صريح (يفضل):       {len(final_allowed):,}  ✅")
     print()
     print(f"  📦 المكرر اللي اتشال:          {duplicates_removed:,}")
     print()
@@ -507,12 +549,9 @@ def main():
 
     print("\n[+] كتابة الملفات...")
     files = write_output(final_blocked_list, final_allowed_list, OUT_DIR, MAX_BYTES)
-    
-    # ═══ عشان نتأكد إن الملف طالع صح (معاينة) ═══
     for f in files:
         size = os.path.getsize(f)
         print(f"    ✅ {f}  ({size/1024/1024:.2f} MB)")
-        # طباعة أول 5 أسطر من الملف للتأكد
         print("    🔍 معاينة (أول 5 أسطر):")
         with open(f, "r", encoding="utf-8") as preview:
             for _ in range(5):
