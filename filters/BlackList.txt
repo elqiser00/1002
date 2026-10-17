@@ -417,3 +417,14 @@
 ||ipv4.icanhazip.com^$important
 ||mqtt-mini.facebook.com^$important
 ||api-gdpr.voodoo-tech.io^$important
+||metrics-config.icloud.com^$important
+||mashdaf.myeasyorders.com^$important
+||ar.meteocast.net^$important
+||global.ketchcdn.com^$important
+||sonar6-mrs2-2.xx.fbcdn.net^$important
+||sonar-cdg4-2.xx.fbcdn.net^$important
+||sonar-cdg4-3.xx.fbcdn.net^$important
+||admedia-dra.ads.honor.com^$important
+||sonar-mrs2-2.xx.fbcdn.net^$important
+||sonar6-cdg4-2.xx.fbcdn.net^$important
+||sonar6-cdg4-3.xx.fbcdn.net^$important
