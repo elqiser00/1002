@@ -1,10 +1,10 @@
 [Adblock Plus 2.0]
 ! Title: Adguard Adblock only
 ! Description: Pure Filtering with $important
-! Blocked domains: 2257452
+! Blocked domains: 2257454
 ! Allowed domains: 2866
-! Total domains:   2260318
-! Generated: 2026-10-17 19:36:20 UTC
+! Total domains:   2260320
+! Generated: 2026-10-17 19:38:41 UTC
 !
 ||0--0.info^$important
 ||0--4.com^$important
@@ -1125757,6 +1125757,7 @@
 ||imgraovat.vnecdn.net^$important
 ||imgre.site^$important
 ||imgres.pinsightmedia.com^$important
+||imgrfictnhvgs.site^$important
 ||imgrock.net^$important
 ||imgroom.net^$important
 ||imgrzt.candeohotels.com^$important
@@ -2098757,6 +2098758,7 @@
 ||vjb.mybluehost.me^$important
 ||vjcbm.com^$important
 ||vjcewkcjqu.com^$important
+||vjcstugdlkbbg.online^$important
 ||vjcsyxekbunjf.space^$important
 ||vjcyehtqm9.me^$important
 ||vjcygrstkrujo.site^$important
