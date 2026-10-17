@@ -4,8 +4,8 @@
 Adguard-Adblock-only Builder
 - فلترة أوتوماتيكية 100%
 - تحميل قائمة حظر مخصصة (BlackList.txt) كمرجع أعلى سلطة
-- قراءة كل الدومينات في القائمة المخصصة حتى لو كانت في سطر واحد
-- أي دومين في القائمة المخصصة يُحظر بـ $important حتى لو كان مسموحاً في مصادر أخرى
+- أي دومين في القائمة المخصصة يُحظر بـ $important 
+- يتم حذف قواعد السماح (الوايت ليست) للدومين ولجميع الآباء (Parents) لضمان الحظر
 """
 
 import os
@@ -382,8 +382,8 @@ def main():
     print(f"[*] تحميل القائمة المخصصة: {FORCED_BLOCKLIST_URL}")
     text, size, is_complete = fetch_full(session, FORCED_BLOCKLIST_URL)
     if text:
-        # 🔴 التعديل الجوهري: تقسيم كل سطر إلى قواعد منفصلة
         for line in text.splitlines():
+            # تقسيم السطر لو فيه أكتر من قاعدة (عشان ملفك بيبقى في سطر واحد)
             for part in re.split(r'\s+', line.strip()):
                 if not part:
                     continue
@@ -476,30 +476,38 @@ def main():
         print(f"    ├─ Regex اتشال: {file_regex_skipped:,}")
         print(f"    └─ # اتشال: {file_hash_skipped:,}")
 
-    # ═══ 3) الفلترة النهائية ═══
+    # ═══════════════════════════════════════════════════════
+    # 🔴 الفلترة النهائية (تطبيق قانونك: امسح الوايت ليست للأب والابن)
+    # ═══════════════════════════════════════════════════════
     final_blocked = set()
-    final_allowed = allowed.copy()
-
-    # أولاً: إزالة أي دومين في forced_blocked من قائمة السماح
-    final_allowed = {d for d in final_allowed if d not in forced_blocked}
-
-    # ثانياً: بناء قائمة الحظر النهائية
+    
+    # 1. تحديد كل الآباء (Parents) للدومينات اللي إنت عايز تحظرها
+    # عشان نشيلهم من الوايت ليست
+    parents_to_remove = set()
+    for d in forced_blocked:
+        parents_to_remove.add(d)
+        parts = d.split('.')
+        # بنجيب كل الآباء (مثلاً: init.push.apple.com -> push.apple.com -> apple.com -> com)
+        for i in range(1, len(parts)):
+            parent = ".".join(parts[i:])
+            parents_to_remove.add(parent)
+            
+    # 2. تصفية الوايت ليست: بنشيل أي أب أو ابن موجود في قائمة الحظر الإجباري بتاعتك
+    final_allowed = {d for d in allowed if d not in parents_to_remove}
+    
+    # 3. بناء قائمة الحظر
     for d in blocked:
-        # لو الدومين في القائمة المخصصة، احظره فوراً وتجاهل أي سماح
+        # لو الدومين في القائمة بتاعتك، احظره فوراً
         if d in forced_blocked:
             final_blocked.add(d)
             continue
-
-        # لو الدومين نفسه مسموح
-        if d in allowed:
-            continue
-        
-        # لو فيه أب للدومين مسموح
+            
+        # لو الدومين مش في القائمة بتاعتك، بس أبوه مسموح، سيبه (عشان التطبيقات)
         is_parent_allowed = False
         parts = d.split('.')
         for i in range(1, len(parts)):
             parent = ".".join(parts[i:])
-            if parent in allowed:
+            if parent in final_allowed:
                 is_parent_allowed = True
                 break
                 
@@ -507,8 +515,8 @@ def main():
             continue
             
         final_blocked.add(d)
-
-    # ثالثاً: إضافة أي دومين في forced_blocked لم يكن موجوداً في blocked أصلاً
+        
+    # 4. إضافة أي دومين في القائمة بتاعتك كان ناقص
     for d in forced_blocked:
         final_blocked.add(d)
 
