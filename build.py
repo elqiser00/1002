@@ -4,8 +4,8 @@
 Adguard-Adblock-only Builder
 - فلترة أوتوماتيكية 100%
 - تحميل قائمة حظر مخصصة (BlackList.txt) كمرجع أعلى سلطة
-- أي دومين في القائمة المخصصة يُحظر بـ $important 
-- يتم حذف قواعد السماح (الوايت ليست) للدومين ولجميع الآباء (Parents) لضمان الحظر
+- استخراج الدومين الصافي من أي شكل (مثل ^ أو ^| أو @@||)
+- أي دومين في القائمة المخصصة يُحظر بـ $important ويتم حذف الوايت ليست الخاصة به و بآبائه
 """
 
 import os
@@ -245,7 +245,8 @@ ADBLOCK_DOM_RE = re.compile(r"^([a-z0-9][a-z0-9.\-]*[a-z0-9])", re.I)
 def clean_domain(d: str) -> str:
     if not d:
         return ""
-    d = re.split(r"[/:?#&]", d)[0]
+    # تنظيف الدومين من أي مسارات أو باراميترز أو علامات الأنابيب |
+    d = re.split(r"[/:?#&|]", d)[0]
     d = d.strip(".").lower()
     return d
 
@@ -264,6 +265,7 @@ def extract_domain(s):
     if looks_like_regex(s):
         return None, None
 
+    # 1. التعامل مع صيغة الـ Hosts (0.0.0.0 domain.com)
     m = HOSTS_IP_RE.match(s)
     if m:
         raw_host = m.group(2)
@@ -275,12 +277,14 @@ def extract_domain(s):
         return host, False
 
     allowed_flag = False
+    # 2. التعامل مع قواعد السماح @@||domain^| أو @@|domain^|
     if s.startswith("@@"):
         allowed_flag = True
         s = s[2:]
 
     domain = None
 
+    # 3. استخراج الدومين من ||domain^ أو |domain^
     if s.startswith("||"):
         rest = s[2:]
         m = ADBLOCK_DOM_RE.match(rest)
@@ -383,7 +387,7 @@ def main():
     text, size, is_complete = fetch_full(session, FORCED_BLOCKLIST_URL)
     if text:
         for line in text.splitlines():
-            # تقسيم السطر لو فيه أكتر من قاعدة (عشان ملفك بيبقى في سطر واحد)
+            # تقسيم السطر لو فيه أكتر من قاعدة
             for part in re.split(r'\s+', line.strip()):
                 if not part:
                     continue
@@ -482,13 +486,12 @@ def main():
     final_blocked = set()
     
     # 1. تحديد كل الآباء (Parents) للدومينات اللي إنت عايز تحظرها
-    # عشان نشيلهم من الوايت ليست
     parents_to_remove = set()
     for d in forced_blocked:
         parents_to_remove.add(d)
         parts = d.split('.')
-        # بنجيب كل الآباء (مثلاً: init.push.apple.com -> push.apple.com -> apple.com -> com)
-        for i in range(1, len(parts)):
+        # بنجيب كل الآباء (مثلاً: init.push.apple.com -> push.apple.com -> apple.com)
+        for i in range(1, len(parts) - 1):  # -1 عشان ميشيلش الـ TLD زي com أو net
             parent = ".".join(parts[i:])
             parents_to_remove.add(parent)
             
