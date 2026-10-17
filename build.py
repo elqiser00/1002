@@ -3,12 +3,8 @@
 """
 Adguard-Adblock-only Builder
 - Deep Scan كامل 100%
-- ملف واحد: blacklist.txt
-    * محظور بس      -> ||domain^
-    * مسموح بس      -> @@||domain^
-    * محظور+مسموح   -> يتشال من الملف
-- مكرر -> يظهر مرة واحدة
-- يشيل: ! تعليقات، # كوزمتك، $options، regex
+- فلترة ذكية (Natural Filtering) بدون قوائم يدوية
+- يحظر الإعلانات داخل السوشيال ميديا باستخدام $important
 """
 
 import os
@@ -68,7 +64,6 @@ def looks_like_regex(s: str) -> bool:
     return False
 
 
-# ═══════════════════════════════════════════════
 def clean_url(raw: str) -> str:
     u = raw.strip().strip('"\'').strip()
     u = re.sub(r"[:;,\.\s]+$", "", u)
@@ -94,7 +89,6 @@ def read_urls(path):
     return urls
 
 
-# ═══════════════════════════════════════════════
 def build_session():
     s = requests.Session()
     retry = Retry(
@@ -238,7 +232,6 @@ def fetch_full(session, url):
     return text, actual_size, is_complete
 
 
-# ═══════════════════════════════════════════════
 HOSTS_IP_RE    = re.compile(r"^([0-9a-fA-F:.]+)\s+([^\s#]+)")
 ADBLOCK_DOM_RE = re.compile(r"^([a-z0-9][a-z0-9.\-]*[a-z0-9])", re.I)
 
@@ -313,13 +306,7 @@ def extract_domain(s):
     return domain, allowed_flag
 
 
-# ═══════════════════════════════════════════════
-def write_output(blocked_domains, allowed_domains, out_dir, max_bytes):
-    """
-    يكتب ملف واحد فيه:
-      - البلاك ليست: ||domain^
-      - الوايت ليست: @@||domain^
-    """
+def write_output(blocked_normal, blocked_important, allowed_domains, out_dir, max_bytes):
     os.makedirs(out_dir, exist_ok=True)
     for f in os.listdir(out_dir):
         if f.endswith(".txt"):
@@ -328,12 +315,14 @@ def write_output(blocked_domains, allowed_domains, out_dir, max_bytes):
             except OSError:
                 pass
 
-    total = len(blocked_domains) + len(allowed_domains)
+    total = len(blocked_normal) + len(blocked_important) + len(allowed_domains)
     header = (
         "[Adblock Plus 2.0]\n"
         "! Title: Adguard Adblock only\n"
-        "! Description: Blocked + Allowed in one file\n"
-        f"! Blocked domains: {len(blocked_domains)}\n"
+        "! Description: Natural Filtering with $important for ads\n"
+        f"! Blocked domains: {len(blocked_normal) + len(blocked_important)}\n"
+        f"!   - Normal:      {len(blocked_normal)}\n"
+        f"!   - $important:  {len(blocked_important)}\n"
         f"! Allowed domains: {len(allowed_domains)}\n"
         f"! Total domains:   {total}\n"
         "! Generated: "
@@ -357,36 +346,31 @@ def write_output(blocked_domains, allowed_domains, out_dir, max_bytes):
         idx += 1
         cur_lines, cur_size = [], header_bytes
 
-    # ═══ البلاك ليست الأول ═══
-    for d in blocked_domains:
-        line = f"||{d}^\n"
+    def add_line(line):
+        nonlocal cur_lines, cur_size
         b = len(line.encode("utf-8"))
         if cur_size + b > max_bytes and cur_lines:
             flush()
         cur_lines.append(line)
         cur_size += b
 
-    # ═══ بعدين الوايت ليست ═══
+    for d in blocked_normal:
+        add_line(f"||{d}^\n")
+
+    for d in blocked_important:
+        add_line(f"||{d}^$important\n")
+
     for d in allowed_domains:
-        line = f"@@||{d}^\n"
-        b = len(line.encode("utf-8"))
-        if cur_size + b > max_bytes and cur_lines:
-            flush()
-        cur_lines.append(line)
-        cur_size += b
+        add_line(f"@@||{d}^\n")
 
     flush()
     return files
 
 
-# ═══════════════════════════════════════════════
 def main():
     print("=" * 60)
-    print("  Adguard-Adblock-only  |  Deep FULL Scan (no limit)")
-    print("  Output: ONE file (blacklist.txt)")
-    print("    blocked only  -> ||domain^")
-    print("    allowed only  -> @@||domain^")
-    print("    blocked+allowed -> REMOVED")
+    print("  Adguard-Adblock-only  |  Deep FULL Scan")
+    print("  Natural Filtering + Smart $important for ads")
     print("=" * 60)
 
     urls = read_urls(LIST_FILE)
@@ -471,15 +455,38 @@ def main():
         print(f"    ├─ Regex اتشال: {file_regex_skipped:,}")
         print(f"    └─ # اتشال: {file_hash_skipped:,}")
 
-    # ═══════════════════════════════════════════════
-    # الفلترة النهائية
-    # ═══════════════════════════════════════════════
-    conflicts    = blocked & allowed
-    allowed_only = allowed - blocked       # ✅ يفضل
-    pure_blocked = blocked - allowed       # ✅ يفضل
+    # ═══ الفلترة النهائية الذكية (الطبيعية + $important) ═══
+    final_blocked_normal = set()
+    final_blocked_important = set()
+    final_allowed = allowed.copy()
+    inherited_allowed = 0
 
-    final_blocked = sorted(pure_blocked)
-    final_allowed = sorted(allowed_only)
+    for d in blocked:
+        if d in allowed:
+            # محظور ومسموح صراحةً.. السماح بيكسب
+            inherited_allowed += 1
+            continue
+        
+        # هل فيه أب للدومين ده مسموح؟
+        is_parent_allowed = False
+        parts = d.split('.')
+        for i in range(1, len(parts)):
+            parent = ".".join(parts[i:])
+            if parent in allowed:
+                is_parent_allowed = True
+                break
+                
+        if is_parent_allowed:
+            # الدومين ده تابع لموقع مسموح (زي ads.facebook.com)
+            # عشان نحظره من غير ما نقفل الموقع كله، لازم $important
+            final_blocked_important.add(d)
+        else:
+            # محظور عادي ومفيش أب ليه مسموح
+            final_blocked_normal.add(d)
+
+    final_blocked_normal_list = sorted(final_blocked_normal)
+    final_blocked_important_list = sorted(final_blocked_important)
+    final_allowed_list = sorted(final_allowed)
 
     duplicates_removed = total_blocked_lines - len(blocked)
 
@@ -502,30 +509,25 @@ def main():
     print(f"  الدومينات المسموحة الفريدة:   {len(allowed):,}")
     print()
     print("  " + "-" * 50)
-    print("  🧹 الفلترة النهائية:")
-    print(f"     ├─ محظور بس (يفضل):         {len(pure_blocked):,}  ✅")
-    print(f"     ├─ مسموح بس (يفضل):         {len(allowed_only):,}  ✅")
-    print(f"     └─ متعارض (يتشال الاتنين):  {len(conflicts):,}  ❌")
+    print("  🧹 الفلترة النهائية (الذكية):")
+    print(f"     ├─ محظور عادي:               {len(final_blocked_normal):,}  ✅")
+    print(f"     ├─ محظور $important (إعلانات): {len(final_blocked_important):,}  🛡️")
+    print(f"     ├─ مسموح صريح:               {len(final_allowed):,}  ✅")
+    print(f"     └─ مسموح بسبب الأب (اتشال):  {inherited_allowed:,}  🛡️")
     print()
     print(f"  📦 المكرر اللي اتشال:          {duplicates_removed:,}")
     print()
-    print(f"  ✨ إجمالي الدومينات في الملف:   {len(final_blocked) + len(final_allowed):,}")
-    print(f"     ├─ ||domain^  (blocked):     {len(final_blocked):,}")
-    print(f"     └─ @@||domain^ (allowed):    {len(final_allowed):,}")
+    print(f"  ✨ إجمالي الدومينات في الملف:   {len(final_blocked_normal_list) + len(final_blocked_important_list) + len(final_allowed_list):,}")
     print("=" * 60)
 
-    if incomplete_files:
-        print("\n⚠️  ملفات ناقصة (التحميل اتقطع):")
-        for u in incomplete_files:
-            print(f"   - {u}")
-
-    if failed_urls:
-        print("\n❌  روابط فشلت:")
-        for u in failed_urls:
-            print(f"   - {u}")
-
     print("\n[+] كتابة الملفات...")
-    files = write_output(final_blocked, final_allowed, OUT_DIR, MAX_BYTES)
+    files = write_output(
+        final_blocked_normal_list, 
+        final_blocked_important_list, 
+        final_allowed_list, 
+        OUT_DIR, 
+        MAX_BYTES
+    )
     for f in files:
         size = os.path.getsize(f)
         print(f"    ✅ {f}  ({size/1024/1024:.2f} MB)")
