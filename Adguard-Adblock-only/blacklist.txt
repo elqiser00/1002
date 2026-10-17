@@ -4,7 +4,7 @@
 ! Blocked domains: 2267339
 ! Allowed domains: 2807
 ! Total domains:   2270146
-! Generated: 2026-10-17 21:11:02 UTC
+! Generated: 2026-10-17 21:12:54 UTC
 !
 ||0--0.info^$important
 ||0--4.com^$important
