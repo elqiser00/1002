@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 """
 Adguard-Adblock-only Builder
-- فلترة أوتوماتيكية 100%
-- تحميل قائمة حظر مخصصة (BlackList.txt) كمرجع أعلى سلطة
-- استخراج الدومين الصافي من أي شكل (مثل ^ أو ^| أو @@||)
-- أي دومين في القائمة المخصصة يُحظر بـ $important ويتم حذف الوايت ليست الخاصة به و بآبائه
+- يجمع الدومينات من كل المصادر + قائمتك المخصصة (BlackList.txt)
+- يشيل التكرار الحرفي فقط (Literal Duplicates)
+- لا يحذف أي تعارض (لو دومين محظور ومسموح، يكتب الاتنين)
+- الصيغة النهائية: ||domain^$important و @@||domain^$important
 """
 
 import os
@@ -26,9 +26,7 @@ TIMEOUT     = 300
 MAX_RETRIES = 3
 CHUNK_SIZE  = 1024 * 1024
 
-# ═══════════════════════════════════════════════════════
-# 🔴 القائمة المخصصة (الأعلى سلطة)
-# ═══════════════════════════════════════════════════════
+# رابط قائمتك المخصصة
 FORCED_BLOCKLIST_URL = "https://raw.githubusercontent.com/elqiser00/1002/refs/heads/main/filters/BlackList.txt"
 
 DOMAIN_RE = re.compile(
@@ -58,7 +56,6 @@ REGEX_PATTERNS = [
     re.compile(r"\\\$"),
 ]
 
-
 def looks_like_regex(s: str) -> bool:
     if not s:
         return False
@@ -69,12 +66,10 @@ def looks_like_regex(s: str) -> bool:
             return True
     return False
 
-
 def clean_url(raw: str) -> str:
     u = raw.strip().strip('"\'').strip()
     u = re.sub(r"[:;,\.\s]+$", "", u)
     return u
-
 
 def read_urls(path):
     urls, seen = [], set()
@@ -93,7 +88,6 @@ def read_urls(path):
                 seen.add(u)
                 urls.append(u)
     return urls
-
 
 def build_session():
     s = requests.Session()
@@ -117,7 +111,6 @@ def build_session():
     })
     return s
 
-
 def decode_bytes(data):
     for enc in ("utf-8", "utf-8-sig", "latin-1"):
         try:
@@ -125,7 +118,6 @@ def decode_bytes(data):
         except Exception:
             continue
     return data.decode("utf-8", errors="ignore")
-
 
 def try_decompress(data, url, content_type):
     ct = (content_type or "").lower()
@@ -172,7 +164,6 @@ def try_decompress(data, url, content_type):
 
     return data
 
-
 def fetch_full(session, url):
     r = None
     for verify in (True, False):
@@ -196,35 +187,18 @@ def fetch_full(session, url):
     if r is None:
         return None, 0, False
 
-    declared_size = 0
-    if "Content-Length" in r.headers:
-        try:
-            declared_size = int(r.headers["Content-Length"])
-        except (ValueError, TypeError):
-            declared_size = 0
-
     chunks = []
-    total_received = 0
     try:
         for chunk in r.iter_content(chunk_size=CHUNK_SIZE):
             if chunk:
                 chunks.append(chunk)
-                total_received += len(chunk)
     except Exception as exc:
         print(f"    [!] خطأ أثناء التحميل: {exc}")
         pass
 
     body = b"".join(chunks)
-    actual_size = len(body)
-
-    if actual_size == 0:
+    if not body:
         return None, 0, False
-
-    is_complete = True
-    if declared_size > 0 and actual_size < declared_size:
-        is_complete = False
-        print(f"    ⚠️  تحذير: الملف ناقص! "
-              f"(المتوقع {declared_size:,} / استلمنا {actual_size:,})")
 
     body = try_decompress(body, url, r.headers.get("Content-Type", ""))
     text = decode_bytes(body)
@@ -233,23 +207,19 @@ def fetch_full(session, url):
     if head.startswith("<!doctype html") or head.startswith("<html"):
         if "||" not in text and "0.0.0.0" not in text:
             print("    [!] محتوى HTML مش ليست، تجاهل")
-            return None, actual_size, is_complete
+            return None, 0, False
 
-    return text, actual_size, is_complete
-
+    return text, len(body), True
 
 HOSTS_IP_RE    = re.compile(r"^([0-9a-fA-F:.]+)\s+([^\s#]+)")
 ADBLOCK_DOM_RE = re.compile(r"^([a-z0-9][a-z0-9.\-]*[a-z0-9])", re.I)
 
-
 def clean_domain(d: str) -> str:
     if not d:
         return ""
-    # تنظيف الدومين من أي مسارات أو باراميترز أو علامات الأنابيب |
     d = re.split(r"[/:?#&|]", d)[0]
     d = d.strip(".").lower()
     return d
-
 
 def extract_domain(s):
     if not s:
@@ -265,7 +235,6 @@ def extract_domain(s):
     if looks_like_regex(s):
         return None, None
 
-    # 1. التعامل مع صيغة الـ Hosts (0.0.0.0 domain.com)
     m = HOSTS_IP_RE.match(s)
     if m:
         raw_host = m.group(2)
@@ -277,14 +246,12 @@ def extract_domain(s):
         return host, False
 
     allowed_flag = False
-    # 2. التعامل مع قواعد السماح @@||domain^| أو @@|domain^|
     if s.startswith("@@"):
         allowed_flag = True
         s = s[2:]
 
     domain = None
 
-    # 3. استخراج الدومين من ||domain^ أو |domain^
     if s.startswith("||"):
         rest = s[2:]
         m = ADBLOCK_DOM_RE.match(rest)
@@ -310,11 +277,8 @@ def extract_domain(s):
         return None, None
     if not DOMAIN_RE.match(domain):
         return None, None
-    if len(domain) > 253:
-        return None, None
 
     return domain, allowed_flag
-
 
 def write_output(blocked_domains, allowed_domains, out_dir, max_bytes):
     os.makedirs(out_dir, exist_ok=True)
@@ -329,7 +293,7 @@ def write_output(blocked_domains, allowed_domains, out_dir, max_bytes):
     header = (
         "[Adblock Plus 2.0]\n"
         "! Title: Adguard Adblock only\n"
-        "! Description: Pure Filtering with $important (Forced Blocklist Override)\n"
+        "! Description: Literal De-duplication Only (Keep conflicts)\n"
         f"! Blocked domains: {len(blocked_domains)}\n"
         f"! Allowed domains: {len(allowed_domains)}\n"
         f"! Total domains:   {total}\n"
@@ -362,81 +326,53 @@ def write_output(blocked_domains, allowed_domains, out_dir, max_bytes):
         cur_lines.append(line)
         cur_size += b
 
-    # 🔴 كل الحظر بـ $important
+    # كتابة كل الحظر بـ $important
     for d in blocked_domains:
         add_line(f"||{d}^$important\n")
 
-    # 🔴 كل السماح بـ $important
+    # كتابة كل السماح بـ $important
     for d in allowed_domains:
         add_line(f"@@||{d}^$important\n")
 
     flush()
     return files
 
-
 def main():
     print("=" * 60)
-    print("  Adguard-Adblock-only  |  Forced Blocklist Override")
+    print("  Adguard-Adblock-only  |  Literal De-duplication Only")
     print("=" * 60)
 
     session = build_session()
+    blocked, allowed = set(), set()
 
-    # ═══ 1) تحميل القائمة المخصصة (الأعلى سلطة) ═══
-    forced_blocked = set()
+    # 1. تحميل القائمة المخصصة
     print(f"[*] تحميل القائمة المخصصة: {FORCED_BLOCKLIST_URL}")
-    text, size, is_complete = fetch_full(session, FORCED_BLOCKLIST_URL)
+    text, _, _ = fetch_full(session, FORCED_BLOCKLIST_URL)
     if text:
         for line in text.splitlines():
-            # تقسيم السطر لو فيه أكتر من قاعدة
             for part in re.split(r'\s+', line.strip()):
                 if not part:
                     continue
                 domain, allowed_flag = extract_domain(part)
-                if domain and not allowed_flag:
-                    forced_blocked.add(domain)
-        print(f"    [✓] تم استخراج {len(forced_blocked):,} دومين للحظر الإجباري.")
-    else:
-        print("    [!] تعذر تحميل القائمة المخصصة، سيتم الاعتماد على list2.txt فقط.")
-
-    # ═══ 2) قراءة الروابط العادية ═══
+                if domain:
+                    if allowed_flag:
+                        allowed.add(domain)
+                    else:
+                        blocked.add(domain)
+        print(f"    [✓] تم قراءة قائمتك المخصصة.")
+    
+    # 2. تحميل الروابط العادية
     urls = read_urls(LIST_FILE)
     print(f"\n[+] عدد الروابط في list2.txt: {len(urls)}\n")
 
-    blocked, allowed = set(), set()
-
-    total_lines_scanned    = 0
-    total_bytes_downloaded = 0
-    total_blocked_lines    = 0
-    total_allowed_lines    = 0
-    total_regex_skipped    = 0
-    total_hash_skipped     = 0
-    incomplete_files       = []
-    failed_urls            = []
-
     for i, url in enumerate(urls, 1):
         print(f"[{i}/{len(urls)}] {url}")
-        text, size, is_complete = fetch_full(session, url)
+        text, _, is_complete = fetch_full(session, url)
 
         if not text:
-            failed_urls.append(url)
             continue
 
-        if not is_complete:
-            incomplete_files.append(url)
-
-        total_bytes_downloaded += size
-        lines = text.splitlines()
-        file_lines = len(lines)
-        total_lines_scanned += file_lines
-
-        file_blocked_lines = 0
-        file_allowed_lines = 0
-        file_blocked_new   = 0
-        file_allowed_new   = 0
-        file_regex_skipped = 0
-        file_hash_skipped  = 0
-
-        for line in lines:
+        for line in text.splitlines():
             s = line.strip()
             if not s or len(s) > 1024:
                 continue
@@ -444,10 +380,8 @@ def main():
             if s.startswith("!") or (s.startswith("[") and s.endswith("]")):
                 continue
             if "#" in s:
-                file_hash_skipped += 1
                 continue
             if looks_like_regex(s):
-                file_regex_skipped += 1
                 continue
 
             domain, allowed_flag = extract_domain(s)
@@ -455,111 +389,29 @@ def main():
                 continue
 
             if allowed_flag:
-                file_allowed_lines += 1
-                before = len(allowed)
                 allowed.add(domain)
-                if len(allowed) > before:
-                    file_allowed_new += 1
             else:
-                file_blocked_lines += 1
-                before = len(blocked)
                 blocked.add(domain)
-                if len(blocked) > before:
-                    file_blocked_new += 1
-
-        total_blocked_lines += file_blocked_lines
-        total_allowed_lines += file_allowed_lines
-        total_regex_skipped += file_regex_skipped
-        total_hash_skipped  += file_hash_skipped
-
-        complete_flag = "✅" if is_complete else "⚠️  ناقص"
-        print(f"    ├─ الحجم: {size/1024:.1f} KB  {complete_flag}")
-        print(f"    ├─ الأسطر المفحوصة: {file_lines:,}")
-        print(f"    ├─ أسطر حظر: {file_blocked_lines:,}  (جديد: +{file_blocked_new:,})")
-        print(f"    ├─ أسطر سماح: {file_allowed_lines:,}  (جديد: +{file_allowed_new:,})")
-        print(f"    ├─ Regex اتشال: {file_regex_skipped:,}")
-        print(f"    └─ # اتشال: {file_hash_skipped:,}")
 
     # ═══════════════════════════════════════════════════════
-    # 🔴 الفلترة النهائية (تطبيق قانونك: امسح الوايت ليست للأب والابن)
+    # لا يوجد أي فلترة متعارضة هنا، السيت (set) شال التكرار بس
     # ═══════════════════════════════════════════════════════
-    final_blocked = set()
-    
-    # 1. تحديد كل الآباء (Parents) للدومينات اللي إنت عايز تحظرها
-    parents_to_remove = set()
-    for d in forced_blocked:
-        parents_to_remove.add(d)
-        parts = d.split('.')
-        # بنجيب كل الآباء (مثلاً: init.push.apple.com -> push.apple.com -> apple.com)
-        for i in range(1, len(parts) - 1):  # -1 عشان ميشيلش الـ TLD زي com أو net
-            parent = ".".join(parts[i:])
-            parents_to_remove.add(parent)
-            
-    # 2. تصفية الوايت ليست: بنشيل أي أب أو ابن موجود في قائمة الحظر الإجباري بتاعتك
-    final_allowed = {d for d in allowed if d not in parents_to_remove}
-    
-    # 3. بناء قائمة الحظر
-    for d in blocked:
-        # لو الدومين في القائمة بتاعتك، احظره فوراً
-        if d in forced_blocked:
-            final_blocked.add(d)
-            continue
-            
-        # لو الدومين مش في القائمة بتاعتك، بس أبوه مسموح، سيبه (عشان التطبيقات)
-        is_parent_allowed = False
-        parts = d.split('.')
-        for i in range(1, len(parts)):
-            parent = ".".join(parts[i:])
-            if parent in final_allowed:
-                is_parent_allowed = True
-                break
-                
-        if is_parent_allowed:
-            continue
-            
-        final_blocked.add(d)
-        
-    # 4. إضافة أي دومين في القائمة بتاعتك كان ناقص
-    for d in forced_blocked:
-        final_blocked.add(d)
-
-    final_blocked_list = sorted(final_blocked)
-    final_allowed_list = sorted(final_allowed)
-
-    duplicates_removed = total_blocked_lines - len(blocked)
+    final_blocked = sorted(blocked)
+    final_allowed = sorted(allowed)
 
     print("\n" + "=" * 60)
-    print("  📊 إحصائيات الفلترة")
+    print("  📊 إحصائيات الفلترة الحرفية")
     print("=" * 60)
-    print(f"  عدد الروابط الإجمالي:        {len(urls)}")
-    print(f"  عدد الروابط اللي فشلت:       {len(failed_urls)}")
-    print(f"  عدد الملفات الناقصة:          {len(incomplete_files)}")
-    print(f"  إجمالي البايتات المحمّلة:    {total_bytes_downloaded:,} "
-          f"({total_bytes_downloaded/1024/1024:.2f} MB)")
-    print(f"  إجمالي الأسطر المفحوصة:      {total_lines_scanned:,}")
-    print()
-    print(f"  🚫 إجمالي أسطر الحظر:          {total_blocked_lines:,}")
-    print(f"  ✅ إجمالي أسطر السماح:          {total_allowed_lines:,}")
-    print(f"  🔴 Regex اللي اتشال:           {total_regex_skipped:,}")
-    print(f"  🟡 # اللي اتشال:               {total_hash_skipped:,}")
-    print()
-    print(f"  🔥 دومينات الحظر الإجباري:     {len(forced_blocked):,}")
-    print(f"  الدومينات المحظورة الفريدة:   {len(blocked):,}")
-    print(f"  الدومينات المسموحة الفريدة:   {len(allowed):,}")
-    print()
-    print("  " + "-" * 50)
-    print("  🧹 الفلترة النهائية:")
-    print(f"     ├─ محظور خالص (يفضل):       {len(final_blocked) - len(forced_blocked):,}  ✅")
-    print(f"     ├─ محظور إجباري (تخطى):     {len(forced_blocked):,}  🔥")
-    print(f"     └─ مسموح صريح (يفضل):       {len(final_allowed):,}  ✅")
-    print()
-    print(f"  📦 المكرر اللي اتشال:          {duplicates_removed:,}")
-    print()
-    print(f"  ✨ إجمالي الدومينات في الملف:   {len(final_blocked_list) + len(final_allowed_list):,}")
+    print(f"  🚫 الدومينات المحظورة الفريدة: {len(final_blocked):,}")
+    print(f"  ✅ الدومينات المسموحة الفريدة: {len(final_allowed):,}")
+    
+    # حساب عدد المتعارضين للمعلومة فقط
+    conflicts = set(final_blocked) & set(final_allowed)
+    print(f"  ⚠️  دومينات موجودة في القائمتين (تم الاحتفاظ بها): {len(conflicts):,}")
     print("=" * 60)
 
     print("\n[+] كتابة الملفات...")
-    files = write_output(final_blocked_list, final_allowed_list, OUT_DIR, MAX_BYTES)
+    files = write_output(final_blocked, final_allowed, OUT_DIR, MAX_BYTES)
     for f in files:
         size = os.path.getsize(f)
         print(f"    ✅ {f}  ({size/1024/1024:.2f} MB)")
@@ -569,7 +421,6 @@ def main():
                 print(f"       {preview.readline().strip()}")
 
     print("\n[✓] خلص بنجاح")
-
 
 if __name__ == "__main__":
     main()
