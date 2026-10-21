@@ -429,3 +429,5 @@
 ||sonar6-cdg4-2.xx.fbcdn.net^$important
 ||sonar6-cdg4-3.xx.fbcdn.net^$important
 ||o628283.ingest.us.sentry.io^$important
+||os-code.shalltry.com^$important
+||simo.skyroam.com^$important
