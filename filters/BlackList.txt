@@ -431,3 +431,11 @@
 ||o628283.ingest.us.sentry.io^$important
 ||os-code.shalltry.com^$important
 ||simo.skyroam.com^$important
+||logservice-dra.dt.hihonorcloud.com^$important
+||firebaselogging.googleapis.com^$important
+||api.twibida.com^$important
+||www.googletagservices.com^$important
+||growth-pa.googleapis.com^$important
+||events.flyanalytics.link^$important
+||fundingchoicesmessages.google.com^$important
+||7o8mdq.impression.appsflyersdk.com^$important
