@@ -2,10 +2,9 @@
 # -*- coding: utf-8 -*-
 """
 Adguard-Adblock-only Builder
-- يجمع الدومينات من كل المصادر + قائمتك المخصصة (BlackList.txt)
-- يشيل التكرار الحرفي فقط (Literal Duplicates)
-- لا يحذف أي تعارض (لو دومين محظور ومسموح، يكتب الاتنين)
-- الصيغة النهائية: ||domain^$important و @@||domain^$important
+- Zero Tolerance for Regex (يشيل أي Regex أو Rule معقد)
+- يشيل التكرار الحرفي فقط
+- يحتفظ بالتعارضات (لو دومين محظور ومسموح، يكتب الاتنين)
 """
 
 import os
@@ -42,29 +41,41 @@ SKIP_HOSTS = {
     "0.0.0.0", "127.0.0.1", "::1", "255.255.255.255",
 }
 
-REGEX_PATTERNS = [
-    re.compile(r"^/.*/$"),
-    re.compile(r"/\*.*\*/"),
-    re.compile(r"\\[dwsbSWD]"),
-    re.compile(r"\\\."),
-    re.compile(r"\^[a-z0-9]", re.I),
-    re.compile(r"[a-z0-9]\$$", re.I),
-    re.compile(r"\.\*"),
-    re.compile(r"\.\+"),
-    re.compile(r"\(\?[:=!]"),
-    re.compile(r"\[[a-z0-9\-\^]+\]", re.I),
-    re.compile(r"\\\$"),
-]
-
-def looks_like_regex(s: str) -> bool:
+# ═══════════════════════════════════════════════════════
+# 🚫 دالة الفحص القاصم (Zero Tolerance)
+# بترجع True لو السطر فيه أي Regex أو علامات معقدة
+# ═══════════════════════════════════════════════════════
+def is_complex_or_regex(s: str) -> bool:
     if not s:
-        return False
+        return True
+        
+    # 1. لو بيبدأ أو بينتهي بـ /
     if s.startswith("/") or s.endswith("/"):
         return True
-    for pat in REGEX_PATTERNS:
-        if pat.search(s):
+        
+    # 2. نشيل علامات السماح والحظر المؤكدة عشان نفحص الباقي
+    core = s
+    if core.startswith("@@"): core = core[2:]
+    if core.startswith("||"): core = core[2:]
+    elif core.startswith("|"): core = core[1:]
+    
+    # 3. نشيل الباراميترز زي $important أو $script
+    core = re.sub(r'\$.*$', '', core)
+    
+    # 4. نشيل علامة ^ من الآخر
+    core = core.rstrip("^|")
+    
+    # 5. لو فيه مسار / في النص -> مرفوض
+    if "/" in core:
+        return True
+        
+    # 6. لو فيه أي رمز من رموز الـ Regex -> مرفوض
+    for char in ["*", "\\", "[", "]", "(", ")", "{", "}", "?", "+", "|", "^", "$"]:
+        if char in core:
             return True
+            
     return False
+
 
 def clean_url(raw: str) -> str:
     u = raw.strip().strip('"\'').strip()
@@ -226,15 +237,20 @@ def extract_domain(s):
         return None, None
     if len(s) > 1024:
         return None, None
-    if s.startswith("!"):
+
+    # فحص التعليقات
+    if s.startswith("!") or (s.startswith("[") and s.endswith("]")):
         return None, None
+    
+    # فحص الكوزمتك
     if "#" in s:
         return None, None
-    if s.startswith("[") and s.endswith("]"):
-        return None, None
-    if looks_like_regex(s):
+
+    # 🚫 الفحص القاصم للـ Regex والمعقد
+    if is_complex_or_regex(s):
         return None, None
 
+    # التعامل مع صيغة الـ Hosts (0.0.0.0 domain.com)
     m = HOSTS_IP_RE.match(s)
     if m:
         raw_host = m.group(2)
@@ -293,7 +309,7 @@ def write_output(blocked_domains, allowed_domains, out_dir, max_bytes):
     header = (
         "[Adblock Plus 2.0]\n"
         "! Title: Adguard Adblock only\n"
-        "! Description: Literal De-duplication Only (Keep conflicts)\n"
+        "! Description: Pure Literal (Zero Regex)\n"
         f"! Blocked domains: {len(blocked_domains)}\n"
         f"! Allowed domains: {len(allowed_domains)}\n"
         f"! Total domains:   {total}\n"
@@ -339,11 +355,15 @@ def write_output(blocked_domains, allowed_domains, out_dir, max_bytes):
 
 def main():
     print("=" * 60)
-    print("  Adguard-Adblock-only  |  Literal De-duplication Only")
+    print("  Adguard-Adblock-only  |  Zero Regex Tolerance")
     print("=" * 60)
 
     session = build_session()
     blocked, allowed = set(), set()
+    
+    total_regex_removed = 0
+    total_hash_removed = 0
+    total_lines_scanned = 0
 
     # 1. تحميل القائمة المخصصة
     print(f"[*] تحميل القائمة المخصصة: {FORCED_BLOCKLIST_URL}")
@@ -353,6 +373,14 @@ def main():
             for part in re.split(r'\s+', line.strip()):
                 if not part:
                     continue
+                
+                if is_complex_or_regex(part):
+                    total_regex_removed += 1
+                    continue
+                if "#" in part:
+                    total_hash_removed += 1
+                    continue
+                    
                 domain, allowed_flag = extract_domain(part)
                 if domain:
                     if allowed_flag:
@@ -374,14 +402,19 @@ def main():
 
         for line in text.splitlines():
             s = line.strip()
+            total_lines_scanned += 1
             if not s or len(s) > 1024:
                 continue
 
             if s.startswith("!") or (s.startswith("[") and s.endswith("]")):
                 continue
-            if "#" in s:
+                
+            if is_complex_or_regex(s):
+                total_regex_removed += 1
                 continue
-            if looks_like_regex(s):
+                
+            if "#" in s:
+                total_hash_removed += 1
                 continue
 
             domain, allowed_flag = extract_domain(s)
@@ -393,19 +426,20 @@ def main():
             else:
                 blocked.add(domain)
 
-    # ═══════════════════════════════════════════════════════
-    # لا يوجد أي فلترة متعارضة هنا، السيت (set) شال التكرار بس
-    # ═══════════════════════════════════════════════════════
+    # لا يوجد أي فلترة متعارضة هنا، السيت (set) شال التكرار الحرفي بس
     final_blocked = sorted(blocked)
     final_allowed = sorted(allowed)
 
     print("\n" + "=" * 60)
-    print("  📊 إحصائيات الفلترة الحرفية")
+    print("  📊 إحصائيات الفلترة")
     print("=" * 60)
+    print(f"  إجمالي الأسطر المفحوصة:        {total_lines_scanned:,}")
+    print(f"  🔴 Regex/قواعد معقدة اتشالت:    {total_regex_removed:,}")
+    print(f"  🟡 كوزمتك (#) اتشالت:           {total_hash_removed:,}")
+    print()
     print(f"  🚫 الدومينات المحظورة الفريدة: {len(final_blocked):,}")
     print(f"  ✅ الدومينات المسموحة الفريدة: {len(final_allowed):,}")
     
-    # حساب عدد المتعارضين للمعلومة فقط
     conflicts = set(final_blocked) & set(final_allowed)
     print(f"  ⚠️  دومينات موجودة في القائمتين (تم الاحتفاظ بها): {len(conflicts):,}")
     print("=" * 60)
