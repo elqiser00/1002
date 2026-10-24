@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 """
 Adguard-Adblock-only Builder
-- Zero Tolerance for Regex (يشيل أي Regex أو Rule معقد)
-- يشيل التكرار الحرفي فقط
-- يحتفظ بالتعارضات (لو دومين محظور ومسموح، يكتب الاتنين)
+- Zero Tolerance for Regex
+- تطبيق فكرة المستخدم: إزالة قواعد السماح للأب لو الابن محظور
+- حماية التطبيقات الأساسية في النهاية
 """
 
 import os
@@ -41,41 +41,23 @@ SKIP_HOSTS = {
     "0.0.0.0", "127.0.0.1", "::1", "255.255.255.255",
 }
 
-# ═══════════════════════════════════════════════════════
-# 🚫 دالة الفحص القاصم (Zero Tolerance)
-# بترجع True لو السطر فيه أي Regex أو علامات معقدة
-# ═══════════════════════════════════════════════════════
 def is_complex_or_regex(s: str) -> bool:
     if not s:
         return True
-        
-    # 1. لو بيبدأ أو بينتهي بـ /
     if s.startswith("/") or s.endswith("/"):
         return True
-        
-    # 2. نشيل علامات السماح والحظر المؤكدة عشان نفحص الباقي
     core = s
     if core.startswith("@@"): core = core[2:]
     if core.startswith("||"): core = core[2:]
     elif core.startswith("|"): core = core[1:]
-    
-    # 3. نشيل الباراميترز زي $important أو $script
     core = re.sub(r'\$.*$', '', core)
-    
-    # 4. نشيل علامة ^ من الآخر
     core = core.rstrip("^|")
-    
-    # 5. لو فيه مسار / في النص -> مرفوض
     if "/" in core:
         return True
-        
-    # 6. لو فيه أي رمز من رموز الـ Regex -> مرفوض
     for char in ["*", "\\", "[", "]", "(", ")", "{", "}", "?", "+", "|", "^", "$"]:
         if char in core:
             return True
-            
     return False
-
 
 def clean_url(raw: str) -> str:
     u = raw.strip().strip('"\'').strip()
@@ -85,7 +67,6 @@ def clean_url(raw: str) -> str:
 def read_urls(path):
     urls, seen = [], set()
     if not os.path.isfile(path):
-        print(f"[!] {path} غير موجود")
         return urls
     with open(path, "r", encoding="utf-8", errors="ignore") as fh:
         for line in fh:
@@ -146,12 +127,7 @@ def try_decompress(data, url, content_type):
     if low_url.endswith((".tgz", ".tar.gz")):
         try:
             with tarfile.open(fileobj=io.BytesIO(data), mode="r:gz") as tar:
-                chunks = []
-                for m in tar.getmembers():
-                    if m.isfile():
-                        f = tar.extractfile(m)
-                        if f:
-                            chunks.append(f.read())
+                chunks = [tar.extractfile(m).read() for m in tar.getmembers() if m.isfile() and tar.extractfile(m)]
                 if chunks:
                     return b"\n".join(chunks)
         except Exception:
@@ -160,14 +136,7 @@ def try_decompress(data, url, content_type):
     if low_url.endswith(".zip") or "zip" in ct or data[:2] == b"PK":
         try:
             with zipfile.ZipFile(io.BytesIO(data)) as z:
-                chunks = []
-                for name in z.namelist():
-                    if name.endswith("/"):
-                        continue
-                    try:
-                        chunks.append(z.read(name))
-                    except Exception:
-                        pass
+                chunks = [z.read(name) for name in z.namelist() if not name.endswith("/")]
                 if chunks:
                     return b"\n".join(chunks)
         except Exception:
@@ -179,37 +148,28 @@ def fetch_full(session, url):
     r = None
     for verify in (True, False):
         try:
-            r = session.get(
-                url,
-                timeout=TIMEOUT,
-                allow_redirects=True,
-                verify=verify,
-                stream=True,
-            )
+            r = session.get(url, timeout=TIMEOUT, allow_redirects=True, verify=verify, stream=True)
             r.raise_for_status()
             break
         except requests.exceptions.SSLError:
-            print("    [!] SSL error، إعادة المحاولة بدون تحقق...")
             continue
-        except Exception as exc:
-            print(f"    [!] {exc}")
-            return None, 0, False
+        except Exception:
+            return None, 0
 
-    if r is None:
-        return None, 0, False
+    if not r:
+        return None, 0
 
     chunks = []
     try:
         for chunk in r.iter_content(chunk_size=CHUNK_SIZE):
             if chunk:
                 chunks.append(chunk)
-    except Exception as exc:
-        print(f"    [!] خطأ أثناء التحميل: {exc}")
+    except Exception:
         pass
 
     body = b"".join(chunks)
     if not body:
-        return None, 0, False
+        return None, 0
 
     body = try_decompress(body, url, r.headers.get("Content-Type", ""))
     text = decode_bytes(body)
@@ -217,10 +177,9 @@ def fetch_full(session, url):
     head = text[:400].lstrip().lower()
     if head.startswith("<!doctype html") or head.startswith("<html"):
         if "||" not in text and "0.0.0.0" not in text:
-            print("    [!] محتوى HTML مش ليست، تجاهل")
-            return None, 0, False
+            return None, 0
 
-    return text, len(body), True
+    return text, len(body)
 
 HOSTS_IP_RE    = re.compile(r"^([0-9a-fA-F:.]+)\s+([^\s#]+)")
 ADBLOCK_DOM_RE = re.compile(r"^([a-z0-9][a-z0-9.\-]*[a-z0-9])", re.I)
@@ -229,35 +188,22 @@ def clean_domain(d: str) -> str:
     if not d:
         return ""
     d = re.split(r"[/:?#&|]", d)[0]
-    d = d.strip(".").lower()
-    return d
+    return d.strip(".").lower()
 
 def extract_domain(s):
-    if not s:
+    if not s or len(s) > 1024:
         return None, None
-    if len(s) > 1024:
-        return None, None
-
-    # فحص التعليقات
     if s.startswith("!") or (s.startswith("[") and s.endswith("]")):
         return None, None
-    
-    # فحص الكوزمتك
     if "#" in s:
         return None, None
-
-    # 🚫 الفحص القاصم للـ Regex والمعقد
     if is_complex_or_regex(s):
         return None, None
 
-    # التعامل مع صيغة الـ Hosts (0.0.0.0 domain.com)
     m = HOSTS_IP_RE.match(s)
     if m:
-        raw_host = m.group(2)
-        host = clean_domain(raw_host)
-        if not host or host in SKIP_HOSTS:
-            return None, None
-        if not DOMAIN_RE.match(host):
+        host = clean_domain(m.group(2))
+        if not host or host in SKIP_HOSTS or not DOMAIN_RE.match(host):
             return None, None
         return host, False
 
@@ -267,10 +213,8 @@ def extract_domain(s):
         s = s[2:]
 
     domain = None
-
     if s.startswith("||"):
-        rest = s[2:]
-        m = ADBLOCK_DOM_RE.match(rest)
+        m = ADBLOCK_DOM_RE.match(s[2:])
         if m:
             domain = m.group(1)
     elif s.startswith("|"):
@@ -286,14 +230,9 @@ def extract_domain(s):
 
     if not domain:
         return None, None
-
     domain = clean_domain(domain)
-
-    if not domain or domain in SKIP_HOSTS:
+    if not domain or domain in SKIP_HOSTS or not DOMAIN_RE.match(domain):
         return None, None
-    if not DOMAIN_RE.match(domain):
-        return None, None
-
     return domain, allowed_flag
 
 def write_output(blocked_domains, allowed_domains, out_dir, max_bytes):
@@ -309,13 +248,11 @@ def write_output(blocked_domains, allowed_domains, out_dir, max_bytes):
     header = (
         "[Adblock Plus 2.0]\n"
         "! Title: Adguard Adblock only\n"
-        "! Description: Pure Literal (Zero Regex)\n"
+        "! Description: User Logic (Remove parent allow) + Apps Protected\n"
         f"! Blocked domains: {len(blocked_domains)}\n"
         f"! Allowed domains: {len(allowed_domains)}\n"
         f"! Total domains:   {total}\n"
-        "! Generated: "
-        + time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime()) + "\n"
-        "!\n"
+        "! Generated: " + time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime()) + "\n!\n"
     )
     header_bytes = len(header.encode("utf-8"))
 
@@ -342,20 +279,16 @@ def write_output(blocked_domains, allowed_domains, out_dir, max_bytes):
         cur_lines.append(line)
         cur_size += b
 
-    # كتابة كل الحظر بـ $important
     for d in blocked_domains:
         add_line(f"||{d}^$important\n")
-
-    # كتابة كل السماح بـ $important
     for d in allowed_domains:
         add_line(f"@@||{d}^$important\n")
-
     flush()
     return files
 
 def main():
     print("=" * 60)
-    print("  Adguard-Adblock-only  |  Zero Regex Tolerance")
+    print("  Adguard-Adblock-only  |  Zero Regex + User Logic")
     print("=" * 60)
 
     session = build_session()
@@ -367,27 +300,17 @@ def main():
 
     # 1. تحميل القائمة المخصصة
     print(f"[*] تحميل القائمة المخصصة: {FORCED_BLOCKLIST_URL}")
-    text, _, _ = fetch_full(session, FORCED_BLOCKLIST_URL)
+    text, _ = fetch_full(session, FORCED_BLOCKLIST_URL)
+    forced_blocked = set()
     if text:
         for line in text.splitlines():
             for part in re.split(r'\s+', line.strip()):
-                if not part:
+                if not part or is_complex_or_regex(part) or "#" in part:
                     continue
-                
-                if is_complex_or_regex(part):
-                    total_regex_removed += 1
-                    continue
-                if "#" in part:
-                    total_hash_removed += 1
-                    continue
-                    
                 domain, allowed_flag = extract_domain(part)
-                if domain:
-                    if allowed_flag:
-                        allowed.add(domain)
-                    else:
-                        blocked.add(domain)
-        print(f"    [✓] تم قراءة قائمتك المخصصة.")
+                if domain and not allowed_flag:
+                    forced_blocked.add(domain)
+        print(f"    [✓] تم قراءة قائمتك المخصصة ({len(forced_blocked)} دومين).")
     
     # 2. تحميل الروابط العادية
     urls = read_urls(LIST_FILE)
@@ -395,8 +318,7 @@ def main():
 
     for i, url in enumerate(urls, 1):
         print(f"[{i}/{len(urls)}] {url}")
-        text, _, is_complete = fetch_full(session, url)
-
+        text, _ = fetch_full(session, url)
         if not text:
             continue
 
@@ -405,14 +327,11 @@ def main():
             total_lines_scanned += 1
             if not s or len(s) > 1024:
                 continue
-
             if s.startswith("!") or (s.startswith("[") and s.endswith("]")):
                 continue
-                
             if is_complex_or_regex(s):
                 total_regex_removed += 1
                 continue
-                
             if "#" in s:
                 total_hash_removed += 1
                 continue
@@ -426,9 +345,46 @@ def main():
             else:
                 blocked.add(domain)
 
-    # لا يوجد أي فلترة متعارضة هنا، السيت (set) شال التكرار الحرفي بس
-    final_blocked = sorted(blocked)
-    final_allowed = sorted(allowed)
+    # ═══════════════════════════════════════════════════════
+    # 💡 تطبيق فكرة المستخدم: لو الابن محظور، نشيل سماح الأب
+    # ═══════════════════════════════════════════════════════
+    final_allowed = allowed.copy()
+    
+    # أي دومين محظور، نشيل كل الآباء بتوعه من قائمة السماح
+    for d in blocked:
+        parts = d.split('.')
+        for i in range(1, len(parts)):
+            parent = ".".join(parts[i:])
+            if parent in final_allowed:
+                final_allowed.remove(parent)
+
+    # ═══ استثناء القائمة المخصصة (BlackList.txt) ═══
+    # القائمة بتاعتك هي الحكم النهائي (تتحظر وميتسمحش بيها)
+    for d in forced_blocked:
+        blocked.add(d)
+        if d in final_allowed:
+            final_allowed.remove(d)
+        # ونشيل أي أب ليه من السماح برضه
+        parts = d.split('.')
+        for i in range(1, len(parts)):
+            parent = ".".join(parts[i:])
+            if parent in final_allowed:
+                final_allowed.remove(parent)
+
+    # ═══ صمام الأمان: حماية التطبيقات الأساسية ═══
+    # هنرجع نضيف الدومينات الأساسية للسماح في الآخر عشان التطبيقات تفتح
+    # (لو إنت مش حاططها في البلاك ليست بتاعتك)
+    PROTECTED_DOMAINS = {
+        "facebook.com", "instagram.com", "tiktok.com", "whatsapp.com", 
+        "youtube.com", "twitter.com", "x.com", "snapchat.com", 
+        "telegram.org", "discord.com", "google.com", "apple.com"
+    }
+    for p in PROTECTED_DOMAINS:
+        if p not in forced_blocked:
+            final_allowed.add(p)
+
+    final_blocked_list = sorted(blocked)
+    final_allowed_list = sorted(final_allowed)
 
     print("\n" + "=" * 60)
     print("  📊 إحصائيات الفلترة")
@@ -437,15 +393,12 @@ def main():
     print(f"  🔴 Regex/قواعد معقدة اتشالت:    {total_regex_removed:,}")
     print(f"  🟡 كوزمتك (#) اتشالت:           {total_hash_removed:,}")
     print()
-    print(f"  🚫 الدومينات المحظورة الفريدة: {len(final_blocked):,}")
-    print(f"  ✅ الدومينات المسموحة الفريدة: {len(final_allowed):,}")
-    
-    conflicts = set(final_blocked) & set(final_allowed)
-    print(f"  ⚠️  دومينات موجودة في القائمتين (تم الاحتفاظ بها): {len(conflicts):,}")
+    print(f"  🚫 الدومينات المحظورة النهائية: {len(final_blocked_list):,}")
+    print(f"  ✅ الدومينات المسموحة النهائية: {len(final_allowed_list):,}")
     print("=" * 60)
 
     print("\n[+] كتابة الملفات...")
-    files = write_output(final_blocked, final_allowed, OUT_DIR, MAX_BYTES)
+    files = write_output(final_blocked_list, final_allowed_list, OUT_DIR, MAX_BYTES)
     for f in files:
         size = os.path.getsize(f)
         print(f"    ✅ {f}  ({size/1024/1024:.2f} MB)")
