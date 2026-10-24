@@ -3,8 +3,7 @@
 """
 Adguard-Adblock-only Builder
 - Zero Tolerance for Regex
-- Strict Parent Removal: If child is blocked, REMOVE parent from allow list entirely.
-- No safety nets, no exceptions. Block wins over Allow.
+- Strict Global Rule: If ANY domain is blocked, REMOVE it and ALL its parents from ALLOW list.
 """
 
 import os
@@ -190,7 +189,7 @@ def write_output(blocked, allowed, out_dir, max_bytes):
     header = (
         "[Adblock Plus 2.0]\n"
         "! Title: Adguard Adblock only\n"
-        "! Description: Strict Parent Removal (Block wins)\n"
+        "! Description: Global Strict Override (Block destroys Allow)\n"
         f"! Blocked: {len(blocked)} | Allowed: {len(allowed)}\n"
         "! Generated: " + time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime()) + "\n!\n"
     )
@@ -224,7 +223,7 @@ def write_output(blocked, allowed, out_dir, max_bytes):
 
 def main():
     print("=" * 60)
-    print("  Adguard-Adblock-only  |  Strict Parent Removal")
+    print("  Adguard-Adblock-only  |  Global Strict Override")
     print("=" * 60)
 
     session = build_session()
@@ -263,31 +262,32 @@ def main():
             else: blocked.add(domain)
 
     # ═══════════════════════════════════════════════════════
-    # 🔥 القانون الصارم:
-    # أي دومين محظور، بنجيب كل آباءه ونشيلهم من قائمة السماح
+    # 🔥 القانون العالمي الصارم (تصحيح الخطأ):
+    # أي دومين محظور -> نشيل الدومين نفسه + كل آباءه من قائمة السماح
     # ═══════════════════════════════════════════════════════
     
-    parents_to_remove = set()
+    final_allowed = set(allowed)
+    
     for d in blocked:
-        parts = d.split('.')
-        # نجيب الآباء (مثلاً: graph.facebook.com -> facebook.com)
-        # بنستبعد آخر جزء (com) عشان منحظرش الإنترنت كله
-        for i in range(1, len(parts) - 1):
-            parent = ".".join(parts[i:])
-            parents_to_remove.add(parent)
+        # 1. نشيل الدومين نفسه من السماح فوراً
+        if d in final_allowed:
+            final_allowed.remove(d)
             
-    # هنا بنشيل الأب من قائمة السماح نهائياً
-    final_allowed = {d for d in allowed if d not in parents_to_remove}
+        # 2. نشيل كل آباءه من السماح
+        parts = d.split('.')
+        # i=1 عشان نجيب الأب (مثلاً: ads.tiktok.com -> tiktok.com)
+        for i in range(1, len(parts)):
+            parent = ".".join(parts[i:])
+            if parent in final_allowed:
+                final_allowed.remove(parent)
     
     final_blocked = set(blocked)
-    
     final_blocked_list = sorted(final_blocked)
     final_allowed_list = sorted(final_allowed)
 
     print("\n" + "=" * 60)
     print(f"  🚫 محظور نهائي: {len(final_blocked_list):,}")
     print(f"  ✅ مسموح نهائي: {len(final_allowed_list):,}")
-    print(f"  🗑️ آباء اتحذفوا من السماح: {len(parents_to_remove):,}")
     print("=" * 60)
 
     print("\n[+] كتابة الملفات...")
