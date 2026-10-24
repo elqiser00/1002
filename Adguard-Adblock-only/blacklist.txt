@@ -1,10 +1,8 @@
 [Adblock Plus 2.0]
 ! Title: Adguard Adblock only
-! Description: User Logic (Remove parent allow) + Apps Protected
-! Blocked domains: 1971011
-! Allowed domains: 1000
-! Total domains:   1972011
-! Generated: 2026-10-24 18:07:18 UTC
+! Description: Strict Parent Removal (Block wins)
+! Blocked: 1971059 | Allowed: 1004
+! Generated: 2026-10-24 18:59:25 UTC
 !
 ||0--0.info^$important
 ||0--4.com^$important
@@ -103768,6 +103766,7 @@
 ||4ls5qt-launches.appsflyersdk.com^$important
 ||4lt.casino^$important
 ||4lu.casino^$important
+||4lu114x7k9ef6qr82.cfd^$important
 ||4luck.net^$important
 ||4luckypartner.com^$important
 ||4lzp96zzyenhkrqbe.cfd^$important
@@ -133899,6 +133898,7 @@
 ||7il3v8owuzvo4cb987lzn2ygiii5t8m.rest^$important
 ||7im.net^$important
 ||7imgl76f9cgpbgnh7ik.fxc5fklv2b43juz3hr35h.cyou^$important
+||7imiy33o9vkqvrggxo2xr8y3.rest^$important
 ||7imz0d5nay.com^$important
 ||7incaspin16.com^$important
 ||7ind777.com^$important
@@ -196036,6 +196036,7 @@
 ||adeventtrackermonitoring.spotify.com^$important
 ||adevolver.com^$important
 ||adevppl.com^$important
+||adewpxnzsnvib.site^$important
 ||adex-retargeting.redbutton.de^$important
 ||adex.adchakra.net^$important
 ||adex.admailtiser.com^$important
@@ -242032,6 +242033,7 @@
 ||allegro.pi-blety.sbs^$important
 ||allegro.pi-blety39517.lol^$important
 ||allegro.pi-dostawa1973.cfd^$important
+||allegro.pi-inpost70391-dostawa.cyou^$important
 ||allegro.pi-inpost92745dostawa.rest^$important
 ||allegro.pi-kupteraz81837287372719827371939.pl^$important
 ||allegro.pi-ofera02.shop^$important
@@ -247080,6 +247082,7 @@
 ||allegrolokalnie.pi-dostawa1973.cfd^$important
 ||allegrolokalnie.pi-id53677273.click^$important
 ||allegrolokalnie.pi-id678192739.rest^$important
+||allegrolokalnie.pi-inpost70391-dostawa.cyou^$important
 ||allegrolokalnie.pi-inpost92745dostawa.rest^$important
 ||allegrolokalnie.pi-kupteraz81837287372719827371939.pl^$important
 ||allegrolokalnie.pi-lokaina391.sbs^$important
@@ -257255,6 +257258,7 @@
 ||ambriellenovairex.net^$important
 ||ambrivaq.com^$important
 ||ambrmotchecks.vercel.app^$important
+||ambrokurier.pro^$important
 ||ambrononde.store^$important
 ||ambrosebusiness.xyz^$important
 ||ambrosecatalyst.xyz^$important
@@ -426778,6 +426782,7 @@
 ||boluoxiaoshuo.boats^$important
 ||boluoyingyuan.boats^$important
 ||bolussprugpupulo.qpon^$important
+||boluwin.com^$important
 ||boluxmuho.blog^$important
 ||bolvant.click^$important
 ||bolverantax365.com^$important
@@ -432875,6 +432880,7 @@
 ||bowtk.com^$important
 ||bowwoodwine-1.com^$important
 ||bowwow.co.in^$important
+||bowwowedexchangeauubility.info^$important
 ||bowwowsyrbk.qpon^$important
 ||box-0penseapro.web.app^$important
 ||box-24.casino^$important
@@ -454911,6 +454917,7 @@
 ||byuhi.az1.qualtrics.com^$important
 ||byui.az1.qualtrics.com^$important
 ||byui.qualtrics.com^$important
+||byui11jwkqp.eu.cc^$important
 ||byuibyuidev.112.2o7.net^$important
 ||byuibyuiedu.112.2o7.net^$important
 ||byuidaho.112.2o7.net^$important
@@ -537181,6 +537188,7 @@
 ||cccstores.shop^$important
 ||cccstrefa.shop^$important
 ||cccstyle.shop^$important
+||ccctrend.shop^$important
 ||cccu.ca.102.112.2o7.net^$important
 ||cccvbsdfsdf.w8510.com^$important
 ||cccwwwr.com^$important
@@ -538228,6 +538236,7 @@
 ||cdn-gmcdn.ts.mtvnservices.com^$important
 ||cdn-go.cn^$important
 ||cdn-go.com.cn^$important
+||cdn-guild.com^$important
 ||cdn-guile.akamaized.net^$important
 ||cdn-gw-dv.io^$important
 ||cdn-gw-dv.net^$important
@@ -667041,6 +667050,7 @@
 ||dosehightech.com^$important
 ||dosenkultde.com^$important
 ||dosentoto.vip^$important
+||dosewin.com^$important
 ||dosfarma-data.wt-eu02.net^$important
 ||dosh.pw^$important
 ||doshaido.com^$important
@@ -692872,6 +692882,7 @@
 ||ekurgxhwtesjp.website^$important
 ||ekusakura-shop.pages.dev^$important
 ||ekusakura.live^$important
+||ekusakura.shop^$important
 ||ekuserennto.web.fc2.com^$important
 ||ekuuarqe.com^$important
 ||ekvalqwmly.com^$important
@@ -705893,6 +705904,7 @@
 ||erd.wtf^$important
 ||erdaomen.com^$important
 ||erdbeerblase.de^$important
+||erdbeertoast.com^$important
 ||erdd9.com^$important
 ||erdecisesgeorg.info^$important
 ||erdeihozamveny-ai.com^$important
@@ -745940,6 +745952,7 @@
 ||finsy0-omnis26.cfd^$important
 ||finsy0-pariatur74.sbs^$important
 ||finsy0-qui57.cyou^$important
+||finsy0-qui83.cfd^$important
 ||finsy0-quo39.cyou^$important
 ||finsy0-reiciendis48.cfd^$important
 ||finsy0-reiciendis82.cfd^$important
@@ -745988,6 +746001,7 @@
 ||finsy2-eaque47.sbs^$important
 ||finsy2-est51.sbs^$important
 ||finsy2-in72.cfd^$important
+||finsy2-in81.cfd^$important
 ||finsy2-occaecati84.cfd^$important
 ||finsy2-odit28.sbs^$important
 ||finsy2-omnis91.sbs^$important
@@ -746084,6 +746098,7 @@
 ||finsy6-molestiae14.sbs^$important
 ||finsy6-molestiae18.sbs^$important
 ||finsy6-nisi56.sbs^$important
+||finsy6-odio87.cfd^$important
 ||finsy6-officiis12.cfd^$important
 ||finsy6-omnis33.cfd^$important
 ||finsy6-perspiciatis29.cfd^$important
@@ -746160,6 +746175,7 @@
 ||finsy9-distinctio64.cfd^$important
 ||finsy9-dolorem92.cfd^$important
 ||finsy9-ea99.sbs^$important
+||finsy9-et15.cfd^$important
 ||finsy9-ex38.sbs^$important
 ||finsy9-laboriosam96.sbs^$important
 ||finsy9-molestiae47.sbs^$important
@@ -746170,6 +746186,7 @@
 ||finsy9-quaerat35.cfd^$important
 ||finsy9-quaerat74.cfd^$important
 ||finsy9-quo45.sbs^$important
+||finsy9-ratione14.cfd^$important
 ||finsy9-reiciendis9.sbs^$important
 ||finsy9-reprehenderit0.sbs^$important
 ||finsy9-rerum19.sbs^$important
@@ -807781,6 +807798,7 @@
 ||glowixfundrail.digital^$important
 ||glowixfundrail.shop^$important
 ||glowjerusalemstout.com^$important
+||glowlabpro.digital^$important
 ||glowladyy.my^$important
 ||glowladyy.rest^$important
 ||glowledger.space^$important
@@ -813682,6 +813700,7 @@
 ||gokkenroyale-slotgratis.pro^$important
 ||gokkenroyaleslotmania-app.com^$important
 ||gokkiste.xyz^$important
+||gokkoaudio.us.com^$important
 ||gokkusagidagitim.com.tr^$important
 ||goklics.ru^$important
 ||gokliks.ru^$important
@@ -912292,6 +912311,7 @@
 ||iron4d.one^$important
 ||iron4dbisa.com^$important
 ||iron4dmaster.com^$important
+||ironandresins.shop^$important
 ||ironanime.live^$important
 ||ironbankpepartners.com^$important
 ||ironbarkaccounting.com^$important
@@ -921146,6 +921166,7 @@
 ||jahcigachdhjafbeaafc.world^$important
 ||jaheharum9.com^$important
 ||jahetoto.rest^$important
+||jahewin.com^$important
 ||jahfkjha.cfd^$important
 ||jahgwhjekh.com^$important
 ||jahid.fuchsiabell.ie^$important
@@ -963310,6 +963331,7 @@
 ||kegmrptvad.com^$important
 ||kegpjgnbjmnrh.space^$important
 ||kegslinsey.shop^$important
+||kegwin.com^$important
 ||kegz.site^$important
 ||keha-matomo-sdg-prod.azurewebsites.net^$important
 ||keha-matomo-tmt-qa-qa.azurewebsites.net^$important
@@ -984525,6 +984547,7 @@
 ||kxencag.com^$important
 ||kxewpz.com^$important
 ||kxexlhdbaosee.website^$important
+||kxeyrk.lewitujacelozko.pl^$important
 ||kxf-whatsapp.top^$important
 ||kxfegf-cdn-settings.appsflyersdk.com^$important
 ||kxfhep.com^$important
@@ -1002391,6 +1002414,7 @@
 ||lexatexer.com^$important
 ||lexaustralisabogados.cl^$important
 ||lexavgswin.xyz^$important
+||lexbbicological.info^$important
 ||lexcasino-1.com^$important
 ||lexcasino-109.com^$important
 ||lexcasino-amp11.buzz^$important
@@ -1003368,6 +1003392,7 @@
 ||lhhme.com.sg^$important
 ||lhhpbaiyufphu.site^$important
 ||lhhrhdlankdftk.com^$important
+||lhibnuyxomzqv.space^$important
 ||lhiefl.com^$important
 ||lhifppgvxkj.com^$important
 ||lhigsh.com^$important
@@ -1004346,6 +1004371,7 @@
 ||lidahmerah.xyz^$important
 ||lidahsakti.xyz^$important
 ||lidairr.shop^$important
+||lidamex.com^$important
 ||lidamonlin.shop^$important
 ||lidaoo.com^$important
 ||lidarr.audio^$important
@@ -1016211,6 +1016237,7 @@
 ||lnpo5t-pre-67mr.cv3jhr.top^$important
 ||lnpo5t-sp96.he1rmr.casa^$important
 ||lnpoct.cv3jhr.top^$important
+||lnpoct.di1oot.cfd^$important
 ||lnpoct.dostera.lat^$important
 ||lnpoct.fn6rzn.cfd^$important
 ||lnpoct.gl3snh.top^$important
@@ -1129549,6 +1129576,7 @@
 ||mhaproducts.com^$important
 ||mhaqoffcj7.com^$important
 ||mhaqzaoks.in^$important
+||mharavczumra.in^$important
 ||mhauev.glasses.com^$important
 ||mhaupz.carpisa.it^$important
 ||mhbdezpwdq.com^$important
@@ -1132851,6 +1132879,7 @@
 ||militaria-sprzedanie.sbs^$important
 ||militaria-sprzedaz.shop^$important
 ||militaria.biotechusasale.shop^$important
+||militaria.buzzsneakers-me.sbs^$important
 ||militaria.cervera.help^$important
 ||militaria.heberabat-pl.sbs^$important
 ||militaria.lvsale.shop^$important
@@ -1169194,6 +1169223,7 @@
 ||mostupdatednews.com^$important
 ||mostwantedhf.info^$important
 ||mostwantedtoyz.com^$important
+||mosubet.com^$important
 ||mosved.com^$important
 ||mosvnx.livup.com.br^$important
 ||moswomen.ru^$important
@@ -1240691,6 +1240721,7 @@
 ||odpdipabmq.com^$important
 ||odpicujfure.pl^$important
 ||odpjcjreznno.com^$important
+||odpktokz.com^$important
 ||odplbueosuzw.com^$important
 ||odpldz.com^$important
 ||odpoker.com^$important
@@ -1309577,6 +1309608,7 @@
 ||peyvyz.com^$important
 ||peyzamo.ru^$important
 ||pez7pokerdom.com^$important
+||pezcuiqgpqrhs.site^$important
 ||pezexcqzeofwg.site^$important
 ||pezkg.chichicosmetics.com^$important
 ||pezksldjeasrv.website^$important
@@ -1347318,6 +1347350,7 @@
 ||pocztapl37.eu.cc^$important
 ||pocztapollskantftu91.h4xwsi.qpon^$important
 ||pocztapolska-pl.com^$important
+||pocztapolska-przesylka.com^$important
 ||pocztapolska.autos^$important
 ||pocztapolska24.pl^$important
 ||pocztapolskapl.pl^$important
@@ -1501355,6 +1501388,7 @@
 ||scelta-del-giorno-casino-it.click^$important
 ||scelta-giocatori-casino-it.click^$important
 ||scelta-settimana-casino-it.click^$important
+||scempzanca.store^$important
 ||scenaportal.top^$important
 ||scenarioanime.xyz^$important
 ||scenarioblaze.xyz^$important
@@ -1694082,6 +1694116,7 @@
 ||taurachbahn.at^$important
 ||taure.cz^$important
 ||taurendiheim-de.live^$important
+||taurendiheim.digital^$important
 ||taurendiheim.live^$important
 ||taurincabbiesskiddoo.qpon^$important
 ||taurinus.org^$important
@@ -1740492,6 +1740527,7 @@
 ||towbillingservices.com^$important
 ||towderegar.weebly.com^$important
 ||toweleyewitnessrubbing.com^$important
+||towelimpio.store^$important
 ||towelraisincavity.com^$important
 ||towelservices.xyz^$important
 ||tower-casiino.fr^$important
@@ -1758838,6 +1758874,7 @@
 ||treatsallround.com^$important
 ||treatsbytesayold.firebaseapp.com^$important
 ||treatservices.xyz^$important
+||treatssenegajiggit.cyou^$important
 ||treatstartaugusth.info^$important
 ||treatstoreweb.com^$important
 ||treatweightloss.com^$important
@@ -1785607,6 +1785644,7 @@
 ||umtavq-gcdsdk.appsflyersdk.com^$important
 ||umtavq-launches.appsflyersdk.com^$important
 ||umtbgsdzztsay.online^$important
+||umtnpbqxhwuqr.online^$important
 ||umto.cnn.com^$important
 ||umtorte.qpon^$important
 ||umtoru.cocoheali.com^$important
@@ -1785659,6 +1785697,7 @@
 ||umyjigrlwxywqz.com^$important
 ||umylynsr9b.quira.sh^$important
 ||umymall.com^$important
+||umyq86.analyseit.pl^$important
 ||umyrn.xyz^$important
 ||umyugu88.ru^$important
 ||umyxdymb.com^$important
@@ -1803284,6 +1803323,7 @@
 ||valohokislots.com^$important
 ||valoluck.com^$important
 ||valonate.com^$important
+||valoned.pro^$important
 ||valonex.top^$important
 ||valopaff.cc^$important
 ||valoq.at^$important
@@ -1808513,6 +1808553,7 @@
 ||vdbjpmeaqqjzpwxfflbjfmeykyxvcfgmhjbad.blogspot.com^$important
 ||vdbs.org^$important
 ||vdbunt.net^$important
+||vdc-collab.land^$important
 ||vdc.zoomph.com^$important
 ||vdcasino-adres.online^$important
 ||vdcasino-adresi-girisi.vip^$important
@@ -1890126,6 +1890167,7 @@
 ||wvvw.zoa.media^$important
 ||wvvweu.xyz^$important
 ||wvvww-roblox.com^$important
+||wvvxvfxbbsvcp.space^$important
 ||wvvzcepbqxkcc.site^$important
 ||wvw--roblox.com^$important
 ||wvw-178.com^$important
@@ -1958936,6 +1958978,7 @@
 ||zenavbrin.cyou^$important
 ||zenaviro.com^$important
 ||zenavlico.cyou^$important
+||zenawin.com^$important
 ||zenback.jp^$important
 ||zenbet-casino.icu^$important
 ||zenbet-girisonline.icu^$important
@@ -1960423,6 +1960466,7 @@
 ||zetalayer.blog^$important
 ||zetalube.co.kr^$important
 ||zetamarket.pages.dev^$important
+||zetamaxwin.com^$important
 ||zetamode.sbs^$important
 ||zetapatrimencia.org^$important
 ||zetapatrimencia.pro^$important
@@ -1962287,6 +1962331,7 @@
 ||zhtlcf.cam^$important
 ||zhtvsepde.com^$important
 ||zhtw.admob.com^$important
+||zhtxz.dz8qbe.qpon^$important
 ||zhu-ni-hao-yun.sh^$important
 ||zhu8anggrgrg545.com^$important
 ||zhuafan-live-mgtv.com^$important
@@ -1966776,6 +1966821,7 @@
 ||zopqks.kavehome.com^$important
 ||zopro.duckdns.org^$important
 ||zopvku-cdn-settings.appsflyersdk.com^$important
+||zopwin.com^$important
 ||zopxzq.premiata.it^$important
 ||zoq.casino^$important
 ||zoqalwuvnsxut.site^$important
@@ -1971077,6 +1971123,7 @@
 @@||admelon.ru^$important
 @@||admin.dable.io^$important
 @@||adoi.cn^$important
+@@||ads-api.twitter.com^$important
 @@||ads-static.conde.digital^$important
 @@||ads.adfox.ru^$important
 @@||ads.adsterra.com^$important
@@ -1971087,6 +1971134,7 @@
 @@||ads.elevateplatform.co.uk^$important
 @@||ads.finance^$important
 @@||ads.gatacivi.com^$important
+@@||ads.google.com^$important
 @@||ads.hsoub.com^$important
 @@||ads.id^$important
 @@||ads.kbmax.com^$important
@@ -1971095,6 +1971143,7 @@
 @@||ads.midwayusa.com^$important
 @@||ads.mst.dk^$important
 @@||ads.openai.com^$important
+@@||ads.pinterest.com^$important
 @@||ads.privacy.qq.com^$important
 @@||ads.rogersmedia.com^$important
 @@||ads.sagan-nur.info^$important
@@ -1971106,6 +1971155,7 @@
 @@||ads.tdbank.com^$important
 @@||ads.templateinstant.ru^$important
 @@||ads.temu.com^$important
+@@||ads.tiktok.com^$important
 @@||ads.twitter.com^$important
 @@||ads.viralize.tv^$important
 @@||ads.vk.com^$important
@@ -1971186,9 +1971236,10 @@
 @@||apkmirror.com^$important
 @@||apkmod.id^$important
 @@||app-advertise.zhihuishu.com^$important
+@@||app.adjust.com^$important
+@@||app.appsflyer.com^$important
 @@||app.crazyegg.com^$important
 @@||app.powerbi.com^$important
-@@||apple.com^$important
 @@||apptractor.ru^$important
 @@||arduinolab.pw^$important
 @@||artifactory.appodeal.com^$important
@@ -1971259,6 +1971310,7 @@
 @@||cdn.datatables.net^$important
 @@||cdn.duurzaam.greenchoice.nl^$important
 @@||cdn.ex.co^$important
+@@||cdn.jsdelivr.net^$important
 @@||cdn.rozetka.com.ua^$important
 @@||cdn.staticfile.org^$important
 @@||cdnstreamfree.com^$important
@@ -1971298,6 +1971350,7 @@
 @@||cm-beacon.nakanohito.jp^$important
 @@||cm-widget.nakanohito.jp^$important
 @@||cmechina.net^$important
+@@||cmp.osano.com^$important
 @@||cnbeta.com.tw^$important
 @@||cnc3018.ru^$important
 @@||cnprint.org^$important
@@ -1971343,7 +1971396,6 @@
 @@||digiseller.ru^$important
 @@||digit77.com^$important
 @@||digitalponsel.com^$important
-@@||discord.com^$important
 @@||discretemath.org^$important
 @@||disquscdn.com^$important
 @@||dizhi99.com^$important
@@ -1971392,7 +1971444,6 @@
 @@||ez3c.tw^$important
 @@||ezsoftwarestorage.com^$important
 @@||f-gear.ec-optimizer.com^$important
-@@||facebook.com^$important
 @@||faculty.uml.edu^$important
 @@||fangcloud.com^$important
 @@||fastmail.com^$important
@@ -1971417,6 +1971468,7 @@
 @@||freedidi.com^$important
 @@||freeopenvpn.org^$important
 @@||ftp.bmp.ovh^$important
+@@||fundingchoicesmessages.google.com^$important
 @@||future.biz.weibo.com^$important
 @@||gadget2reviews.com^$important
 @@||gallerix.asia^$important
@@ -1971442,7 +1971494,6 @@
 @@||gocmod.com^$important
 @@||golangnote.com^$important
 @@||goodinfo.tw^$important
-@@||google.com^$important
 @@||googleads4.g.doubleclick.net^$important
 @@||gooogle.how^$important
 @@||goto.target.com^$important
@@ -1971496,7 +1971547,6 @@
 @@||inoreader.com^$important
 @@||inputmag.dk^$important
 @@||insideruser.microsoft.com^$important
-@@||instagram.com^$important
 @@||instapundit.com^$important
 @@||instawp.xyz^$important
 @@||integralrechner.de^$important
@@ -1971675,6 +1971725,8 @@
 @@||otzovik.com^$important
 @@||ozabc.com^$important
 @@||p.d.1emn.com^$important
+@@||pagead.l.doubleclick.net^$important
+@@||pagead2.googlesyndication.com^$important
 @@||pages.upsales.com^$important
 @@||panele.lt^$important
 @@||papalah.com^$important
@@ -1971784,6 +1971836,7 @@
 @@||screenpost.ru^$important
 @@||scyts.com^$important
 @@||sdc.pingan.com^$important
+@@||sdk.privacy-center.org^$important
 @@||sdkapi.sms.mob.com^$important
 @@||secure.livechatinc.com^$important
 @@||secureimage.securedataimages.com^$important
@@ -1971793,6 +1971846,7 @@
 @@||serrurier-menuisier-31-ad2.site-privilege.pagesjaunes.fr^$important
 @@||service.force.com^$important
 @@||services.vlitag.com^$important
+@@||settings-win.data.microsoft.com^$important
 @@||seyise8.com^$important
 @@||seyy66.space^$important
 @@||sfx-images.mozilla.org^$important
@@ -1971815,7 +1971869,6 @@
 @@||smsonline.cloud^$important
 @@||smtcaw.com^$important
 @@||smtp.focusgroupresearch.com^$important
-@@||snapchat.com^$important
 @@||soft8ware.com^$important
 @@||softblog.tw^$important
 @@||softwarebrother.com^$important
@@ -1971874,13 +1971927,11 @@
 @@||td.setupad.com^$important
 @@||teams.microsoft.com^$important
 @@||tehnar.net.ua^$important
-@@||telegram.org^$important
 @@||teliafi-chat.lekane.net^$important
 @@||testufo.com^$important
 @@||th-sjy.com^$important
 @@||thealloha.club^$important
 @@||thumbnail.thench.net^$important
-@@||tiktok.com^$important
 @@||titulky.com^$important
 @@||tj.gov.cn^$important
 @@||tlaol.com^$important
@@ -1971915,12 +1971966,12 @@
 @@||tvanouvelles.ca^$important
 @@||tvbanywherena.com^$important
 @@||tvizorcdn.ru^$important
-@@||twitter.com^$important
 @@||txws.yyzb456.top^$important
 @@||udp2p.com^$important
 @@||ui.ads.microsoft.com^$important
 @@||uiadmin.net^$important
 @@||uland.taobao.com^$important
+@@||unpkg.com^$important
 @@||unrealfree.com^$important
 @@||unsubscribe.lhinsights.com^$important
 @@||upxin.net^$important
@@ -1971960,6 +1972011,7 @@
 @@||weithenn.org^$important
 @@||wgun.net^$important
 @@||whatsapp.com^$important
+@@||widget.intercom.io^$important
 @@||wikibooks.org^$important
 @@||wikidata.org^$important
 @@||wikinews.org^$important
@@ -1971988,7 +1972040,6 @@
 @@||www.top-reklama.sk^$important
 @@||www.youtube.com^$important
 @@||www3.doubleclick.net^$important
-@@||x.com^$important
 @@||xbeibeix.com^$important
 @@||xhbig.com^$important
 @@||xhbranch5.com^$important
@@ -1972008,7 +1972059,6 @@
 @@||yhocdata.com^$important
 @@||yibada.com^$important
 @@||youneed.win^$important
-@@||youtube.com^$important
 @@||yummy.best^$important
 @@||yygsz.com^$important
 @@||zaixianjisuan.com^$important
