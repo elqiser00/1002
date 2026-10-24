@@ -450,3 +450,4 @@
 ||irl-api.twibida.com^$important
 ||3-45-e2189791-ee92-4779-90c1-2136617228b2.config.mobilegamestats.com^$important
 ||img.04591.shop^$important
+||gs-loc.apple.com^$important
