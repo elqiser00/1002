@@ -453,3 +453,4 @@
 ||gs-loc.apple.com^$important
 ||a.nel.cloudflare.com^$important
 ||reyeshehadtwobri.com^$important
+||registeridm.com^$important
