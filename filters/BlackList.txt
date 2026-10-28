@@ -454,3 +454,9 @@
 ||a.nel.cloudflare.com^$important
 ||reyeshehadtwobri.com^$important
 ||registeridm.com^$important
+||conf-sg.dc.heytapmobi.com^$important
+||config.toolmatrix.plus^$important
+||ct.pinterest.com^$important
+||static.sojern.com^$important
+||analytics.twitter.com^$important
+||t.co^$important
