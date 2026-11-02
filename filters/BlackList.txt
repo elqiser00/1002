@@ -461,3 +461,4 @@
 ||analytics.twitter.com^$important
 ||t.co^$important
 ||policy.cookiereports.com^$important
+||csp.withgoogle.com^$important
