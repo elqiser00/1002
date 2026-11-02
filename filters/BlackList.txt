@@ -464,3 +464,6 @@
 ||csp.withgoogle.com^$important
 ||vs-api.voodoo-tech.io^$important
 ||7o8mdq.app.appsflyersdk.com^$important
+||feedback-pa.clients6.google.com^$important
+||m.stripe.network^$important
+||peoplestackwebexperiments-pa.clients6.google.com^$important
