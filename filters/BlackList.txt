@@ -460,3 +460,4 @@
 ||static.sojern.com^$important
 ||analytics.twitter.com^$important
 ||t.co^$important
+||policy.cookiereports.com^$important
