@@ -463,3 +463,4 @@
 ||policy.cookiereports.com^$important
 ||csp.withgoogle.com^$important
 ||vs-api.voodoo-tech.io^$important
+||7o8mdq.app.appsflyersdk.com^$important
