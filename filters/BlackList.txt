@@ -469,3 +469,4 @@
 ||peoplestackwebexperiments-pa.clients6.google.com^$important
 ||log32-normal-sg.capcutapi.com^$important
 ||o33249.ingest.sentry.io^$important
+||fp-it-acc.portal101.cn^$important
