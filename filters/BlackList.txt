@@ -472,3 +472,9 @@
 ||fp-it-acc.portal101.cn^$important
 ||det-ta-g7g.amazon.com^$important
 ||empdownprd.samsungcloudsolution.com^$important
+||apm.yun.hihonor.com^$important
+||apm-ap.yun.hihonor.com^$important
+||apm-sg.yun.hihonor.com^$important
+||restsdk.amap.com^$important
+||unagi-eu.amazon.com^$important
+||otlp-http-production.shopifysvc.com^$important
