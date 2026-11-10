@@ -478,3 +478,7 @@
 ||restsdk.amap.com^$important
 ||unagi-eu.amazon.com^$important
 ||otlp-http-production.shopifysvc.com^$important
+||remoteconfig-dra.platform.hihonorcloud.com^$important
+||remoteconfig-uat-drcn.platform.hihonorcloud.com^$important
+||remoteconfig-dre.platform.hihonorcloud.com^$important
+||remoteconfig-drcn.platform.hihonorcloud.com^$important
