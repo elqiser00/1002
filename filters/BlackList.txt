@@ -486,3 +486,4 @@
 ||fw.adsafeprotected.com^$important
 ||api16-access-adx-my-noncdn.pangle.io^$important
 ||grayr.abx.ipd.hihonor.com^$important
+||api.usercentrics.eu^$important
