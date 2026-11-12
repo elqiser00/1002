@@ -4,9 +4,9 @@
 Adguard-Adblock-only Builder
 - Pure Domains Only (Zero Regex, Zero Headers)
 - Literal De-duplication
-- Blacklist ALWAYS wins over Whitelist (Removes domains and parents from allow list)
-- Supports multiple domains per line (re.split)
-- No $important to save file size
+- Parent Removal Logic: 
+  If child is blocked, remove parent from Blocklist AND Allowlist.
+  Keep exact match in Blocklist.
 """
 
 import os
@@ -190,7 +190,7 @@ def write_output(blocked_domains, allowed_domains, out_dir, max_bytes):
     header = (
         "[Adblock Plus 2.0]\n"
         "! Title: Adguard Adblock only\n"
-        "! Description: Pure Domains (No $important, Size Optimized)\n"
+        "! Description: Pure Domains (Parents removed from both)\n"
         f"! Blocked domains: {len(blocked_domains)}\n"
         f"! Allowed domains: {len(allowed_domains)}\n"
         f"! Total domains:   {total}\n"
@@ -219,11 +219,9 @@ def write_output(blocked_domains, allowed_domains, out_dir, max_bytes):
         cur_lines.append(line)
         cur_size += b
 
-    # كتابة الحظر بدون $important لتوفير المساحة
     for d in blocked_domains:
         add_line(f"||{d}^\n")
 
-    # كتابة السماح بدون $important
     for d in allowed_domains:
         add_line(f"@@||{d}^\n")
 
@@ -232,17 +230,12 @@ def write_output(blocked_domains, allowed_domains, out_dir, max_bytes):
 
 def main():
     print("=" * 60)
-    print("  Adguard-Adblock-only  |  Size Optimized (No $important)")
+    print("  Adguard-Adblock-only  |  Remove Parents Strategy")
     print("=" * 60)
 
     session = build_session()
     blocked, allowed = set(), set()
     
-    total_regex_removed = 0
-    total_hash_removed = 0
-    total_lines_scanned = 0
-    total_valid_domains_found = 0
-
     urls = read_urls(LIST_FILE)
     print(f"\n[+] عدد الروابط في list2.txt: {len(urls)}\n")
 
@@ -253,24 +246,14 @@ def main():
 
         for line in text.splitlines():
             s = line.strip()
-            total_lines_scanned += 1
             if not s or len(s) > 1024: continue
+            if s.startswith("!") or s.startswith("#") or (s.startswith("[") and s.endswith("]")): continue
+            if is_complex_or_regex(s): continue
 
-            if s.startswith("!") or s.startswith("#") or (s.startswith("[") and s.endswith("]")):
-                total_hash_removed += 1
-                continue
-                
-            if is_complex_or_regex(s):
-                total_regex_removed += 1
-                continue
-
-            # 🔴 هنا السطر بتاع تقسيم الدومينات اللي في نفس السطر
             for part in re.split(r'\s+', s):
                 if not part: continue
                 domain, allowed_flag = extract_domain(part)
                 if not domain: continue
-                
-                total_valid_domains_found += 1
                 
                 if allowed_flag:
                     allowed.add(domain)
@@ -278,40 +261,36 @@ def main():
                     blocked.add(domain)
 
     # ═══════════════════════════════════════════════════════
-    # 🔥 قانونك الصارم: البلاك ليست يكسب دايماً
+    # 🔥 المنطق اللي إنت طلبته بالحرف:
     # ═══════════════════════════════════════════════════════
-    final_allowed = set(allowed)
     final_blocked = set(blocked)
+    final_allowed = set(allowed)
 
-    # 1. شيل أي دومين محظور من الوايت
-    for d in final_blocked:
-        if d in final_allowed:
-            final_allowed.remove(d)
+    # 1. لو الدومين محظور ومسموح في نفس الوقت، الحظر يكسب (نشيله من السماح)
+    # (عشان "يسيب الحظر في الدومين المتشابه حرفي")
+    final_allowed -= final_blocked
 
-    # 2. شيل الآباء من الوايت (لو الابن محظور، الأب لازم يتشال عشان الحظر يشتغل)
+    # 2. نجيب كل الآباء للدومينات المحظورة عشان نشيلهم من الاتنين
+    parents_to_remove = set()
     for d in final_blocked:
         parts = d.split('.')
+        # i=1 عشان نجيب الأب المباشر (مثلاً من graph.facebook.com نجيب facebook.com)
+        # len(parts)-1 عشان منشيلش الـ TLD زي .com
         for i in range(1, len(parts) - 1):
             parent = ".".join(parts[i:])
-            if parent in final_allowed:
-                final_allowed.remove(parent)
+            parents_to_remove.add(parent)
+
+    # 3. نشيل الآباء من الحظر ومن السماح
+    final_blocked -= parents_to_remove
+    final_allowed -= parents_to_remove
 
     final_blocked_list = sorted(final_blocked)
     final_allowed_list = sorted(final_allowed)
 
-    unique_total = len(final_blocked_list) + len(final_allowed_list)
-    duplicates_removed = total_valid_domains_found - unique_total
-
     print("\n" + "=" * 60)
-    print("  📊 إحصائيات الفلترة")
-    print("=" * 60)
-    print(f"  إجمالي الأسطر المفحوصة:          {total_lines_scanned:,}")
-    print(f"  🔴 Regex اتشالت: {total_regex_removed:,} | 🟡 رؤوس اتشالت: {total_hash_removed:,}")
-    print(f"  🔍 إجمالي الدومينات الصافية:     {total_valid_domains_found:,}")
-    print()
-    print(f"  🚫 الدومينات المحظورة الفريدة:   {len(final_blocked_list):,}")
-    print(f"  ✅ الدومينات المسموحة الفريدة:   {len(final_allowed_list):,}")
-    print(f"  📦 المكرر اللي اتشال:             {duplicates_removed:,}")
+    print(f"  🚫 الدومينات المحظورة: {len(final_blocked_list):,}")
+    print(f"  ✅ الدومينات المسموحة: {len(final_allowed_list):,}")
+    print(f"  ✂️ آباء اتشالت من القائمتين: {len(parents_to_remove):,}")
     print("=" * 60)
 
     print("\n[+] كتابة الملفات...")
