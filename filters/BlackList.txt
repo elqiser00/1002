@@ -483,3 +483,6 @@
 ||remoteconfig-dre.platform.hihonorcloud.com^$important
 ||remoteconfig-drcn.platform.hihonorcloud.com^$important
 ||vast.zefrdata.com^$important
+||fw.adsafeprotected.com^$important
+||api16-access-adx-my-noncdn.pangle.io^$important
+||grayr.abx.ipd.hihonor.com^$important
