@@ -1,10 +1,10 @@
 [Adblock Plus 2.0]
 ! Title: Adguard Adblock only
 ! Description: Pure Domains Only (Blacklist wins)
-! Blocked domains: 1315272
+! Blocked domains: 1315191
 ! Allowed domains: 154
-! Total domains:   1315426
-! Generated: 2026-11-12 12:53:40 UTC
+! Total domains:   1315345
+! Generated: 2026-11-12 12:57:27 UTC
 !
 ||0--d.com^$important
 ||0--foodwarez.da.ru^$important
@@ -140853,7 +140853,6 @@
 ||a.ads2.msads.net^$important
 ||a.ads2.msn.com^$important
 ||a.ads99.cn^$important
-||a.adsession.com^$important
 ||a.adskeeper.co.uk^$important
 ||a.adskeeper.com^$important
 ||a.adsrvr.org^$important
@@ -141130,7 +141129,6 @@
 ||a.et.nytimes.com^$important
 ||a.etfsrv.com^$important
 ||a.etherip.net^$important
-||a.etology.com^$important
 ||a.evergage.com^$important
 ||a.evo.co.uk^$important
 ||a.exam58.com^$important
@@ -151285,7 +151283,6 @@
 ||ad.ognjisce.si^$important
 ||ad.ohmyad.co^$important
 ||ad.ohmynews.com^$important
-||ad.onad.eu^$important
 ||ad.onadozo.hu^$important
 ||ad.onliner.by^$important
 ||ad.onvista.de^$important
@@ -153512,7 +153509,6 @@
 ||addash.co^$important
 ||addata.exxen.com^$important
 ||addata.jd.com^$important
-||addata.mediacategory.com^$important
 ||addatamarket.net^$important
 ||addaward.com^$important
 ||adday.co.kr^$important
@@ -154981,7 +154977,6 @@
 ||admin-umami.budongkeji.cc^$important
 ||admin-vayvonvietthanh.com^$important
 ||admin.1xslots-dmk.top^$important
-||admin.adsession.com^$important
 ||admin.adsplay.net^$important
 ||admin.adxnow.com^$important
 ||admin.aeverify.com.ng^$important
@@ -155006,7 +155001,6 @@
 ||admin.digitalacre.com^$important
 ||admin.engadget.fyre.co^$important
 ||admin.etabeb.com^$important
-||admin.etology.com^$important
 ||admin.gettopple.com^$important
 ||admin.giaminhmedia.vn^$important
 ||admin.glallegro.com^$important
@@ -157655,7 +157649,6 @@
 ||ads.familyswap.xxx^$important
 ||ads.fappic.com^$important
 ||ads.farahtech.ma^$important
-||ads.farakav.com^$important
 ||ads.fashionel.mk^$important
 ||ads.fastcomgroup.it^$important
 ||ads.fatvine.com^$important
@@ -160618,7 +160611,6 @@
 ||adserver.sonicplug.com^$important
 ||adserver.spankaway.com^$important
 ||adserver.spctl.com^$important
-||adserver.startnow.com^$important
 ||adserver.strogo-zaupno.si^$important
 ||adserver.swiatobrazu.pl^$important
 ||adserver.swisshockeynews.ch^$important
@@ -189259,7 +189251,6 @@
 ||altexro.uk^$important
 ||altfidata.com^$important
 ||altflir.com^$important
-||altg.widerplanet.com^$important
 ||altgambler.com^$important
 ||altgamesy.store^$important
 ||altgenator.com^$important
@@ -211135,7 +211126,6 @@
 ||analytics.vdelsur.com^$important
 ||analytics.vdiscovery.org^$important
 ||analytics.vdm.org^$important
-||analytics.vdo.ai^$important
 ||analytics.vdohide.com^$important
 ||analytics.vdst.de^$important
 ||analytics.veak.com^$important
@@ -212544,7 +212534,6 @@
 ||analytics1.speedcache.io^$important
 ||analytics1.teachercreated.com^$important
 ||analytics1.tmo.livebox.cz^$important
-||analytics1.vdo.ai^$important
 ||analytics1.wehostmacs.com^$important
 ||analytics1.wpmudev.com^$important
 ||analytics1.xdiarys.com^$important
@@ -217312,7 +217301,6 @@
 ||api.apptentive.com^$important
 ||api.apsalar.com^$important
 ||api.apvsbrasilsimular.com.br^$important
-||api.aqua-adserver.com^$important
 ||api.aramalikian.com^$important
 ||api.archdesigncad.com.br^$important
 ||api.archshop.com.br^$important
@@ -217584,7 +217572,6 @@
 ||api.cleitonquerobin.com.br^$important
 ||api.cleitonquerobin2.com^$important
 ||api.cleverpush.com^$important
-||api.clickaine.com^$important
 ||api.clickcannabis.com^$important
 ||api.clinic5p.midvisiondigital.com.br^$important
 ||api.clinicadeta.com.br^$important
@@ -229493,7 +229480,6 @@
 ||astertowers.in^$important
 ||astertradex.net^$important
 ||astfhcceyvyag.site^$important
-||astg.widerplanet.com^$important
 ||astherus.org^$important
 ||asthmanotchcave.com^$important
 ||asthmasburr.cyou^$important
@@ -239191,7 +239177,6 @@
 ||b.muj3j91o39xxjq64.cyou^$important
 ||b.mynewplace.com^$important
 ||b.myspace.com^$important
-||b.nativendo.de^$important
 ||b.netall.ru^$important
 ||b.nevadaprivateoffice.com^$important
 ||b.niupilao.vip^$important
@@ -390442,7 +390427,6 @@
 ||cdn-redirect.com^$important
 ||cdn-redirector.glopal.com^$important
 ||cdn-resources.prfct.cc^$important
-||cdn-rtb.sape.ru^$important
 ||cdn-ru.bitrix24.ru^$important
 ||cdn-rum.n2olabs.pro^$important
 ||cdn-rum.ngenix.net^$important
@@ -390501,7 +390485,6 @@
 ||cdn.20fm.com^$important
 ||cdn.234doo.com^$important
 ||cdn.34ys.com^$important
-||cdn.3ckz.com^$important
 ||cdn.3lift.com^$important
 ||cdn.3rdmay.com^$important
 ||cdn.4patientcare.com^$important
@@ -390557,7 +390540,6 @@
 ||cdn.adless.io^$important
 ||cdn.adligature.com^$important
 ||cdn.adm.myhayo.com^$important
-||cdn.admatic.com.tr^$important
 ||cdn.admile.xyz^$important
 ||cdn.admitad-connect.com^$important
 ||cdn.admitad.com^$important
@@ -391078,7 +391060,6 @@
 ||cdn.justpremium.com^$important
 ||cdn.justuno.com^$important
 ||cdn.kadxin.net^$important
-||cdn.kaizenplatform.net^$important
 ||cdn.kaldroma.com^$important
 ||cdn.kanjp.com^$important
 ||cdn.karmanow.com^$important
@@ -391555,7 +391536,6 @@
 ||cdn.umx24.com^$important
 ||cdn.undertone.com^$important
 ||cdn.unibots.in^$important
-||cdn.unibotscdn.com^$important
 ||cdn.unid.go.com^$important
 ||cdn.unityads.unity3d.com^$important
 ||cdn.uprivaladserver.net^$important
@@ -396364,7 +396344,6 @@
 ||check.manidharipharma.online^$important
 ||check.privadovpn.com^$important
 ||check.rayjump.com^$important
-||check.tadapi.info^$important
 ||check.tep.test.ajo.adobe.com^$important
 ||check.unity.cn^$important
 ||check.zrntz.com^$important
@@ -402481,7 +402460,6 @@
 ||click-cn.plista.com^$important
 ||click-count.info^$important
 ||click-de.plista.com^$important
-||click-dsp-east.nativeads.com^$important
 ||click-dsp.branchdsp.io^$important
 ||click-earn.to^$important
 ||click-ecom.com^$important
@@ -409582,7 +409560,6 @@
 ||collect.mtgec.jp^$important
 ||collect.mtgec.jp.greylabeldelivery.com^$important
 ||collect.mwg.aaa.com^$important
-||collect.mxapis.com^$important
 ||collect.myhomescreen.tv^$important
 ||collect.nab.com.au^$important
 ||collect.nature.com^$important
@@ -414017,7 +413994,6 @@
 ||console.ads.fanta-olimpiadi.com^$important
 ||console.adtarget.com.tr^$important
 ||console.ammoland.com^$important
-||console.aqua-adserver.com^$important
 ||console.atlantamagazine.com^$important
 ||console.biohandel.de^$important
 ||console.blulab.net^$important
@@ -428789,7 +428765,6 @@
 ||cv.2jikaikun.com^$important
 ||cv.a-cial.com^$important
 ||cv.a-hikkoshi.com^$important
-||cv.aedi.ai^$important
 ||cv.ag.cybersecurity-jp.com^$important
 ||cv.agent-sana.com^$important
 ||cv.aqua-style.jp^$important
@@ -431013,7 +430988,6 @@
 ||d.musclecharge.app^$important
 ||d.museclothing.gr^$important
 ||d.mylifereimaginedsummit.com^$important
-||d.nativendo.de^$important
 ||d.naturalacneclinic.com^$important
 ||d.naturalskincareclinic.com^$important
 ||d.neilpatel.com^$important
@@ -437585,7 +437559,6 @@
 ||dashboard.alcancemg.com^$important
 ||dashboard.algomoneo.com^$important
 ||dashboard.analytics.dev.chercvk24.de^$important
-||dashboard.andbeyond.media^$important
 ||dashboard.anotun.com^$important
 ||dashboard.ausdoc.com.au^$important
 ||dashboard.bildircin.az^$important
@@ -450504,7 +450477,6 @@
 ||deliver.kuwo.cn^$important
 ||deliver.oztam.com.au^$important
 ||deliver.ptgncdn.com^$important
-||deliver.vkcdnservice.com^$important
 ||deliverability.timeout.com^$important
 ||deliverancesurveillance.com^$important
 ||deliverapathetic.com^$important
@@ -454358,7 +454330,6 @@
 ||dex.screener-v3.cc^$important
 ||dex.screener-v3.com^$important
 ||dex.srceener.com^$important
-||dex50.deteql.net^$important
 ||dexa88.com^$important
 ||dexado.com^$important
 ||dexaglobal.com^$important
@@ -460737,7 +460708,6 @@
 ||display.digitalriver.com^$important
 ||display.itmemo.cn^$important
 ||display.lawbulletin.com^$important
-||display.nativeads.com^$important
 ||display.provenpixel.com^$important
 ||display.qc.coccoc.com^$important
 ||display.ravm.tv^$important
@@ -471095,8 +471065,6 @@
 ||dsp-aud.eskimi.com^$important
 ||dsp-creative.demandbase.com^$important
 ||dsp-d.ants.vn^$important
-||dsp-east.nativeads.com^$important
-||dsp-eu.nativeads.com^$important
 ||dsp-idea.cdn.bcebos.com^$important
 ||dsp-impr.youdao.com^$important
 ||dsp-impr2.youdao.com^$important
@@ -471110,7 +471078,6 @@
 ||dsp-trk.eskimi.com^$important
 ||dsp-trvm.eskimi.com^$important
 ||dsp-vast.unityads.unity3d.com^$important
-||dsp-west.nativeads.com^$important
 ||dsp-wl.eskimi.com^$important
 ||dsp-x.jd.com^$important
 ||dsp.adfarm1.adition.com^$important
@@ -471143,7 +471110,6 @@
 ||dsp.logly.co.jp^$important
 ||dsp.mediaz.asia^$important
 ||dsp.mman.kr^$important
-||dsp.nativeads.com^$important
 ||dsp.newsbreak.com^$important
 ||dsp.reacheffect.com^$important
 ||dsp.simba.taobao.com^$important
@@ -509285,7 +509251,6 @@
 ||feed.moneyoyo.org^$important
 ||feed.peakclick.com^$important
 ||feed.pushtimize.com^$important
-||feed.reklamstore.com^$important
 ||feed.teasermaster.ru^$important
 ||feed.trafflow.com^$important
 ||feed.validclick.com^$important
@@ -513034,7 +512999,6 @@
 ||filter.adsupplyexchange.com^$important
 ||filter.adtapmedia.com^$important
 ||filter.adtube.media^$important
-||filter.adventurefeeds.com^$important
 ||filter.advertoix.com^$important
 ||filter.adverttise.com^$important
 ||filter.adxcircle.com^$important
@@ -703095,7 +703059,6 @@
 ||live-streted.wixstudio.com^$important
 ||live-strteddesktop.wixstudio.com^$important
 ||live-tag.bannersnack.com^$important
-||live-tag.creatopy.net^$important
 ||live-tfs-omnilytics.azurewebsites.net^$important
 ||live-thehills.com^$important
 ||live-tokensmintnow1.vercel.app^$important
@@ -715904,7 +715867,6 @@
 ||log.mattran.org.vn^$important
 ||log.mbyid.com^$important
 ||log.medcotas.com^$important
-||log.mediacategory.com^$important
 ||log.mediation.onebooster.me^$important
 ||log.medietall.no^$important
 ||log.meganovel.com^$important
@@ -716921,7 +716883,6 @@
 ||login-yahoo-secured-ymail-verification-lang-2en-usdinvalid-cred.weebly.com^$important
 ||login-ze-delivery.vercel.app^$important
 ||login.002307.com^$important
-||login.152media.com^$important
 ||login.365haodeng.com^$important
 ||login.8259sf.com^$important
 ||login.8282ys.com^$important
@@ -717004,7 +716965,6 @@
 ||login.crowdegic.com^$important
 ||login.csam-terugbetaling.work^$important
 ||login.cyclone6.com^$important
-||login.datawrkz.com^$important
 ||login.denakop.com^$important
 ||login.digidayin.com^$important
 ||login.docaccountdownloadvesbestlinojneviewer.nboatclub.com^$important
@@ -717136,7 +717096,6 @@
 ||login.tracking101.com^$important
 ||login.trinytymedia.com^$important
 ||login.tutungc.com^$important
-||login.unibots.in^$important
 ||login.univdjjisionnetworkslimited.vu^$important
 ||login.upremium.asia^$important
 ||login.uvvyla.com^$important
@@ -717529,7 +717488,6 @@
 ||logs.51cto.com^$important
 ||logs.81plug.com^$important
 ||logs.8thwall.com^$important
-||logs.adplay.ru^$important
 ||logs.ads.vungle.com^$important
 ||logs.af-south-1.amazonaws.com^$important
 ||logs.algolia.net^$important
@@ -760135,7 +760093,6 @@
 ||mc.speakol.com^$important
 ||mc.starbucks.co.jp^$important
 ||mc.weather.com.cn^$important
-||mc.webvisor.com^$important
 ||mc.webvisor.org^$important
 ||mc.yandex.az^$important
 ||mc.yandex.by^$important
@@ -940183,7 +940140,6 @@
 ||push-web.site^$important
 ||push-webapi.site^$important
 ||push.aarth.net^$important
-||push.adventurefeeds.com^$important
 ||push.anews.one^$important
 ||push.app.autohome.com.cn^$important
 ||push.appsgeyser.com^$important
@@ -940373,7 +940329,6 @@
 ||pushpin.pinsightmedia.com^$important
 ||pushplay.com^$important
 ||pushpong.net^$important
-||pushpop.nativeads.com^$important
 ||pushpophop.com^$important
 ||pushprofit.net^$important
 ||pushprofit.ru^$important
@@ -983427,7 +983382,6 @@
 ||rosemont-sash-windows.com^$important
 ||rosemorgan1728.wixsite.com^$important
 ||rosenbaum-berlin.de^$important
-||rosenberg.appmetrica.webvisor.com^$important
 ||rosenbergbasel.com^$important
 ||rosenfeldcapital.com^$important
 ||rosenfeldgoldschmied.com^$important
@@ -987230,7 +987184,6 @@
 ||rtb-apac.admeridianopenrtb.com^$important
 ||rtb-apac.admidadsp.com^$important
 ||rtb-apac.affinity.net^$important
-||rtb-apac.andbeyond.media^$important
 ||rtb-apac.axiombid.com^$important
 ||rtb-apac.boffoadsapi.com^$important
 ||rtb-apac.chocolateplatform.com^$important
@@ -987246,7 +987199,6 @@
 ||rtb-apac.rnkclkres.com^$important
 ||rtb-apac.rtbflairads.com^$important
 ||rtb-apac.servvidisplay.com^$important
-||rtb-apac.unibots.in^$important
 ||rtb-apac.voisetech.com^$important
 ||rtb-apac.wxadserve.xyz^$important
 ||rtb-as-uswest.pulsefintech.net^$important
@@ -987328,7 +987280,6 @@
 ||rtb-eu-v4.webmedxml.com^$important
 ||rtb-eu-v4.wecall-server.com^$important
 ||rtb-eu-v4.yieldoz.com^$important
-||rtb-eu.152media.com^$important
 ||rtb-eu.acedigitalads.com^$important
 ||rtb-eu.adapace.com^$important
 ||rtb-eu.adbidglobal.com^$important
@@ -987343,7 +987294,6 @@
 ||rtb-eu.adsfloow.net^$important
 ||rtb-eu.adsimilate.com^$important
 ||rtb-eu.adsudo.com^$important
-||rtb-eu.adventurefeeds.com^$important
 ||rtb-eu.adxpoint-ad.com^$important
 ||rtb-eu.agilitydigitalmedia.com^$important
 ||rtb-eu.andbeyond.media^$important
@@ -987371,7 +987321,6 @@
 ||rtb-eu.mobidick.xyz^$important
 ||rtb-eu.moola.network^$important
 ||rtb-eu.nasrev.com^$important
-||rtb-eu.nativeads.com^$important
 ||rtb-eu.optumads.com^$important
 ||rtb-eu.prertbdir.com^$important
 ||rtb-eu.pshb.me^$important
@@ -987388,7 +987337,6 @@
 ||rtb-eu.teriflicmedia.com^$important
 ||rtb-eu.themediapoint.net^$important
 ||rtb-eu.trackifyy.com^$important
-||rtb-eu.unibots.in^$important
 ||rtb-eu.visionpeakmedia.com^$important
 ||rtb-eu.vistarsagency.com^$important
 ||rtb-eu.voisetech.com^$important
@@ -987439,7 +987387,6 @@
 ||rtb-useast-v4.cpmme.com^$important
 ||rtb-useast-v4.cranberryads.com^$important
 ||rtb-useast-v4.datadrives.ai^$important
-||rtb-useast-v4.datawrkz.com^$important
 ||rtb-useast-v4.digiadglobal.com^$important
 ||rtb-useast-v4.epikads.com^$important
 ||rtb-useast-v4.freevpnplanet.com^$important
@@ -987554,7 +987501,6 @@
 ||rtb-useast.thetrafficboss.com^$important
 ||rtb-useast.thing02.com^$important
 ||rtb-useast.trackifyy.com^$important
-||rtb-useast.unibots.in^$important
 ||rtb-useast.vespymedia.com^$important
 ||rtb-useast.vidoomy.com^$important
 ||rtb-useast.vistarsagency.com^$important
@@ -987595,7 +987541,6 @@
 ||rtb-uswest-v4.vistarsagency.com^$important
 ||rtb-uswest-v4.voisetech.com^$important
 ||rtb-uswest-v4.yieldoz.com^$important
-||rtb-uswest.152media.com^$important
 ||rtb-uswest.adbidglobal.com^$important
 ||rtb-uswest.adcannyads.com^$important
 ||rtb-uswest.adflores.com^$important
@@ -987603,7 +987548,6 @@
 ||rtb-uswest.admidadsp.com^$important
 ||rtb-uswest.admozartexchange.com^$important
 ||rtb-uswest.adsimilate.com^$important
-||rtb-uswest.adventurefeeds.com^$important
 ||rtb-uswest.affinity.net^$important
 ||rtb-uswest.andbeyond.media^$important
 ||rtb-uswest.bat-ads.com^$important
@@ -987628,7 +987572,6 @@
 ||rtb-uswest.rtbflairads.com^$important
 ||rtb-uswest.showcasead.com^$important
 ||rtb-uswest.strongmetrics.io^$important
-||rtb-uswest.unibots.in^$important
 ||rtb-uswest.vistarsagency.com^$important
 ||rtb-uswest.voisetech.com^$important
 ||rtb-uswest.wxadserve.xyz^$important
@@ -987639,7 +987582,6 @@
 ||rtb.adgrx.com.tech.akadns.net^$important
 ||rtb.ads2.bid^$important
 ||rtb.adtiming.com^$important
-||rtb.adventurefeeds.com^$important
 ||rtb.advertrek.com^$important
 ||rtb.adwmg.com^$important
 ||rtb.adx1.com^$important
@@ -993133,7 +993075,6 @@
 ||s.adnxtr.com^$important
 ||s.adroll.com^$important
 ||s.ads1.castify.media^$important
-||s.adsession.com^$important
 ||s.adtelligent.com^$important
 ||s.adtmonetize.com^$important
 ||s.advantageclicks.net^$important
@@ -993461,7 +993402,6 @@
 ||s.ergotherapieblog.de^$important
 ||s.ero-advertising.com^$important
 ||s.escapure.de^$important
-||s.etology.com^$important
 ||s.eu.pluginboutique.store^$important
 ||s.eu.premiumisp.net^$important
 ||s.eumiriamgarcia.com.br^$important
@@ -1004831,7 +1004771,6 @@
 ||scrippsrecipezaar.112.2o7.net^$important
 ||scrippswfts.112.2o7.net^$important
 ||scrippswxyz.112.2o7.net^$important
-||script-ad.mobadme.jp^$important
 ||script-bd.baixing.net^$important
 ||script-hotjar.com^$important
 ||script-recipt.github.io^$important
@@ -1011787,7 +1011726,6 @@
 ||servedby.adhunter.de^$important
 ||servedby.adxpose.com^$important
 ||servedby.ammoland.com^$important
-||servedby.aqua-adserver.com^$important
 ||servedby.atlantamagazine.com^$important
 ||servedby.biohandel.de^$important
 ||servedby.boatsgroup.com^$important
@@ -1018075,7 +1018013,6 @@
 ||serving.adserver.live^$important
 ||serving.alcancemg.com^$important
 ||serving.ausdoc.com.au^$important
-||serving.datawrkz.com^$important
 ||serving.felixads.com^$important
 ||serving.grapemedia.cz^$important
 ||serving.lookverin.com^$important
@@ -1076287,7 +1076224,6 @@
 ||ssp.mman.kr^$important
 ||ssp.moeli.net^$important
 ||ssp.ngf132.com^$important
-||ssp.otm-r.com^$important
 ||ssp.qc.coccoc.com^$important
 ||ssp.qq.com^$important
 ||ssp.rambler.ru^$important
@@ -1095132,7 +1095068,6 @@
 ||static-alias-1.360buyimg.com^$important
 ||static-alicdn.com^$important
 ||static-analytics.3dexperience.3ds.com^$important
-||static-analytics.nativeads.com^$important
 ||static-assets.dev.fs.liveperson.com^$important
 ||static-assets.vanvast.nl^$important
 ||static-bp.kameleoon.com^$important
@@ -1095339,7 +1095274,6 @@
 ||static.amplifai.it.com^$important
 ||static.amplitude.com^$important
 ||static.ampxchange.com^$important
-||static.analytics.nativeads.com^$important
 ||static.ao.gl^$important
 ||static.aottercdn.com^$important
 ||static.apester.com^$important
@@ -1095351,7 +1095285,6 @@
 ||static.applixir.com^$important
 ||static.appwatch.com^$important
 ||static.aprod.scopely.io^$important
-||static.aqua-adserver.com^$important
 ||static.arbigo.com^$important
 ||static.ard.xxxblackbook.com^$important
 ||static.asnomoneyand.org^$important
@@ -1095830,7 +1095763,6 @@
 ||static.u966.com^$important
 ||static.uk.addynamo.com^$important
 ||static.ultrads.net^$important
-||static.unibots.in^$important
 ||static.unocdn.com^$important
 ||static.uolcontent.com^$important
 ||static.update.augeapps.com^$important
@@ -1095904,7 +1095836,6 @@
 ||static0.nishiyama-jyusetsu.com^$important
 ||static01.atdnetwork.com^$important
 ||static1.1000ps.ch^$important
-||static1.andbeyond.media^$important
 ||static1.intrack.ir^$important
 ||static1.jsmstatic.com^$important
 ||static1.kernh41.com^$important
@@ -1122541,7 +1122472,6 @@
 ||t.myvisualiq.net^$important
 ||t.n.mcdonalds.de^$important
 ||t.nadeshiko.co^$important
-||t.nativendo.de^$important
 ||t.nattyplussupps.com^$important
 ||t.naturalacneclinic.com^$important
 ||t.nau.ch^$important
@@ -1128675,7 +1128605,6 @@
 ||targeting.pmn.arcpublishing.com^$important
 ||targeting.tbt.arcpublishing.com^$important
 ||targeting.unrulymedia.com^$important
-||targeting.vdo.ai^$important
 ||targeting.voxus.tv^$important
 ||targeting.washingtonpost.com^$important
 ||targeting.washpost.nile.works^$important
@@ -1132852,7 +1132781,6 @@
 ||telemetry.adaptavist.com^$important
 ||telemetry.adblockplus.org^$important
 ||telemetry.adobe.io^$important
-||telemetry.adsninja.ca^$important
 ||telemetry.aft.amazon.dev^$important
 ||telemetry.agicap.com^$important
 ||telemetry.airbnb.net^$important
@@ -1158556,7 +1158484,6 @@
 ||track-eu.trackingtraffo.com^$important
 ||track-eu1.hubspot.com^$important
 ||track-event.com^$important
-||track-events.membrana.media^$important
 ||track-explore-justcasino.com^$important
 ||track-ext.solidgate.com^$important
 ||track-flow.com^$important
@@ -1160929,7 +1160856,6 @@
 ||tracker.520call.me^$important
 ||tracker.a11.vega.aurion11.io^$important
 ||tracker.adapexads.io^$important
-||tracker.adbinead.com^$important
 ||tracker.adcluster.com.tr^$important
 ||tracker.adex-rtb.com^$important
 ||tracker.adnami.io-v1.edgesuite.net^$important
@@ -1161037,7 +1160963,6 @@
 ||tracker.didiglobal.com^$important
 ||tracker.didistatic.com^$important
 ||tracker.digikala.com^$important
-||tracker.digitalcamp.co.kr^$important
 ||tracker.digitalfactorylatam.com^$important
 ||tracker.doctoreto.com^$important
 ||tracker.downdetector.com^$important
@@ -1161102,7 +1161027,6 @@
 ||tracker.impactconf.com^$important
 ||tracker.incite-group.com^$important
 ||tracker.infosender.in^$important
-||tracker.insurads.com^$important
 ||tracker.insurancenexus.com^$important
 ||tracker.intermedia-advertising.com^$important
 ||tracker.internet-media.com^$important
@@ -1161343,7 +1161267,6 @@
 ||trackerrr.com^$important
 ||trackerry.com^$important
 ||trackers-1816877321.us-east-1.elb.amazonaws.com^$important
-||trackers.adtarget.me^$important
 ||trackers.fubo.tv^$important
 ||trackers.peerius.episerver.net^$important
 ||trackers.safelinkwireless.com^$important
@@ -1164606,7 +1164529,6 @@
 ||traffic-stats.streamsolutions.co.uk^$important
 ||traffic.12flirt.com^$important
 ||traffic.acwebconnecting.com^$important
-||traffic.adventurefeeds.com^$important
 ||traffic.adwitty.com^$important
 ||traffic.adxprts.com^$important
 ||traffic.adxprtz.com^$important
@@ -1190434,7 +1190356,6 @@
 ||username8.godaddysites.com^$important
 ||userneeds.com^$important
 ||userneeds.dk^$important
-||userpanel.eroadvertising.com^$important
 ||userpilot.com^$important
 ||userpilot.io^$important
 ||userprofile.push.heytapmobi.com^$important
@@ -1205393,7 +1205314,6 @@
 ||video.112.2o7.net^$important
 ||video.adaptv.advertising.com^$important
 ||video.adsafeprotected.com^$important
-||video.adsninja.ca^$important
 ||video.adsparc.com^$important
 ||video.adverserve.net^$important
 ||video.alxbgo.com^$important
@@ -1229435,7 +1229355,6 @@
 ||webpunjab.com^$important
 ||webpuppweb.com^$important
 ||webpush.adqva.com^$important
-||webpush.adventurefeeds.com^$important
 ||webpush.reachyield.com^$important
 ||webpush.resultsmedia.com^$important
 ||webpush.ria.com^$important
