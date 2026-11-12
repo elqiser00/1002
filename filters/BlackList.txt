@@ -491,3 +491,6 @@
 ||ceno9hj.top^$important
 ||feiawe3dnq1.com^$important
 ||px.liteapks.com^$important
+||rdap.org^$important
+||rdap.db.ripe.net^$important
+||pool.ntp.org^$important
