@@ -1,10 +1,10 @@
 [Adblock Plus 2.0]
 ! Title: Adguard Adblock only
 ! Description: Pure Domains (No $important, Size Optimized)
-! Blocked domains: 1312424
+! Blocked domains: 1312385
 ! Allowed domains: 830
-! Total domains:   1313254
-! Generated: 2026-11-12 13:38:42 UTC
+! Total domains:   1313215
+! Generated: 2026-11-12 13:45:19 UTC
 !
 ||0--d.com^
 ||0-02.net^
@@ -92079,7 +92079,6 @@
 ||5.athwartwhoafat.com^
 ||5.blissfullyzebra.com^
 ||5.ccutu.com^
-||5.content-loader.com^
 ||5.duhquietly.com^
 ||5.estasiatica.com^
 ||5.eventiduepuntozero.com^
@@ -100187,7 +100186,6 @@
 ||6.adsco.re^
 ||6.athwartwhoafat.com^
 ||6.blissfullyzebra.com^
-||6.content-loader.com^
 ||6.duhquietly.com^
 ||6.gadzooksrudely.com^
 ||6.html-load.cc^
@@ -150062,7 +150060,6 @@
 ||ad.ognjisce.si^
 ||ad.ohmyad.co^
 ||ad.ohmynews.com^
-||ad.onad.eu^
 ||ad.onadozo.hu^
 ||ad.onliner.by^
 ||ad.onvista.de^
@@ -156666,7 +156663,6 @@
 ||ads.megawin188ads.ink^
 ||ads.meinbezirk.at^
 ||ads.memob.com^
-||ads.mercadoclics.com^
 ||ads.mercadolibre.cl^
 ||ads.mercadolivre.com.br^
 ||ads.metblogs.com^
@@ -159040,7 +159036,6 @@
 ||adserver.sonicplug.com^
 ||adserver.spankaway.com^
 ||adserver.spctl.com^
-||adserver.startnow.com^
 ||adserver.strogo-zaupno.si^
 ||adserver.swiatobrazu.pl^
 ||adserver.swisshockeynews.ch^
@@ -209579,7 +209574,6 @@
 ||analytics.vdelsur.com^
 ||analytics.vdiscovery.org^
 ||analytics.vdm.org^
-||analytics.vdo.ai^
 ||analytics.vdohide.com^
 ||analytics.vdst.de^
 ||analytics.veak.com^
@@ -210991,7 +210985,6 @@
 ||analytics1.speedcache.io^
 ||analytics1.teachercreated.com^
 ||analytics1.tmo.livebox.cz^
-||analytics1.vdo.ai^
 ||analytics1.wehostmacs.com^
 ||analytics1.wpmudev.com^
 ||analytics1.xdiarys.com^
@@ -217400,7 +217393,6 @@
 ||api.retargetly.com^
 ||api.revcontent.com^
 ||api.revenuads.com^
-||api.revive-adserver.net^
 ||api.rewards.brave.com^
 ||api.rhuancavalcante.com^
 ||api.ricapro.com.br^
@@ -388300,7 +388292,6 @@
 ||cdn-tags.mmondi.com^
 ||cdn-te.e-goi.com^
 ||cdn-test.mouseflow.com^
-||cdn-thinkresult.revive-adserver.net^
 ||cdn-todesk.com^
 ||cdn-uat.instapagemetrics.com^
 ||cdn-uk.cxix.com^
@@ -388473,7 +388464,6 @@
 ||cdn.advanseads.com^
 ||cdn.advertiser.linkvertise.com^
 ||cdn.advertserve.com^
-||cdn.advg.agency^
 ||cdn.advgalaxy.com^
 ||cdn.adviad.com^
 ||cdn.advisible.com^
@@ -389411,7 +389401,6 @@
 ||cdn.retailads.net^
 ||cdn.revcontent.com^
 ||cdn.revive-adserver.com^
-||cdn.revive-adserver.net^
 ||cdn.reviveservers.com^
 ||cdn.revjet.com^
 ||cdn.rfitc.com^
@@ -411789,7 +411778,6 @@
 ||console.adtarget.com.tr^
 ||console.ammoland.com^
 ||console.appnexus.com^
-||console.aqua-adserver.com^
 ||console.atlantamagazine.com^
 ||console.biohandel.de^
 ||console.blulab.net^
@@ -411834,7 +411822,6 @@
 ||console.postandparcel.info^
 ||console.pppmag.com^
 ||console.quirks.com^
-||console.revive-adserver.net^
 ||console.rlnads.net^
 ||console.rottne.com^
 ||console.rtk.io^
@@ -417232,7 +417219,6 @@
 ||cpm.adapace.com^
 ||cpm.adbite.com^
 ||cpm.adgebra.co^
-||cpm.adlive.io^
 ||cpm.admeridianopenrtb.com^
 ||cpm.adsimilate.com^
 ||cpm.adspine.com^
@@ -434477,7 +434463,6 @@
 ||dashboard.alcancemg.com^
 ||dashboard.algomoneo.com^
 ||dashboard.analytics.dev.chercvk24.de^
-||dashboard.andbeyond.media^
 ||dashboard.anotun.com^
 ||dashboard.ausdoc.com.au^
 ||dashboard.bildircin.az^
@@ -447358,7 +447343,6 @@
 ||delidatax.net^
 ||delightcash.com^
 ||delightchat.io^
-||delightdriving.com^
 ||delighted-cyan-6vk7ywlj-dp133ngc2bef.edgeone.dev^
 ||delightedcode.pics^
 ||delightep.com^
@@ -714575,7 +714559,6 @@
 ||login-woocasino.com^
 ||login-wps.com^
 ||login.002307.com^
-||login.152media.com^
 ||login.365haodeng.com^
 ||login.8259sf.com^
 ||login.8282ys.com^
@@ -714658,7 +714641,6 @@
 ||login.crowdegic.com^
 ||login.csam-terugbetaling.work^
 ||login.cyclone6.com^
-||login.datawrkz.com^
 ||login.denakop.com^
 ||login.digidayin.com^
 ||login.dognet.sk^
@@ -714783,7 +714765,6 @@
 ||login.tracking101.com^
 ||login.trinytymedia.com^
 ||login.tutungc.com^
-||login.unibots.in^
 ||login.univdjjisionnetworkslimited.vu^
 ||login.upremium.asia^
 ||login.uvvyla.com^
@@ -760960,7 +760941,6 @@
 ||media.revcontent.com^
 ||media.reviewjournal.com^
 ||media.revive-adserver.com^
-||media.revive-adserver.net^
 ||media.rhinoaffiliates.com^
 ||media.richrelevance.com^
 ||media.rocketprofit.com^
@@ -983802,7 +983782,6 @@
 ||rtb-apac.admidadsp.com^
 ||rtb-apac.adservme.com^
 ||rtb-apac.affinity.net^
-||rtb-apac.andbeyond.media^
 ||rtb-apac.axiombid.com^
 ||rtb-apac.boffoadsapi.com^
 ||rtb-apac.chocolateplatform.com^
@@ -983818,7 +983797,6 @@
 ||rtb-apac.rnkclkres.com^
 ||rtb-apac.rtbflairads.com^
 ||rtb-apac.servvidisplay.com^
-||rtb-apac.unibots.in^
 ||rtb-apac.voisetech.com^
 ||rtb-apac.wxadserve.xyz^
 ||rtb-api-aws.rtbsuperhub.com^
@@ -983847,7 +983825,6 @@
 ||rtb-eu-v4.acedigitalads.com^
 ||rtb-eu-v4.adconclave.com^
 ||rtb-eu-v4.adconflux.com^
-||rtb-eu-v4.adlive.io^
 ||rtb-eu-v4.admozartexchange.com^
 ||rtb-eu-v4.adoptimix.com^
 ||rtb-eu-v4.adora.network^
@@ -983967,7 +983944,6 @@
 ||rtb-eu.teriflicmedia.com^
 ||rtb-eu.themediapoint.net^
 ||rtb-eu.trackifyy.com^
-||rtb-eu.unibots.in^
 ||rtb-eu.visionpeakmedia.com^
 ||rtb-eu.vistarsagency.com^
 ||rtb-eu.voisetech.com^
@@ -984023,7 +983999,6 @@
 ||rtb-useast-v4.cpmme.com^
 ||rtb-useast-v4.cranberryads.com^
 ||rtb-useast-v4.datadrives.ai^
-||rtb-useast-v4.datawrkz.com^
 ||rtb-useast-v4.digiadglobal.com^
 ||rtb-useast-v4.epikads.com^
 ||rtb-useast-v4.freevpnplanet.com^
@@ -984140,7 +984115,6 @@
 ||rtb-useast.thetrafficboss.com^
 ||rtb-useast.thing02.com^
 ||rtb-useast.trackifyy.com^
-||rtb-useast.unibots.in^
 ||rtb-useast.vespymedia.com^
 ||rtb-useast.vidoomy.com^
 ||rtb-useast.vistarsagency.com^
@@ -984215,7 +984189,6 @@
 ||rtb-uswest.rtbflairads.com^
 ||rtb-uswest.showcasead.com^
 ||rtb-uswest.strongmetrics.io^
-||rtb-uswest.unibots.in^
 ||rtb-uswest.vistarsagency.com^
 ||rtb-uswest.voisetech.com^
 ||rtb-uswest.wxadserve.xyz^
@@ -1008213,7 +1008186,6 @@
 ||servecvr.com^
 ||served-by.pixfuture.com^
 ||servedby-buysellads.com^
-||servedby-thinkresult.revive-adserver.net^
 ||servedby.adbility-media.com^
 ||servedby.adcombination.com^
 ||servedby.addurance.com^
@@ -1091229,7 +1091201,6 @@
 ||static.adgger.jp^
 ||static.adk2.com^
 ||static.adkernel.com^
-||static.adlive.io^
 ||static.adlunar.com^
 ||static.admaximize.com^
 ||static.admidadsp.com^
@@ -1091855,7 +1091826,6 @@
 ||static.twincdn.com^
 ||static.uk.addynamo.com^
 ||static.ultrads.net^
-||static.unibots.in^
 ||static.unocdn.com^
 ||static.uolcontent.com^
 ||static.update.augeapps.com^
@@ -1091931,7 +1091901,6 @@
 ||static0.m-kensou.com^
 ||static0.nishiyama-jyusetsu.com^
 ||static01.atdnetwork.com^
-||static1.andbeyond.media^
 ||static1.intrack.ir^
 ||static1.jsmstatic.com^
 ||static1.kernh41.com^
@@ -1099307,7 +1099276,6 @@
 ||stats.philjava.com^
 ||stats.philkotse.com^
 ||stats.philsliders.eu^
-||stats.phoenix-widget.com^
 ||stats.phonex.de^
 ||stats.photofacts.nl^
 ||stats.photographer.com.au^
@@ -1112744,7 +1112712,6 @@
 ||svc-analytics.adkernel.com^
 ||svc.analytics.adkernel.com^
 ||svc.capeandco.uk^
-||svc.kartinka.com.ua^
 ||svc.lappoteket.se^
 ||svc.mazerc.com^
 ||svc.mobilexsoft.com^
@@ -1114123,7 +1114090,6 @@
 ||sweetnessbrisk.com^
 ||sweetnessnewest.com^
 ||sweetnessspeaksintimidate.com^
-||sweetpacks.com^
 ||sweetpeacasinos.com^
 ||sweetpeascasinos.com^
 ||sweetpeasweepscasinos.com^
@@ -1124480,7 +1124446,6 @@
 ||targeting.pmn.arcpublishing.com^
 ||targeting.tbt.arcpublishing.com^
 ||targeting.unrulymedia.com^
-||targeting.vdo.ai^
 ||targeting.voxus.tv^
 ||targeting.washingtonpost.com^
 ||targeting.washpost.nile.works^
@@ -1154542,7 +1154507,6 @@
 ||track.2060digitalreports.com^
 ||track.247mirror.com^
 ||track.24slots.info^
-||track.360playvid.info^
 ||track.365economist.com^
 ||track.3natives.com^
 ||track.4513.in^
@@ -1155202,7 +1155166,6 @@
 ||track.epostcards.net^
 ||track.equilibriometabolico.com.br^
 ||track.erogames.com^
-||track.es.sitebro.net^
 ||track.escoladefotografos.com^
 ||track.escoladoinconsciente.com.br^
 ||track.esperanza.jmsend.com^
@@ -1186495,7 +1186458,6 @@
 ||usdtrating.top^
 ||usdttethercasinos.com^
 ||usdttrc20casinos.com^
-||use-application-dns.net^
 ||use-better-apps.org^
 ||use-better.com^
 ||use-boyapoker.com^
@@ -1218329,7 +1218291,6 @@
 ||w.goprkcdn.com^
 ||w.hcaptcha.com^
 ||w.ic.tynt.com^
-||w.ifrype.com^
 ||w.ilfattoquotidiano.it^
 ||w.inews.qq.com^
 ||w.inmobi.cn^
