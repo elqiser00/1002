@@ -4,7 +4,7 @@
 ! Blocked domains: 1184046
 ! Allowed domains: 395
 ! Total domains:   1184441
-! Generated: 2026-11-12 14:34:59 UTC
+! Generated: 2026-11-12 14:37:03 UTC
 !
 ||0-1.ir^
 ||0-10-7.casino^
