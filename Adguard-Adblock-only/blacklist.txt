@@ -1,10 +1,10 @@
 [Adblock Plus 2.0]
 ! Title: Adguard Adblock only
 ! Description: Pure Domains Only (Blacklist wins)
-! Blocked domains: 1315191
+! Blocked domains: 1315194
 ! Allowed domains: 154
-! Total domains:   1315345
-! Generated: 2026-11-12 12:57:27 UTC
+! Total domains:   1315348
+! Generated: 2026-11-12 13:03:08 UTC
 !
 ||0--d.com^$important
 ||0--foodwarez.da.ru^$important
@@ -524270,6 +524270,7 @@
 ||fortune-wins.sbs^$important
 ||fortune-yakata.com^$important
 ||fortune-zombie-dark-city-slot.com^$important
+||fortune.com^$important
 ||fortune2go.casino^$important
 ||fortune2playcasino.com^$important
 ||fortune59.com^$important
@@ -598538,6 +598539,7 @@
 ||hsbc-casino.com^$important
 ||hsbc-continental-europe.fr^$important
 ||hsbc-sec.com^$important
+||hsbc.ca^$important
 ||hsbc.pxf.io^$important
 ||hsbc88123.com^$important
 ||hsbcbankcmb.demdex.net^$important
@@ -1139952,6 +1139954,7 @@
 ||theglavora.shop^$important
 ||theglobalaussie.com^$important
 ||theglobalise.co.uk^$important
+||theglobeandmail.com^$important
 ||theglobeandmail.us.intellitxt.com^$important
 ||theglorioncasino.com^$important
 ||theglorycasino.com^$important
