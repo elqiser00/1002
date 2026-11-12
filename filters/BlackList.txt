@@ -482,3 +482,4 @@
 ||remoteconfig-uat-drcn.platform.hihonorcloud.com^$important
 ||remoteconfig-dre.platform.hihonorcloud.com^$important
 ||remoteconfig-drcn.platform.hihonorcloud.com^$important
+||vast.zefrdata.com^$important
