@@ -4,7 +4,7 @@
 ! Blocked domains: 1315194
 ! Allowed domains: 154
 ! Total domains:   1315348
-! Generated: 2026-11-12 13:03:08 UTC
+! Generated: 2026-11-12 13:05:00 UTC
 !
 ||0--d.com^$important
 ||0--foodwarez.da.ru^$important
