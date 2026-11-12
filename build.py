@@ -2,11 +2,9 @@
 # -*- coding: utf-8 -*-
 """
 Adguard-Adblock-only Builder
-- Pure Domains Only (Zero Regex, Zero Headers)
+- Pure Domains Only
 - Literal De-duplication
-- Parent Removal Logic: 
-  If child is blocked, remove parent from Blocklist AND Allowlist.
-  Keep exact match in Blocklist.
+- Universal Parent Removal: For ANY blocked domain, remove its parents from both Block and Allow lists.
 """
 
 import os
@@ -190,7 +188,7 @@ def write_output(blocked_domains, allowed_domains, out_dir, max_bytes):
     header = (
         "[Adblock Plus 2.0]\n"
         "! Title: Adguard Adblock only\n"
-        "! Description: Pure Domains (Parents removed from both)\n"
+        "! Description: Pure Domains (Universal Parent Removal)\n"
         f"! Blocked domains: {len(blocked_domains)}\n"
         f"! Allowed domains: {len(allowed_domains)}\n"
         f"! Total domains:   {total}\n"
@@ -230,7 +228,7 @@ def write_output(blocked_domains, allowed_domains, out_dir, max_bytes):
 
 def main():
     print("=" * 60)
-    print("  Adguard-Adblock-only  |  Remove Parents Strategy")
+    print("  Adguard-Adblock-only  |  Universal Parent Removal")
     print("=" * 60)
 
     session = build_session()
@@ -261,26 +259,23 @@ def main():
                     blocked.add(domain)
 
     # ═══════════════════════════════════════════════════════
-    # 🔥 المنطق اللي إنت طلبته بالحرف:
+    # 🔥 تطبيق القانون على أي دومين في العالم:
     # ═══════════════════════════════════════════════════════
     final_blocked = set(blocked)
     final_allowed = set(allowed)
 
-    # 1. لو الدومين محظور ومسموح في نفس الوقت، الحظر يكسب (نشيله من السماح)
-    # (عشان "يسيب الحظر في الدومين المتشابه حرفي")
+    # 1. الحظر يكسب في حالة التطابق الحرفي
     final_allowed -= final_blocked
 
-    # 2. نجيب كل الآباء للدومينات المحظورة عشان نشيلهم من الاتنين
+    # 2. نجيب الآباء لأي دومين محظور ونشيلهم من الاتنين
     parents_to_remove = set()
     for d in final_blocked:
         parts = d.split('.')
-        # i=1 عشان نجيب الأب المباشر (مثلاً من graph.facebook.com نجيب facebook.com)
-        # len(parts)-1 عشان منشيلش الـ TLD زي .com
+        # i=1 يبدأ من الأب المباشر، len(parts)-1 عشان ميلمسش الـ TLD
         for i in range(1, len(parts) - 1):
             parent = ".".join(parts[i:])
             parents_to_remove.add(parent)
 
-    # 3. نشيل الآباء من الحظر ومن السماح
     final_blocked -= parents_to_remove
     final_allowed -= parents_to_remove
 
