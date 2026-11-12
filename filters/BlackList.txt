@@ -494,4 +494,3 @@
 ||rdap.org^$important
 ||rdap.db.ripe.net^$important
 ||pool.ntp.org^$important
-||www.worldtimeserver.com^$important
