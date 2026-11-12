@@ -5,6 +5,7 @@ Adguard-Adblock-only Builder
 - Pure Domains Only (Zero Regex, Zero Headers)
 - Literal De-duplication
 - Blacklist ALWAYS wins over Whitelist (Exact match and Parent match)
+- No external forced lists. All links must be in list2.txt
 - Splits lines with multiple rules (Fixes missing domains bug)
 """
 
@@ -40,17 +41,21 @@ SKIP_HOSTS = {
 }
 
 def is_complex_or_regex(s: str) -> bool:
-    if not s: return True
-    if s.startswith("/") or s.endswith("/"): return True
+    if not s:
+        return True
+    if s.startswith("/") or s.endswith("/"):
+        return True
     core = s
     if core.startswith("@@"): core = core[2:]
     if core.startswith("||"): core = core[2:]
     elif core.startswith("|"): core = core[1:]
     core = re.sub(r'\$.*$', '', core)
     core = core.rstrip("^|")
-    if "/" in core: return True
+    if "/" in core:
+        return True
     for char in ["*", "\\", "[", "]", "(", ")", "{", "}", "?", "+", "|", "^", "$"]:
-        if char in core: return True
+        if char in core:
+            return True
     return False
 
 def clean_url(raw: str) -> str:
@@ -60,13 +65,17 @@ def clean_url(raw: str) -> str:
 
 def read_urls(path):
     urls, seen = [], set()
-    if not os.path.isfile(path): return urls
+    if not os.path.isfile(path):
+        print(f"[!] {path} غير موجود")
+        return urls
     with open(path, "r", encoding="utf-8", errors="ignore") as fh:
         for line in fh:
             line = line.strip()
-            if not line or line.startswith("#"): continue
+            if not line or line.startswith("#"):
+                continue
             u = clean_url(line)
-            if not u.lower().startswith(("http://", "https://")): continue
+            if not u.lower().startswith(("http://", "https://")):
+                continue
             if u not in seen:
                 seen.add(u)
                 urls.append(u)
@@ -74,85 +83,156 @@ def read_urls(path):
 
 def build_session():
     s = requests.Session()
-    retry = Retry(total=MAX_RETRIES, backoff_factor=1.5, status_forcelist=(429, 500, 502, 503, 504), allowed_methods=frozenset(["GET", "HEAD"]))
+    retry = Retry(
+        total=MAX_RETRIES,
+        backoff_factor=1.5,
+        status_forcelist=(429, 500, 502, 503, 504),
+        allowed_methods=frozenset(["GET", "HEAD"]),
+    )
     adapter = HTTPAdapter(max_retries=retry, pool_connections=20, pool_maxsize=20)
     s.mount("http://", adapter)
     s.mount("https://", adapter)
     s.headers.update({
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-        "Accept": "*/*", "Accept-Encoding": "gzip, deflate",
+        "User-Agent": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                       "AppleWebKit/537.36 (KHTML, like Gecko) "
+                       "Chrome/122.0.0.0 Safari/537.36"),
+        "Accept": "*/*",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Connection": "keep-alive",
+        "Accept-Encoding": "gzip, deflate",
     })
     return s
 
 def decode_bytes(data):
     for enc in ("utf-8", "utf-8-sig", "latin-1"):
-        try: return data.decode(enc)
-        except Exception: continue
+        try:
+            return data.decode(enc)
+        except Exception:
+            continue
     return data.decode("utf-8", errors="ignore")
 
 def try_decompress(data, url, content_type):
     ct = (content_type or "").lower()
     low_url = url.lower()
+
     if low_url.endswith(".gz") or "gzip" in ct or data[:2] == b"\x1f\x8b":
-        try: return gzip.decompress(data)
+        try:
+            return gzip.decompress(data)
         except Exception:
-            try: return gzip.decompress(data[data.find(b"\x1f\x8b"):])
-            except Exception: pass
+            try:
+                return gzip.decompress(data[data.find(b"\x1f\x8b"):])
+            except Exception:
+                pass
+
     if low_url.endswith((".tgz", ".tar.gz")):
         try:
             with tarfile.open(fileobj=io.BytesIO(data), mode="r:gz") as tar:
-                chunks = [tar.extractfile(m).read() for m in tar.getmembers() if m.isfile() and tar.extractfile(m)]
-                if chunks: return b"\n".join(chunks)
-        except Exception: pass
+                chunks = []
+                for m in tar.getmembers():
+                    if m.isfile():
+                        f = tar.extractfile(m)
+                        if f:
+                            chunks.append(f.read())
+                if chunks:
+                    return b"\n".join(chunks)
+        except Exception:
+            pass
+
     if low_url.endswith(".zip") or "zip" in ct or data[:2] == b"PK":
         try:
             with zipfile.ZipFile(io.BytesIO(data)) as z:
-                chunks = [z.read(name) for name in z.namelist() if not name.endswith("/")]
-                if chunks: return b"\n".join(chunks)
-        except Exception: pass
+                chunks = []
+                for name in z.namelist():
+                    if name.endswith("/"):
+                        continue
+                    try:
+                        chunks.append(z.read(name))
+                    except Exception:
+                        pass
+                if chunks:
+                    return b"\n".join(chunks)
+        except Exception:
+            pass
+
     return data
 
 def fetch_full(session, url):
     r = None
     for verify in (True, False):
         try:
-            r = session.get(url, timeout=TIMEOUT, allow_redirects=True, verify=verify, stream=True)
+            r = session.get(
+                url,
+                timeout=TIMEOUT,
+                allow_redirects=True,
+                verify=verify,
+                stream=True,
+            )
             r.raise_for_status()
             break
-        except requests.exceptions.SSLError: continue
-        except Exception: return None, 0
-    if not r: return None, 0
+        except requests.exceptions.SSLError:
+            print("    [!] SSL error، إعادة المحاولة بدون تحقق...")
+            continue
+        except Exception as exc:
+            print(f"    [!] {exc}")
+            return None, 0, False  # 🔴 تم التصحيح هنا
+
+    if r is None:
+        return None, 0, False  # 🔴 تم التصحيح هنا
+
     chunks = []
     try:
         for chunk in r.iter_content(chunk_size=CHUNK_SIZE):
-            if chunk: chunks.append(chunk)
-    except Exception: pass
+            if chunk:
+                chunks.append(chunk)
+    except Exception as exc:
+        print(f"    [!] خطأ أثناء التحميل: {exc}")
+        pass
+
     body = b"".join(chunks)
-    if not body: return None, 0
+    if not body:
+        return None, 0, False  # 🔴 تم التصحيح هنا
+
     body = try_decompress(body, url, r.headers.get("Content-Type", ""))
     text = decode_bytes(body)
+
     head = text[:400].lstrip().lower()
     if head.startswith("<!doctype html") or head.startswith("<html"):
-        if "||" not in text and "0.0.0.0" not in text: return None, 0
-    return text, len(body)
+        if "||" not in text and "0.0.0.0" not in text:
+            print("    [!] محتوى HTML مش ليست، تجاهل")
+            return None, 0, False  # 🔴 تم التصحيح هنا
+
+    return text, len(body), True
 
 HOSTS_IP_RE    = re.compile(r"^([0-9a-fA-F:.]+)\s+([^\s#]+)")
 ADBLOCK_DOM_RE = re.compile(r"^([a-z0-9][a-z0-9.\-]*[a-z0-9])", re.I)
 
 def clean_domain(d: str) -> str:
-    if not d: return ""
+    if not d:
+        return ""
     d = re.split(r"[/:?#&|]", d)[0]
-    return d.strip(".").lower()
+    d = d.strip(".").lower()
+    return d
 
 def extract_domain(s):
-    if not s or len(s) > 1024: return None, None
-    if s.startswith("!") or s.startswith("#") or (s.startswith("[") and s.endswith("]")): return None, None
-    if is_complex_or_regex(s): return None, None
+    if not s:
+        return None, None
+    if len(s) > 1024:
+        return None, None
+
+    if s.startswith("!") or s.startswith("#") or (s.startswith("[") and s.endswith("]")):
+        return None, None
+    
+    if is_complex_or_regex(s):
+        return None, None
 
     m = HOSTS_IP_RE.match(s)
     if m:
-        host = clean_domain(m.group(2))
-        if not host or host in SKIP_HOSTS or not DOMAIN_RE.match(host): return None, None
+        raw_host = m.group(2)
+        host = clean_domain(raw_host)
+        if not host or host in SKIP_HOSTS:
+            return None, None
+        if not DOMAIN_RE.match(host):
+            return None, None
         return host, False
 
     allowed_flag = False
@@ -161,29 +241,43 @@ def extract_domain(s):
         s = s[2:]
 
     domain = None
+
     if s.startswith("||"):
-        m = ADBLOCK_DOM_RE.match(s[2:])
-        if m: domain = m.group(1)
+        rest = s[2:]
+        m = ADBLOCK_DOM_RE.match(rest)
+        if m:
+            domain = m.group(1)
     elif s.startswith("|"):
         rest = re.sub(r"^https?://", "", s[1:], flags=re.I)
         m = ADBLOCK_DOM_RE.match(rest)
-        if m: domain = m.group(1)
+        if m:
+            domain = m.group(1)
     else:
         tmp = re.sub(r"^https?://", "", s, flags=re.I)
         tmp = re.split(r"[/:?#&\s]", tmp)[0]
-        if DOMAIN_RE.match(tmp): domain = tmp
+        if DOMAIN_RE.match(tmp):
+            domain = tmp
 
-    if not domain: return None, None
+    if not domain:
+        return None, None
+
     domain = clean_domain(domain)
-    if not domain or domain in SKIP_HOSTS or not DOMAIN_RE.match(domain): return None, None
+
+    if not domain or domain in SKIP_HOSTS:
+        return None, None
+    if not DOMAIN_RE.match(domain):
+        return None, None
+
     return domain, allowed_flag
 
 def write_output(blocked_domains, allowed_domains, out_dir, max_bytes):
     os.makedirs(out_dir, exist_ok=True)
     for f in os.listdir(out_dir):
         if f.endswith(".txt"):
-            try: os.remove(os.path.join(out_dir, f))
-            except OSError: pass
+            try:
+                os.remove(os.path.join(out_dir, f))
+            except OSError:
+                pass
 
     total = len(blocked_domains) + len(allowed_domains)
     header = (
@@ -193,7 +287,9 @@ def write_output(blocked_domains, allowed_domains, out_dir, max_bytes):
         f"! Blocked domains: {len(blocked_domains)}\n"
         f"! Allowed domains: {len(allowed_domains)}\n"
         f"! Total domains:   {total}\n"
-        "! Generated: " + time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime()) + "\n!\n"
+        "! Generated: "
+        + time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime()) + "\n"
+        "!\n"
     )
     header_bytes = len(header.encode("utf-8"))
 
@@ -201,7 +297,8 @@ def write_output(blocked_domains, allowed_domains, out_dir, max_bytes):
 
     def flush():
         nonlocal idx, cur_lines, cur_size
-        if not cur_lines: return
+        if not cur_lines:
+            return
         name = "blacklist.txt" if idx == 1 else f"blacklist_{idx}.txt"
         path = os.path.join(out_dir, name)
         with open(path, "w", encoding="utf-8", newline="\n") as fh:
@@ -214,12 +311,17 @@ def write_output(blocked_domains, allowed_domains, out_dir, max_bytes):
     def add_line(line):
         nonlocal cur_lines, cur_size
         b = len(line.encode("utf-8"))
-        if cur_size + b > max_bytes and cur_lines: flush()
+        if cur_size + b > max_bytes and cur_lines:
+            flush()
         cur_lines.append(line)
         cur_size += b
 
-    for d in blocked_domains: add_line(f"||{d}^$important\n")
-    for d in allowed_domains: add_line(f"@@||{d}^$important\n")
+    for d in blocked_domains:
+        add_line(f"||{d}^$important\n")
+
+    for d in allowed_domains:
+        add_line(f"@@||{d}^$important\n")
+
     flush()
     return files
 
@@ -234,7 +336,7 @@ def main():
     total_regex_removed = 0
     total_hash_removed = 0
     total_lines_scanned = 0
-    total_valid_domains_found = 0  # 🔴 عدّاد جديد
+    total_valid_domains_found = 0 
 
     urls = read_urls(LIST_FILE)
     print(f"\n[+] عدد الروابط في list2.txt: {len(urls)}\n")
@@ -243,12 +345,14 @@ def main():
         print(f"[{i}/{len(urls)}] {url}")
         text, _, is_complete = fetch_full(session, url)
 
-        if not text: continue
+        if not text:
+            continue
 
         for line in text.splitlines():
             s = line.strip()
             total_lines_scanned += 1
-            if not s or len(s) > 1024: continue
+            if not s or len(s) > 1024:
+                continue
 
             if s.startswith("!") or s.startswith("#") or (s.startswith("[") and s.endswith("]")):
                 total_hash_removed += 1
@@ -258,11 +362,12 @@ def main():
                 total_regex_removed += 1
                 continue
 
-            # 🔴 التعديل الجوهري: تقسيم السطر لو فيه أكتر من دومين
             for part in re.split(r'\s+', s):
-                if not part: continue
+                if not part:
+                    continue
                 domain, allowed_flag = extract_domain(part)
-                if not domain: continue
+                if not domain:
+                    continue
                 
                 total_valid_domains_found += 1
                 
@@ -282,7 +387,7 @@ def main():
         if d in final_allowed:
             final_allowed.remove(d)
 
-    # 2. شيل الآباء من الوايت (لو الابن محظور، الأب لازم يتشال عشان الحظر يشتغل)
+    # 2. شيل الآباء من الوايت
     for d in final_blocked:
         parts = d.split('.')
         for i in range(1, len(parts) - 1):
@@ -306,7 +411,7 @@ def main():
     print()
     print(f"  🚫 الدومينات المحظورة الفريدة:   {len(final_blocked_list):,}")
     print(f"  ✅ الدومينات المسموحة الفريدة:   {len(final_allowed_list):,}")
-    print(f"  📦 الأسطر المتكررة اللي اتشالت:   {duplicates_removed:,}") # 🔴 يوريك المكرر
+    print(f"  📦 الأسطر المتكررة اللي اتشالت:   {duplicates_removed:,}")
     print("=" * 60)
 
     print("\n[+] كتابة الملفات...")
@@ -314,6 +419,12 @@ def main():
     for f in files:
         size = os.path.getsize(f)
         print(f"    ✅ {f}  ({size/1024/1024:.2f} MB)")
+        print("    🔍 معاينة (أول 5 أسطر):")
+        with open(f, "r", encoding="utf-8") as preview:
+            for _ in range(5):
+                print(f"       {preview.readline().strip()}")
+
+    print("\n[✓] خلص بنجاح")
 
 if __name__ == "__main__":
     main()
