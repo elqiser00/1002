@@ -2,9 +2,10 @@
 # -*- coding: utf-8 -*-
 """
 Adguard-Adblock-only Builder
-- Pure Domains Only
+- Pure Domains Only (Zero Regex, Zero Headers)
 - Literal De-duplication
 - Universal Parent Removal: For ANY blocked domain, remove its parents from both Block and Allow lists.
+- Exact Match Block Wins.
 """
 
 import os
@@ -264,14 +265,14 @@ def main():
     final_blocked = set(blocked)
     final_allowed = set(allowed)
 
-    # 1. الحظر يكسب في حالة التطابق الحرفي
+    # 1. الحظر يكسب في حالة التطابق الحرفي (لو الدومين موجود في الاتنين، يفضل محظور)
     final_allowed -= final_blocked
 
-    # 2. نجيب الآباء لأي دومين محظور ونشيلهم من الاتنين
+    # 2. نجيب الآباء لأي دومين محظور ونشيلهم من الاتنين (الحظر والسماح)
     parents_to_remove = set()
     for d in final_blocked:
         parts = d.split('.')
-        # i=1 يبدأ من الأب المباشر، len(parts)-1 عشان ميلمسش الـ TLD
+        # i=1 يبدأ من الأب المباشر، len(parts)-1 عشان ميلمسش الـ TLD (زي .com)
         for i in range(1, len(parts) - 1):
             parent = ".".join(parts[i:])
             parents_to_remove.add(parent)
