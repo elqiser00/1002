@@ -494,4 +494,6 @@
 ||rdap.org^$important
 ||rdap.db.ripe.net^$important
 ||wns2-par02p.wns.windows.com^$important
+||us.ynuf.aliapp.org^$important
+||ynuf.aliapp.org^$important
 ||pool.ntp.org^$important
