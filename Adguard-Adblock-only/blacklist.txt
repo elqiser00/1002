@@ -1,10 +1,10 @@
 [Adblock Plus 2.0]
 ! Title: Adguard Adblock only
-! Description: Pure Domains (Parents removed from both)
+! Description: Pure Domains (Universal Parent Removal)
 ! Blocked domains: 1269495
 ! Allowed domains: 830
 ! Total domains:   1270325
-! Generated: 2026-11-12 14:12:08 UTC
+! Generated: 2026-11-12 14:13:46 UTC
 !
 ||0--d.com^
 ||0-02.net^
