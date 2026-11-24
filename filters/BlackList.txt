@@ -249,10 +249,6 @@
 ||tagmanager.google.com^$important
 ||i.instagram.com^$important
 ||ngfts.lge.com^$important
-||mssdk22-normal-alisg.tiktokv.com^$important
-||geomobileservices-pa.googleapis.com^$important
-||grs.hihonorcloud.com^$important
-||firebaseinstallations.googleapis.com^$important
 ||oshola.shalltry.com^$important
 ||oslab.shalltry.com^$important
 ||tms-api.shalltry.com^$important
@@ -276,7 +272,6 @@
 ||cdn.micro.pop-convert.com^$important
 ||micro.pop-convert.com^$important
 ||sdk.pop-convert.com^$important
-||appsgrowthpromo-pa.googleapis.com^$important
 ||cai.iteldrive.com^$important
 ||notifications-ueeshp-pa.googleapis.com^$important
 ||cdn.pop-convert.com^$important
@@ -450,7 +445,6 @@
 ||irl-api.twibida.com^$important
 ||3-45-e2189791-ee92-4779-90c1-2136617228b2.config.mobilegamestats.com^$important
 ||img.04591.shop^$important
-||gs-loc.apple.com^$important
 ||a.nel.cloudflare.com^$important
 ||reyeshehadtwobri.com^$important
 ||registeridm.com^$important
