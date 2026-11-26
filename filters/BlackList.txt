@@ -1280,3 +1280,4 @@
 ||ypu.samsungelectronics.com^$important
 ||z6v2p9a8.bkcdn.net^$important
 ||zpu.samsungelectronics.com^$important
+||unified.adsafeprotected.com^$important
