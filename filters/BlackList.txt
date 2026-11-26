@@ -499,3 +499,4 @@
 ||sponsored-ads.amazon.eg^$important
 ||app-gateway-ms.thelucky.io^$important
 ||clevertap-prod.com^$important
+||gecko-pangle-sg.byteoversea.com^$important
